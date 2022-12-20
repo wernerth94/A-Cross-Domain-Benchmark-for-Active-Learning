@@ -4,10 +4,6 @@ sys.path.append("agents")
 sys.path.append("core")
 sys.path.append("datasets")
 sys.path.append("experiments")
-sys.path.append("../agents")
-sys.path.append("../core")
-sys.path.append("../datasets")
-sys.path.append("../experiments")
 print(F"updated path is {sys.path}")
 
 import getpass

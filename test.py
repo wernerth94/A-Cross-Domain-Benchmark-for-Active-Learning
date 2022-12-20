@@ -12,7 +12,7 @@ torch.random.manual_seed(42)
 
 SAMPLE_SIZE = 20
 
-dataset = Splice(cache_folder="../../datasets")
+dataset = Splice(cache_folder="../datasets")
 dataset = dataset.to(util.device)
 env = ALGame(dataset,
              SAMPLE_SIZE,
@@ -20,7 +20,7 @@ env = ALGame(dataset,
              Coreset_Greedy.create_state_callback,
              device=util.device)
 agent = Coreset_Greedy()
-log_path = os.path.join("../runs", dataset.name, agent.name)
+log_path = os.path.join("runs", dataset.name, agent.name)
 
 with EnvironmentLogger(env, log_path) as env:
     for _ in range(2):
