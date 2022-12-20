@@ -9,7 +9,7 @@ from core.classifier import get_dense_sequential_model
 
 class Splice(BaseDataset):
 
-    def __init__(self, budget=900, initial_points_per_class=1,
+    def __init__(self, budget=9, initial_points_per_class=1,
                  cache_folder:str="~/.al_benchmark/datasets"):
         super().__init__(budget, initial_points_per_class, cache_folder)
 
