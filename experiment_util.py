@@ -3,12 +3,11 @@ import sys
 sys.path.append("agents")
 sys.path.append("core")
 sys.path.append("datasets")
-sys.path.append("experiments")
 print(F"updated path is {sys.path}")
 
 import getpass
 print(F"The user is: {getpass.getuser()}")
-print(F"The virtualenv is: {sys.prefix}")
+print(F"The virtualenv is: {sys.prefix}\n\n")
 
 # fixing hdf5 file writing on the cluster
 import os

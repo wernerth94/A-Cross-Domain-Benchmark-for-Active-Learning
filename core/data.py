@@ -74,7 +74,7 @@ class BaseDataset(ABC):
     def _load_or_download_data(self):
         data = self._load_data()
         if data is None:
-            print("No local copy found. Downloading Data...")
+            print(f"No local copy found under {self.cache_folder}. Downloading Data...")
             self._download_data()
             self._normalize_data()
             self._convert_data_to_tensors()
