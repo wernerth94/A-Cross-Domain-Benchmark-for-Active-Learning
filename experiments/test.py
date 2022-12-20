@@ -6,16 +6,19 @@ from core.logging import EnvironmentLogger
 import torch
 import numpy
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 numpy.random.seed(42)
 torch.random.manual_seed(42)
 
 SAMPLE_SIZE = 20
 
 dataset = Splice(cache_folder="../../datasets")
+dataset = dataset.to(device)
 env = ALGame(dataset,
              SAMPLE_SIZE,
              Coreset_Greedy.get_classifier_factory(),
-             Coreset_Greedy.create_state_callback)
+             Coreset_Greedy.create_state_callback,
+             device=device)
 agent = Coreset_Greedy()
 log_path = os.path.join("../runs", dataset.name, agent.name)
 

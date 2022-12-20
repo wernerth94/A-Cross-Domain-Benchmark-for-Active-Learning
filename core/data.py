@@ -97,6 +97,20 @@ class BaseDataset(ABC):
         self.y_test = to_torch(self.y_test, torch.float32, device=self.device)
 
 
+    def to(self, device):
+        """
+        This mirrors the behavior of tensor.to(device), but without copying the data
+        :param device: cuda or cpu
+        :return: self
+        """
+        for attr in dir(self):
+            if not attr.startswith('__'):
+                value = getattr(self, attr)
+                if type(value) == torch.Tensor:
+                    setattr(self, attr, value.to(device))
+        return self
+
+
 
 ##################################################################
 # Data loading functions, etc.
