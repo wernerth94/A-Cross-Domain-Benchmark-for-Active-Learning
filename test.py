@@ -6,6 +6,7 @@ from core.environment import ALGame
 from core.logging import EnvironmentLogger
 import torch
 import numpy
+from tqdm import tqdm
 
 numpy.random.seed(42)
 torch.random.manual_seed(42)
@@ -23,7 +24,7 @@ agent = Coreset_Greedy()
 log_path = os.path.join("runs", dataset.name, agent.name)
 
 with EnvironmentLogger(env, log_path) as env:
-    for _ in range(2):
+    for _ in tqdm(range(50)):
         done = False
         state = env.reset()
         while not done:
