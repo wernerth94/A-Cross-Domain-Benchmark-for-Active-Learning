@@ -12,6 +12,7 @@ class BaseDataset(ABC):
 
     def __init__(self, budget:int,
                  initial_points_per_class:int,
+                 classifier_batch_size:int,
                  cache_folder:str="~/.al_benchmark/datasets",
                  device=None,
                  class_fitting_mode:Literal["from_scratch", "finetuning", "single_sample"]="finetuning"):
@@ -21,6 +22,7 @@ class BaseDataset(ABC):
         else:
             self.device = device
         self.budget = budget
+        self.classifier_batch_size = classifier_batch_size
         self.class_fitting_mode = class_fitting_mode
         self.cache_folder = cache_folder
         self.initial_points_per_class = initial_points_per_class

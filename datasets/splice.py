@@ -9,9 +9,9 @@ from core.classifier import get_dense_sequential_model
 
 class Splice(BaseDataset):
 
-    def __init__(self, budget=900, initial_points_per_class=1,
+    def __init__(self, budget=900, initial_points_per_class=1, classifier_batch_size=43,
                  cache_folder:str="~/.al_benchmark/datasets"):
-        super().__init__(budget, initial_points_per_class, cache_folder)
+        super().__init__(budget, initial_points_per_class, classifier_batch_size, cache_folder)
 
 
     def _download_data(self):

@@ -139,11 +139,11 @@ class ALGame(gym.Env):
         return reward
 
 
-    def _fit_classifier(self, epochs=50, batch_size=128, from_scratch=False):
+    def _fit_classifier(self, epochs=50, from_scratch=False):
         if from_scratch:
             self.classifier.load_state_dict(self.initial_weights)
 
-        train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled), batch_size=batch_size)
+        train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled), batch_size=self.dataset.classifier_batch_size)
         test_dataloader = DataLoader(TensorDataset(self.dataset.x_test, self.dataset.y_test), batch_size=100)
 
         lastLoss = torch.inf
