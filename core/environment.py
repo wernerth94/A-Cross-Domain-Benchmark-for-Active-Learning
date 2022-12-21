@@ -179,13 +179,13 @@ class ALGame(gym.Env):
         return reward
 
 
-    def fit_classifier(self, epochs=50, batch_size=128):
+    def fit_classifier(self, epochs=50):
         if self.fitting_mode == "from_scratch":
-            return self._fit_classifier(epochs, batch_size, from_scratch=True)
+            return self._fit_classifier(epochs, from_scratch=True)
         elif self.fitting_mode == "finetuning":
-            return self._fit_classifier(epochs, batch_size, from_scratch=False)
+            return self._fit_classifier(epochs, from_scratch=False)
         elif self.fitting_mode == "one_epoch":
-            return self._fit_classifier(1, batch_size, from_scratch=False)
+            return self._fit_classifier(1, from_scratch=False)
         elif self.fitting_mode == "single_sample":
             return self._fit_classifier_single_sample()
         else:
