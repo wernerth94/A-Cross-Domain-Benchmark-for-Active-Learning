@@ -1,7 +1,7 @@
 import experiment_util as util
 import os
 from datasets.splice import Splice
-from agents.coreset import Coreset_Greedy
+from agents.random_agent import RandomAgent
 from core.environment import ALGame
 from core.logging import EnvironmentLogger
 import torch
@@ -17,9 +17,9 @@ dataset = Splice(cache_folder="../datasets")
 dataset = dataset.to(util.device)
 env = ALGame(dataset,
              SAMPLE_SIZE,
-             Coreset_Greedy.create_state_callback,
+             RandomAgent.create_state_callback,
              device=util.device)
-agent = Coreset_Greedy()
+agent = RandomAgent()
 log_path = os.path.join("runs", dataset.name, agent.name)
 
 with EnvironmentLogger(env, log_path) as env:

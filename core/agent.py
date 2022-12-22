@@ -13,11 +13,6 @@ class BaseAgent(ABC):
 
     @classmethod
     @abstractmethod
-    def get_classifier_factory(cls)->Callable:
-        pass
-
-    @classmethod
-    @abstractmethod
     def create_state_callback(cls, state_ids:list[int],
                               x_unlabeled:Tensor, y_unlabeled:Tensor,
                               x_labeled:Tensor, y_labeled:Tensor,

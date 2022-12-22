@@ -12,7 +12,6 @@ class ALGame(gym.Env):
 
     def __init__(self, dataset:BaseDataset,
                  labeled_sample_size,
-                 classifier_factory:Callable,
                  create_state_callback:Callable,
                  device=None):
         if device is None:
@@ -29,7 +28,6 @@ class ALGame(gym.Env):
         else:
             self.loss = nn.CrossEntropyLoss()
         self.create_state_callback = create_state_callback
-        self.classifier_factory = classifier_factory
 
         # set gym observation space and action space
         self.current_test_accuracy = 0.0
@@ -48,7 +46,7 @@ class ALGame(gym.Env):
         with torch.no_grad():
             self.n_interactions = 0
             self.added_images = 0
-            self.classifier = self.dataset.get_classifier(self.classifier_factory)
+            self.classifier = self.dataset.get_classifier()
             self.classifier.to(self.device)
             self.initial_weights = self.classifier.state_dict()
             self.optimizer = self.dataset.get_optimizer(self.classifier)

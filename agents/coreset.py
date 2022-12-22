@@ -6,7 +6,6 @@ from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
 from core.agent import BaseAgent
-from core.classifier import DenseCoresetModel
 
 
 class Coreset_Greedy(BaseAgent):
@@ -16,19 +15,15 @@ class Coreset_Greedy(BaseAgent):
     """
 
     @classmethod
-    def get_classifier_factory(cls) -> Callable:
-        return DenseCoresetModel
-
-    @classmethod
     def create_state_callback(cls, state_ids: list[int],
                               x_unlabeled: Tensor, y_unlabeled: Tensor,
                               x_labeled: Tensor, y_labeled: Tensor,
                               per_class_instances: dict,
                               classifier: Module, optimizer: Optimizer) -> Union[Tensor, dict]:
-        assert hasattr(classifier, "get_features"), "The provided model needs the 'get_features' function"
+        assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
         with torch.no_grad():
-            labeled_features = classifier.get_features(x_labeled)
-            unlabeled_features = classifier.get_features(x_unlabeled[state_ids])
+            labeled_features = classifier._encode(x_labeled)
+            unlabeled_features = classifier._encode(x_unlabeled[state_ids])
         return {
             "labeled_features" : labeled_features,
             "unlabeled_features": unlabeled_features

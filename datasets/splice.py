@@ -5,7 +5,7 @@ import torch.nn as nn
 import numpy as np
 from sklearn.datasets import load_svmlight_file
 from core.data import BaseDataset, normalize, postprocess_svm_data
-from core.classifier import get_dense_sequential_model
+from core.classifier import DenseModel
 
 class Splice(BaseDataset):
 
@@ -76,10 +76,10 @@ class Splice(BaseDataset):
         self.x_train, self.x_test = normalize(self.x_train,self.x_test, mode="min_max")
 
 
-    def get_classifier(self, factory:Callable, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
-        return factory(input_size=self.x_test.size(1),
-                       num_classes=self.y_test.size(1),
-                       hidden_sizes=hidden_dims)
+    def get_classifier(self, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
+        return DenseModel(input_size=self.x_test.size(1),
+                          num_classes=self.y_test.size(1),
+                          hidden_sizes=hidden_dims)
 
 
     def get_optimizer(self, model) -> torch.optim.Optimizer:

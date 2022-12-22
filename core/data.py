@@ -60,7 +60,7 @@ class BaseDataset(ABC):
         pass
 
     @abstractmethod
-    def get_classifier(self, factory:Callable)->Module:
+    def get_classifier(self)->Module:
         '''
         This creates a torch model that serves as a classification model for this dataset
         :return: PyTorch Model
