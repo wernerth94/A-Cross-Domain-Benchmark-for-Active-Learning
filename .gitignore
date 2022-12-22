@@ -1,4 +1,14 @@
 .idea
+*/__pycache__
 venv
 
 runs
+
+# Latex files
+doc/*.aux
+doc/*.log
+doc/*.bbl
+doc/*.blg
+doc/*.out
+doc/*.pdf
+doc/*.synctex.gz

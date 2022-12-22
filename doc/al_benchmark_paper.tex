@@ -1,0 +1,59 @@
+\documentclass[]{article}
+\usepackage[a4paper, total={6.5in, 8.5in}]{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\title{Towards Comparable Active Learning}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+
+\subsection{Contribution}
+\begin{itemize}
+	\item Benchmark suit for Active Learning
+	\item Properly optimized classification models
+	\item Multiple use-cases: Single Dataset, Dataset Transfer
+	\item Multiple Domains: Tabular, Image, Text
+\end{itemize}
+
+\section{Related Work}
+
+\section{Overview}
+
+\section{Methodology}
+
+\subsection{Classification Model}
+The classifier is constructed according to two kinds of information.
+The general class of model (Dense, Convolutional, Attention, ...), and the configuration of the model (number of layers, size of each layer, ...). \\
+The model class and exact configuration is determined by the dataset, i.e. tabular datasets will prescribe a dense model.
+If special capabilities of the model are needed (i.e. Monte-Carlo Dropout), an extension of the given model class can be provided to the framework. \\ [1mm]
+To ensure comparability between models, the model's configuration should not be changed or an additional evaluation of the new configuration should be conducted to compare the baseline expressivity.
+
+\subsection{State Space}
+Since every AL agent needs a different state space our environment exposes a callback-function that gives the agent full control over how the state is constructed. \\ [1mm]
+The callback includes the following information:
+\begin{itemize}
+	\item The current sample of IDs that point to the presented unlabeled datapoints
+	\item The entire labeled dataset $\mathcal{L}$
+	\item The entire unlabeled dataset $\mathcal{U}$
+	\item A histogram of labeled points per class (simple count)
+	\item The current classification model including all model weights
+	\item The current optimizer including it's full state
+\end{itemize}
+Every agent needs to implement this callback that transforms the given information into a state tensor that will be directly consumed by the agent to make it's prediction.
+
+
+\bibliographystyle{plain}
+\bibliography{main.bib} 
+
+
+\end{document}
