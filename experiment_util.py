@@ -7,7 +7,7 @@ print(F"updated path is {sys.path}")
 
 import getpass
 print(F"The user is: {getpass.getuser()}")
-print(F"The virtualenv is: {sys.prefix}\n\n")
+print(F"The virtualenv is: {sys.prefix}\n")
 
 # fixing hdf5 file writing on the cluster
 import os

@@ -10,6 +10,7 @@ class BaseAgent(ABC):
 
     def __init__(self):
         self.name = str(self.__class__).split('.')[-1][:-2]
+        print(f"Loaded Agent: {self.name}")
 
     @classmethod
     @abstractmethod

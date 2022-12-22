@@ -141,8 +141,11 @@ class ALGame(gym.Env):
         if from_scratch:
             self.classifier.load_state_dict(self.initial_weights)
 
-        train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled), batch_size=self.dataset.classifier_batch_size)
-        test_dataloader = DataLoader(TensorDataset(self.dataset.x_test, self.dataset.y_test), batch_size=100)
+        train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
+                                      batch_size=self.dataset.classifier_batch_size,
+                                      shuffle=True, num_workers=4)
+        test_dataloader = DataLoader(TensorDataset(self.dataset.x_test, self.dataset.y_test), batch_size=100,
+                                     num_workers=4)
 
         lastLoss = torch.inf
         for e in range(epochs):
