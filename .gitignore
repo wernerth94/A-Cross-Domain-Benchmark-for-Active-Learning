@@ -4,6 +4,9 @@ venv
 
 runs
 
+# Cluster run files
+*.sh
+
 # Latex files
 doc/*.aux
 doc/*.log
