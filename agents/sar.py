@@ -1,12 +1,111 @@
-from typing import Union, Callable
+from typing import Union, Callable, Any, Dict, Optional
 import os
 import numpy as np
 from sklearn.metrics import pairwise_distances
 import torch
 from torch import Tensor
+import torch.nn as nn
 from torch.nn import Module
 from torch.optim import Optimizer
 from core.agent import BaseAgent
+from tianshou.policy import BasePolicy
+from tianshou.data import Batch, to_numpy, to_torch_as
+
+class TimeDistributedNet(Module):
+    def __init__(self, state_space, n_hidden, num_layers=0):
+        super().__init__()
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        additional_layers = [nn.Linear(n_hidden, n_hidden), nn.LeakyReLU()]*num_layers
+        self.net = nn.Sequential(nn.Linear(state_space, n_hidden),
+                                 nn.LeakyReLU(),
+                                 *additional_layers,
+                                 nn.Linear(n_hidden, 1),)
+    def forward(self, input, *args, **kwargs):
+        input = torch.as_tensor(input, device=self.device, dtype=torch.float32)
+        return self.net(input)
+
+class TianTimeDistributedNet(TimeDistributedNet):
+
+    def forward(self, input, *args, **kwargs):
+        logits = super().forward(input, *args, **kwargs )
+        logits = logits.squeeze(dim=-1) # get rid of time distributed dimensions
+        return logits, None # no hidden state
+
+
+class SurrogatePolicy(BasePolicy):
+
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        optim: torch.optim.Optimizer,
+        clip_loss_grad: bool = False,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.model = model
+        self.optim = optim
+        self.eps = 0.0
+        self._gamma = 0.0
+        self._n_step = 1
+        self._iter = 0
+        self._clip_loss_grad = clip_loss_grad
+
+
+    def learn(self, batch: Batch, **kwargs: Any) -> Dict[str, Any]:
+        self.optim.zero_grad()
+        batch.to_torch()
+        q = self(batch).logits
+        # q = q[np.arange(len(q)), batch.act]
+        q = torch.squeeze(q)
+        returns = to_torch_as(batch.rew.flatten(), q)
+        td_error = returns - q
+
+        weight = to_torch_as(batch.pop("weight", 1.0), q)
+        if self._clip_loss_grad:
+            y = q.reshape(-1, 1)
+            t = returns.reshape(-1, 1)
+            loss = torch.nn.functional.huber_loss(y, t, reduction="mean")
+        else:
+            loss = (td_error.pow(2) * weight).mean()
+
+        batch.weight = td_error
+        loss.backward()
+        self.optim.step()
+        self._iter += 1
+        return {"loss": loss.item()}
+
+
+    def forward(self, batch: Batch,
+                state: Optional[Union[dict, Batch, np.ndarray]] = None,
+                **kwargs: Any) -> Batch:
+        obs = batch.obs
+        q = self.model(obs, state=state, info=batch.info)
+        q = q[0] # we don't deal with hidden states
+        if not hasattr(self, "max_action_num"):
+            self.max_action_num = q.shape[1]
+        act = to_numpy(q.max(dim=1)[1])
+        return Batch(logits=q, act=act, state=None)
+
+
+    def set_eps(self, eps: float) -> None:
+        """Set the eps for epsilon-greedy exploration."""
+        self.eps = eps
+
+
+    def exploration_noise(
+        self,
+        act: Union[np.ndarray, Batch],
+        batch: Batch,
+    ) -> Union[np.ndarray, Batch]:
+        if isinstance(act, np.ndarray) and not np.isclose(self.eps, 0.0):
+            bsz = len(act)
+            rand_mask = np.random.rand(bsz) < self.eps
+            q = np.random.rand(bsz, self.max_action_num)  # [0, 1]
+            if hasattr(batch.obs, "mask"):
+                q += batch.obs.mask
+            rand_act = q.argmax(axis=1)
+            act[rand_mask] = rand_act[rand_mask]
+        return act
 
 
 class SAR(BaseAgent):
@@ -18,7 +117,12 @@ class SAR(BaseAgent):
         chkpt_path = os.path.join("agents/checkpoints", file)
         if not os.path.exists(chkpt_path):
             raise ValueError(f"Checkpoint {chkpt_path} does not exist")
-        agent = torch.load(chkpt_path, map_location=device)
+        state_shape = 16
+        hidden_sizes = 3*72
+        net = TianTimeDistributedNet(state_shape, hidden_sizes).to(device)
+        _ = torch.optim.Adam(net.parameters())
+        agent = SurrogatePolicy(net, _)
+        agent.load_state_dict(torch.load(chkpt_path, map_location=device))
         agent.model.device = device
         agent.model = agent.model.to(device)
         agent.device = device
@@ -73,9 +177,10 @@ class SAR(BaseAgent):
 
 
     def predict(self, state:Union[Tensor, dict], greed:float=0.0) ->Tensor:
-        candidates = state["unlabeled_features"]
-        centers = state["labeled_features"]
-        dist = pairwise_distances(candidates, centers, metric='euclidean')
-        dist = np.min(dist, axis=1).reshape(-1, 1)
-        dist = torch.from_numpy(dist)
-        return torch.argmax(dist, dim=0)
+        data = Batch({
+            "obs": torch.unsqueeze(state, dim=0),
+            "truncated": False,
+            "info": Batch(),
+        })
+        result = self.agent(data)
+        return torch.from_numpy(result.act)

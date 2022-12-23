@@ -13,7 +13,7 @@ import numpy
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--agent", type=str, default="random")
+parser.add_argument("--agent", type=str, default="agent")
 args = parser.parse_args()
 
 if args.agent == "random":
