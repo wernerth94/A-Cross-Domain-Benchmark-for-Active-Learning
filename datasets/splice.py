@@ -77,9 +77,23 @@ class Splice(BaseDataset):
 
 
     def get_classifier(self, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
-        return DenseModel(input_size=self.x_test.size(1),
-                          num_classes=self.y_test.size(1),
-                          hidden_sizes=hidden_dims)
+        input_size = self.x_test.size(1)
+        # return get_dense_sequential_model(input_size=input_size,
+        #                    num_classes=self.y_test.size(1),
+        #                    hidden_sizes=hidden_dims)
+        model = DenseModel(input_size=input_size,
+                           num_classes=self.y_test.size(1),
+                           hidden_sizes=hidden_dims)
+        # with torch.no_grad():
+        #     example_forward_input = torch.rand(1, input_size)
+        #     example_encode_input = torch.rand(1, input_size)
+        #     inpt = {
+        #         "_encode": example_encode_input,
+        #         "forward": example_forward_input
+        #     }
+        #     model = torch.jit.trace_module(model, inpt)
+        return model
+
 
 
     def get_optimizer(self, model) -> torch.optim.Optimizer:

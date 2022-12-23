@@ -5,6 +5,7 @@ from agents.random_agent import RandomAgent
 from agents.shannon_entropy import ShannonEntropy
 from agents.margin import MarginScore
 from agents.coreset import Coreset_Greedy
+from agents.sar import SAR
 from core.environment import ALGame
 from core.logging import EnvironmentLogger
 import torch
@@ -12,7 +13,7 @@ import numpy
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--agent", type=str, default="margin")
+parser.add_argument("--agent", type=str, default="random")
 args = parser.parse_args()
 
 if args.agent == "random":
@@ -23,6 +24,8 @@ elif args.agent == "margin":
     AgentClass = MarginScore
 elif args.agent == "coreset":
     AgentClass = Coreset_Greedy
+elif args.agent == "agent":
+    AgentClass = SAR
 else:
     raise ValueError(f"Agent name '{args.agent}' not recognized")
 

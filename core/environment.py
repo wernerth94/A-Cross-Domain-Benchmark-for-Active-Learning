@@ -64,9 +64,11 @@ class ALGame(gym.Env):
 
     def create_state(self):
         state = self.create_state_callback(self.state_ids,
-                                           self.x_unlabeled, self.y_unlabeled,
+                                           self.x_unlabeled,
                                            self.x_labeled, self.y_labeled,
                                            self.per_class_instances,
+                                           self.budget, self.added_images,
+                                           self.initial_test_accuracy, self.current_test_accuracy,
                                            self.classifier, self.optimizer)
         return state
 

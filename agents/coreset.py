@@ -16,9 +16,11 @@ class Coreset_Greedy(BaseAgent):
 
     @classmethod
     def create_state_callback(cls, state_ids: list[int],
-                              x_unlabeled: Tensor, y_unlabeled: Tensor,
+                              x_unlabeled: Tensor,
                               x_labeled: Tensor, y_labeled: Tensor,
                               per_class_instances: dict,
+                              budget:int, added_images:int,
+                              initial_test_acc:float, current_test_acc:float,
                               classifier: Module, optimizer: Optimizer) -> Union[Tensor, dict]:
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
         with torch.no_grad():

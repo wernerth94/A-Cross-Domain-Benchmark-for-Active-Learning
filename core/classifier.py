@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
+import torch
 
 class DenseModel(nn.Module):
     def __init__(self, input_size:int, num_classes:int, hidden_sizes:tuple):
@@ -26,6 +27,6 @@ class DenseModel(nn.Module):
         x = self.out(x)
         return x
 
-    def __call__(self, *args, **kwargs):
-        return self.forward(*args, **kwargs)
+    # def __call__(self, *args, **kwargs):
+    #     return self.forward(*args, **kwargs)
 
