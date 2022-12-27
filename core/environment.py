@@ -1,9 +1,7 @@
-from typing import Literal, Callable, Tuple
-import gc
+from typing import Callable, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 import gym
 from core.data import BaseDataset

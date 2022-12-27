@@ -1,7 +1,6 @@
-from typing import Union, Callable, Any, Dict, Optional
+from typing import Union, Any, Dict, Optional
 import os
 import numpy as np
-from sklearn.metrics import pairwise_distances
 import torch
 from torch import Tensor
 import torch.nn as nn
@@ -109,6 +108,9 @@ class SurrogatePolicy(BasePolicy):
 
 
 class SAR(BaseAgent):
+    """
+    Top-Level Shell for the framework
+    """
 
     def __init__(self, file="sar_13_12_22.pth", device=None):
         super().__init__()
@@ -128,6 +130,7 @@ class SAR(BaseAgent):
         agent.device = device
         self.agent = agent.to(device)
 
+
     @classmethod
     def create_state_callback(cls, state_ids: list[int],
                               x_unlabeled: Tensor,
@@ -145,6 +148,7 @@ class SAR(BaseAgent):
             state = state.cpu()
         return state
 
+
     @classmethod
     def _get_internal_features(cls, initial_test_acc, current_test_accuracy, added_images, budget):
         current_acc = torch.Tensor([current_test_accuracy]).cpu()
@@ -152,6 +156,7 @@ class SAR(BaseAgent):
         avrg_improvement = torch.divide(improvement, max(1, added_images))
         progress = torch.Tensor([added_images / float(budget)]).cpu()
         return torch.cat([current_acc, improvement, avrg_improvement, progress])
+
 
     @classmethod
     def _get_sample_features(cls, x, classifier, n_classes):
@@ -172,8 +177,6 @@ class SAR(BaseAgent):
             hist
         ], dim=1)
         return state.cpu()
-
-
 
 
     def predict(self, state:Union[Tensor, dict], greed:float=0.0) ->Tensor:
