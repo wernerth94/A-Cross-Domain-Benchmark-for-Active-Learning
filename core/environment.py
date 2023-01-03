@@ -180,7 +180,7 @@ class ALGame(gym.Env):
         return reward
 
 
-    def fit_classifier(self, epochs=50):
+    def fit_classifier(self, epochs=100):
         if self.fitting_mode == "from_scratch":
             return self._fit_classifier(epochs, from_scratch=True)
         elif self.fitting_mode == "finetuning":
