@@ -14,6 +14,7 @@ from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--agent", type=str, default="agent")
+parser.add_argument("--seed", type=int, default=42)
 args = parser.parse_args()
 
 if args.agent == "random":
@@ -29,8 +30,8 @@ elif args.agent == "agent":
 else:
     raise ValueError(f"Agent name '{args.agent}' not recognized")
 
-numpy.random.seed(42)
-torch.random.manual_seed(42)
+numpy.random.seed(args.seed)
+torch.random.manual_seed(args.seed)
 
 SAMPLE_SIZE = 20
 

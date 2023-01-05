@@ -19,9 +19,12 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 is_cluster = 'miniconda3' in sys.prefix
 
 def save_meta_data(logpath, agent, env, dataset):
+    if not os.path.exists(logpath):
+        os.makedirs(logpath, exist_ok=True)
     file = os.path.join(logpath, "meta.txt")
     if os.path.exists(file):
         os.remove(file)
+
     with open(file, "w") as f:
         if hasattr(dataset, "get_meta_data"):
             f.write("# Dataset: \n")
