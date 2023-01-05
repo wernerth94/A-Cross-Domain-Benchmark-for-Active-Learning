@@ -26,3 +26,7 @@ class BaseAgent(ABC):
     @abstractmethod
     def predict(self, state:Union[Tensor, dict], greed:float=0.0)->Tensor:
         pass
+
+
+    def get_meta_data(self)->str:
+        return f"{self.name}"

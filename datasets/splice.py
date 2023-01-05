@@ -5,7 +5,7 @@ import torch.nn as nn
 import numpy as np
 from sklearn.datasets import load_svmlight_file
 from core.data import BaseDataset, normalize, postprocess_svm_data
-from core.classifier import DenseModel, get_dense_sequential_model
+from core.classifier import DenseModel#, get_dense_sequential_model
 
 class Splice(BaseDataset):
 
@@ -78,12 +78,12 @@ class Splice(BaseDataset):
 
     def get_classifier(self, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
         input_size = self.x_test.size(1)
-        return get_dense_sequential_model(input_size=input_size,
-                           num_classes=self.y_test.size(1),
-                           hidden_sizes=hidden_dims)
-        # model = DenseModel(input_size=input_size,
+        # return get_dense_sequential_model(input_size=input_size,
         #                    num_classes=self.y_test.size(1),
         #                    hidden_sizes=hidden_dims)
+        model = DenseModel(input_size=input_size,
+                           num_classes=self.y_test.size(1),
+                           hidden_sizes=hidden_dims)
         # with torch.no_grad():
         #     example_forward_input = torch.rand(1, input_size)
         #     example_encode_input = torch.rand(1, input_size)
@@ -97,4 +97,10 @@ class Splice(BaseDataset):
 
 
     def get_optimizer(self, model) -> torch.optim.Optimizer:
-        return torch.optim.NAdam(model.parameters(), lr=0.001)
+        return torch.optim.NAdam(model.parameters(), lr=0.001,
+                                 weight_decay=0.0)
+
+    def get_meta_data(self)->str:
+        s = super().get_meta_data()
+        return f"{s}\n" \
+               f"Budget: {self.budget}"

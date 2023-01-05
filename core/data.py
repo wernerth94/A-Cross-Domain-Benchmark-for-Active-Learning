@@ -15,7 +15,7 @@ class BaseDataset(ABC):
                  classifier_batch_size:int,
                  cache_folder:str="~/.al_benchmark/datasets",
                  device=None,
-                 class_fitting_mode:Literal["from_scratch", "finetuning", "single_sample"]="finetuning"):
+                 class_fitting_mode:Literal["from_scratch", "finetuning"]="finetuning"):
         assert isinstance(budget, int) and budget > 0, f"The budget {budget} is invalid"
         if device is None:
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -111,6 +111,9 @@ class BaseDataset(ABC):
                 if type(value) == torch.Tensor:
                     setattr(self, attr, value.to(device))
         return self
+
+    def get_meta_data(self)->str:
+        return f"{self.name}"
 
 
 

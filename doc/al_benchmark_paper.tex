@@ -45,7 +45,10 @@ The callback includes the following information:
 	\item The current sample of IDs that point to the presented unlabeled datapoints
 	\item The entire labeled dataset $\mathcal{L}$
 	\item The entire unlabeled dataset $\mathcal{U}$
-	\item A histogram of labeled points per class (simple count)
+	\item A histogram of labeled points per class (count)
+	\item The available budget
+	\item Number of added datapoints $|\mathcal{L}| - |\mathcal{S}|$
+	\item The initial validation accuracy and current validation accuracy
 	\item The current classification model including all model weights
 	\item The current optimizer including it's full state
 \end{itemize}

@@ -20,11 +20,7 @@ class ALGame(gym.Env):
         self.budget = dataset.budget
         self.sample_size = labeled_sample_size
         self.fitting_mode = dataset.class_fitting_mode
-        self.next_case_weight = 1.0
-        if self.fitting_mode == "single_sample":
-            self.loss = nn.CrossEntropyLoss(reduction="none")
-        else:
-            self.loss = nn.CrossEntropyLoss()
+        self.loss = nn.CrossEntropyLoss()
         self.create_state_callback = create_state_callback
 
         # set gym observation space and action space
@@ -49,10 +45,6 @@ class ALGame(gym.Env):
             self.initial_weights = self.classifier.state_dict()
             self.optimizer = self.dataset.get_optimizer(self.classifier)
             self.reset_al_pool()
-
-            # variables for single sample fitting mode
-            self.next_case_weight = 1.0
-            self.total_weight = len(self.x_labeled)
         # first training of the model should be done from scratch
         self._fit_classifier(from_scratch=True)
         self.initial_test_accuracy = self.current_test_accuracy
@@ -95,48 +87,6 @@ class ALGame(gym.Env):
         return next_state, reward, done, truncated, {}
 
 
-    def _fit_classifier_single_sample(self):
-        last_x = self.x_labeled[-1]
-        last_y = self.y_labeled[-1]
-        random_id = np.random.choice(list(range(len(self.x_labeled)-1)))
-        batch_x = torch.stack([self.x_labeled[random_id], last_x], dim=0)
-        batch_y = torch.stack([self.y_labeled[random_id], last_y], dim=0)
-        self.next_case_weight += 1.0 / self.total_weight
-        self.total_weight += self.next_case_weight
-
-        # update
-        yHat = self.classifier(batch_x)
-        weights = torch.Tensor([1.0, self.next_case_weight]).to(self.device)
-        loss_value = weights * self.loss(yHat, batch_y)
-        loss_value = loss_value.mean()
-        self.optimizer.zero_grad()
-        loss_value.backward()
-        self.optimizer.step()
-
-        # eval
-        with torch.no_grad():
-            test_dataloader = DataLoader(TensorDataset(self.x_test, self.y_test), batch_size=100)
-            loss_sum = 0.0
-            total = 0.0
-            correct = 0.0
-            for batch_x, batch_y in test_dataloader:
-                yHat = self.classifier(batch_x)
-                predicted = torch.argmax(yHat, dim=1)
-                total += batch_y.size(0)
-                correct += (predicted == torch.argmax(batch_y, dim=1)).sum().item()
-                class_loss = self.loss(yHat, torch.argmax(batch_y.long(), dim=1))
-                loss_sum += class_loss.detach().cpu().numpy()
-        accuracy = correct / total
-        self.current_test_loss = loss_sum
-
-        if self.rewardShaping:
-            reward = (accuracy - self.current_test_accuracy) * self.reward_scaling
-        else:
-            raise NotImplementedError()
-        self.current_test_accuracy = accuracy
-        return reward
-
-
     def _fit_classifier(self, epochs=50, from_scratch=False):
         if from_scratch:
             self.classifier.load_state_dict(self.initial_weights)
@@ -163,7 +113,6 @@ class ALGame(gym.Env):
                 for batch_x, batch_y in test_dataloader:
                     yHat = self.classifier(batch_x)
                     predicted = torch.argmax(yHat, dim=1)
-                    # _, predicted = torch.max(yHat.data, 1)
                     total += batch_y.size(0)
                     correct += (predicted == torch.argmax(batch_y, dim=1)).sum().item()
                     class_loss = self.loss(yHat, torch.argmax(batch_y.long(), dim=1))
@@ -187,8 +136,6 @@ class ALGame(gym.Env):
             return self._fit_classifier(epochs, from_scratch=False)
         elif self.fitting_mode == "one_epoch":
             return self._fit_classifier(1, from_scratch=False)
-        elif self.fitting_mode == "single_sample":
-            return self._fit_classifier_single_sample()
         else:
             raise ValueError(f"Fitting mode not recognized: {self.fitting_mode}")
 
@@ -208,3 +155,7 @@ class ALGame(gym.Env):
         :return:
         '''
         pass
+
+    def get_meta_data(self)->str:
+        return f"{str(self)} \n" \
+               f"Sample Size: {self.sample_size}"

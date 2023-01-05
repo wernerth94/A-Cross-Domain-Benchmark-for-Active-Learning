@@ -116,6 +116,7 @@ class SAR(BaseAgent):
         super().__init__()
         if device == None:
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.file = file
         chkpt_path = os.path.join("agents/checkpoints", file)
         if not os.path.exists(chkpt_path):
             raise ValueError(f"Checkpoint {chkpt_path} does not exist")
@@ -187,3 +188,8 @@ class SAR(BaseAgent):
         })
         result = self.agent(data)
         return torch.from_numpy(result.act)
+
+    def get_meta_data(self)->str:
+        s = super().get_meta_data()
+        return f"{s}\n" \
+               f"Checkpoint: {self.file}"
