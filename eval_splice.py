@@ -46,7 +46,7 @@ log_path = os.path.join("runs", dataset.name, agent.name)
 
 util.save_meta_data(log_path, agent, env, dataset)
 
-with EnvironmentLogger(env, log_path) as env:
+with EnvironmentLogger(env, log_path, util.is_cluster) as env:
     for _ in tqdm(range(50)):
         done = False
         state = env.reset()

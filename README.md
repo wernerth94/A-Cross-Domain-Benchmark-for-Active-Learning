@@ -19,6 +19,9 @@
   - improvement
   - absolute
 
+## Baselines
+- Coreset
+
 ## Datasets
 ### Image
 - cifar10

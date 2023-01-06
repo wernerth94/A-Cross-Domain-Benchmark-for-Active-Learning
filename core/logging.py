@@ -6,7 +6,8 @@ from core.environment import ALGame
 
 class EnvironmentLogger:
 
-    def __init__(self, environment:ALGame, out_path:str="../runs"):
+    def __init__(self, environment:ALGame, out_path:str, is_cluster):
+        self.is_cluster = is_cluster
         self.out_path = out_path
         self.env = environment
         self.accuracies_path = os.path.join(out_path, "accuracies.csv")
@@ -21,6 +22,11 @@ class EnvironmentLogger:
     def __exit__(self, type, value, traceback):
         # create base dirs
         os.makedirs(self.out_path, exist_ok=True)
+        if not self.is_cluster and self.current_run < 10:
+            resp = input(f"Only {self.current_run} runs computed. Do you want to overwrite existing results? (y/n)")
+            if resp != "y":
+                print("Keeping old results...")
+                return
         # clear old files
         if os.path.exists(self.accuracies_path):
             os.remove(self.accuracies_path)
