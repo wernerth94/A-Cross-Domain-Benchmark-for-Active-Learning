@@ -112,7 +112,7 @@ class SAR(BaseAgent):
     Top-Level Shell for the framework
     """
 
-    def __init__(self, file="sar_13_12_22.pth", device=None):
+    def __init__(self, file="sar_23_01_06.pth", device=None):
         super().__init__()
         if device == None:
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
