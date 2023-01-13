@@ -13,7 +13,7 @@ import numpy
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--agent", type=str, default="agent")
+parser.add_argument("--agent", type=str, default="coreset")
 parser.add_argument("--seed", type=int, default=42)
 args = parser.parse_args()
 
