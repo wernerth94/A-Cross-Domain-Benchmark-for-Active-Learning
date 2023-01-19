@@ -21,7 +21,7 @@ class DenseModel(nn.Module):
             x = F.relu(x)
         return x
 
-    def forward(self, x):
+    def forward(self, x:Tensor)->Tensor:
         x = self._encode(x)
         x = self.out(x)
         return x

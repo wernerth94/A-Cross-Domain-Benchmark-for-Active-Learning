@@ -1,5 +1,14 @@
 # Active Learning Benchmark
 
+## Dependencies
+- matplotlib
+- Pandas
+- PyTorch
+- sklearn
+- tianshou
+- tensorboard
+- (gym)
+
 ## Requirements
 - two usecases: same domain / domain transfer
 - Datasets from different modalities / areas
@@ -20,7 +29,13 @@
   - absolute
 
 ## Baselines
+- Uncertainty Sampling
+  - Entropy
+  - Margin
 - Coreset
+- BALD Dropout (MC Dropout for Uncertainty)
+- ActiveLearningByLearning (ALBL)
+- BadgeSampling
 
 ## Datasets
 ### Image

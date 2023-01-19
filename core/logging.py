@@ -3,6 +3,7 @@ import os
 import torch
 import pandas as pd
 from core.environment import ALGame
+from core.helper_functions import plot_mean_std_for_experiment, plot_mean_std_development
 
 class EnvironmentLogger:
 
@@ -37,6 +38,8 @@ class EnvironmentLogger:
         acc_df.to_csv(self.accuracies_path)
         loss_df = pd.DataFrame(self.losses)
         loss_df.to_csv(self.losses_path)
+        plot_mean_std_for_experiment(acc_df, os.path.join(self.out_path, "mean_std_convergence_improvement.jpg"))
+        plot_mean_std_development(acc_df.values[-1, :], os.path.join(self.out_path, "mean_std_convergence_final_value.jpg"))
 
 
     def reset(self, *args, **kwargs)->Tuple[torch.Tensor, dict]:

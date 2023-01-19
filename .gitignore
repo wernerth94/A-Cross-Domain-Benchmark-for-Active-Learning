@@ -3,8 +3,6 @@
 __pycache__
 venv
 
-runs
-
 # Cluster run files
 *.sh
 
