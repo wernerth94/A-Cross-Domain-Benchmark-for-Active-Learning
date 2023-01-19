@@ -1,0 +1,11 @@
+# Dataset: 
+Splice
+Budget: 900 
+
+# Agent: 
+ShannonEntropy 
+
+# Environment: 
+<ALGame<RlAl-v0>> 
+Sample Size: 20 
+

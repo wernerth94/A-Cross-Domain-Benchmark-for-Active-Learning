@@ -1,0 +1,12 @@
+# Dataset: 
+Splice
+Budget: 900 
+
+# Agent: 
+SAR
+Checkpoint: sar_24_12_22.pth 
+
+# Environment: 
+<ALGame<RlAl-v0>> 
+Sample Size: 20 
+
