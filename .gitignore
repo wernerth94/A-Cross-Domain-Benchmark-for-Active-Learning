@@ -5,6 +5,8 @@ venv
 
 # Cluster run files
 *.sh
+*.err
+*.log
 
 # Latex files
 doc/*.aux
