@@ -26,13 +26,8 @@ def to_torch(x: Any, dtype: Optional[torch.dtype] = None,
         raise TypeError(f"object {x} cannot be converted to torch.")
 
 
-def plot_mean_std_for_experiment(experiment:DataFrame, out_file:str):
-    values = experiment.values
-    improvements = values[-1, :] - values[0, :]
-    plot_mean_std_development(improvements, out_file)
 
-
-def plot_mean_std_development(inpt:list, out_file:str):
+def plot_mean_std_development(inpt:list, title:str, out_file:str):
     # standard deviation statistics
     mean_develop = [np.mean(inpt[:i]) for i in range(1, len(inpt) + 1)]
     std_develop = [np.std(inpt[:i]) for i in range(1, len(inpt) + 1)]
@@ -50,4 +45,5 @@ def plot_mean_std_development(inpt:list, out_file:str):
         Patch(facecolor="g", label="std"),
     ]
     ax2.legend(handles=legend_elements)
+    ax.set_title(title)
     fig.savefig(out_file, dpi=100, bbox_inches='tight')
