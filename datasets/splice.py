@@ -50,7 +50,7 @@ class Splice(BaseDataset):
 
 
 
-    def get_optimizer(self, model) -> torch.optim.Optimizer:
-        return torch.optim.NAdam(model.parameters(), lr=0.001,
-                                 weight_decay=0.0)
+    def get_optimizer(self, model, lr=0.001, weight_decay=0.0) -> torch.optim.Optimizer:
+        return torch.optim.NAdam(model.parameters(), lr=lr,
+                                 weight_decay=weight_decay)
 

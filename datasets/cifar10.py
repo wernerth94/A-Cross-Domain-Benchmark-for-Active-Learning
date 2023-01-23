@@ -42,7 +42,7 @@ class Cifar10(BaseDataset):
 
 
 
-    def get_optimizer(self, model) -> torch.optim.Optimizer:
+    def get_optimizer(self, model, lr=0.001, weight_decay=0.0) -> torch.optim.Optimizer:
         raise NotImplementedError()
         return torch.optim.NAdam(model.parameters(), lr=0.001,
                                  weight_decay=0.0)

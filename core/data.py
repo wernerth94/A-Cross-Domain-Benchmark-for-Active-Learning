@@ -32,6 +32,7 @@ class BaseDataset(ABC):
 
         self._load_or_download_data()
         self.n_classes = self.y_test.shape[-1]
+        self.x_shape = self.x_unlabeled.shape[1:]
         self.name = str(self.__class__).split('.')[-1][:-2]
         print(f"Loaded dataset: {self.name}")
         print(f"| Number of classes: {self.n_classes}")
@@ -68,7 +69,7 @@ class BaseDataset(ABC):
         pass
 
     @abstractmethod
-    def get_classifier(self)->Module:
+    def get_classifier(self, hidden_dims:tuple=tuple())->Module:
         '''
         This creates a torch model that serves as a classification model for this dataset
         :return: PyTorch Model
@@ -77,7 +78,7 @@ class BaseDataset(ABC):
 
 
     @abstractmethod
-    def get_optimizer(self, model:Module)->Optimizer:
+    def get_optimizer(self, model:Module, lr:float=0.001, weight_decay:float=0.0)->Optimizer:
         pass
 
 

@@ -38,7 +38,7 @@ SAMPLE_SIZE = 20
 
 # dataset = datasets.dna.DNA(cache_folder="../datasets")
 # dataset = datasets.splice.Splice(cache_folder="../datasets")
-dataset = datasets.cifar10.Cifar10(cache_folder="../datasets")
+dataset = Cifar10(cache_folder="../datasets")
 dataset = dataset.to(util.device)
 env = ALGame(dataset,
              SAMPLE_SIZE,
