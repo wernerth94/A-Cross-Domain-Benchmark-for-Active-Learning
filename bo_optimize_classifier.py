@@ -131,8 +131,8 @@ def run_bo(dataset: BaseDataset):
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    from datasets.dna import DNA
-    dataset = DNA(cache_folder="../datasets")
+    from datasets.splice import Splice
+    dataset = Splice(cache_folder="../datasets")
     dataset = dataset.to(util.device)
 
     hp_trials, hp_responses = run_bo(dataset)
