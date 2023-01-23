@@ -1,6 +1,6 @@
+import datasets.dna
 import experiment_util as util
 import os, argparse
-from datasets.splice import Splice
 from agents.random_agent import RandomAgent
 from agents.shannon_entropy import ShannonEntropy
 from agents.margin import MarginScore
@@ -11,6 +11,7 @@ from core.logging import EnvironmentLogger
 import torch
 import numpy
 from tqdm import tqdm
+from datasets.cifar10 import Cifar10
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--agent", type=str, default="coreset")
@@ -35,7 +36,9 @@ torch.random.manual_seed(args.seed)
 
 SAMPLE_SIZE = 20
 
-dataset = Splice(cache_folder="../datasets")
+# dataset = datasets.dna.DNA(cache_folder="../datasets")
+# dataset = datasets.splice.Splice(cache_folder="../datasets")
+dataset = datasets.cifar10.Cifar10(cache_folder="../datasets")
 dataset = dataset.to(util.device)
 env = ALGame(dataset,
              SAMPLE_SIZE,

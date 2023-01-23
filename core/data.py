@@ -5,6 +5,7 @@ import numpy as np
 import torch
 from torch.nn import Module
 from torch.optim import Optimizer
+from torchvision.datasets import VisionDataset
 from sklearn.preprocessing import MinMaxScaler
 from core.helper_functions import to_torch
 
@@ -13,6 +14,7 @@ class BaseDataset(ABC):
     def __init__(self, budget:int,
                  initial_points_per_class:int,
                  classifier_batch_size:int,
+                 data_file:str,
                  cache_folder:str="~/.al_benchmark/datasets",
                  device=None,
                  class_fitting_mode:Literal["from_scratch", "finetuning"]="finetuning"):
@@ -24,6 +26,7 @@ class BaseDataset(ABC):
         self.budget = budget
         self.classifier_batch_size = classifier_batch_size
         self.class_fitting_mode = class_fitting_mode
+        self.data_file = data_file
         self.cache_folder = cache_folder
         self.initial_points_per_class = initial_points_per_class
 
@@ -43,14 +46,19 @@ class BaseDataset(ABC):
         '''
         pass
 
-    @abstractmethod
     def _load_data(self)->Union[None, Tuple]:
         '''
         Loads the data from self.cache_folder
         Returns None on failure
         :return: None or tuple(x_train, y_train, x_test, y_test)
         '''
-        pass
+        file = os.path.join(self.cache_folder, self.data_file)
+        if os.path.exists(file):
+            dataset = torch.load(file)
+            return dataset["x_labeled"], dataset["y_labeled"], \
+                dataset["x_unlabeled"], dataset["y_unlabeled"], \
+                dataset["x_test"], dataset["y_test"]
+        return None
 
     @abstractmethod
     def _normalize_data(self):
@@ -76,8 +84,12 @@ class BaseDataset(ABC):
     def _load_or_download_data(self):
         data = self._load_data()
         if data is None:
-            print(f"No local copy found under {self.cache_folder}. Downloading Data...")
+            print(f"No local copy found in {self.cache_folder}. \nDownloading Data...")
             self._download_data()
+            assert hasattr(self, "x_train")
+            assert hasattr(self, "y_train")
+            assert hasattr(self, "x_test")
+            assert hasattr(self, "y_test")
             self._normalize_data()
             self._convert_data_to_tensors()
             self._create_seed_set()
@@ -87,9 +99,42 @@ class BaseDataset(ABC):
         self.x_labeled, self.y_labeled, self.x_unlabeled, self.y_unlabeled, self.x_test, self.y_test = data
         return True
 
-    @abstractmethod
+
     def _create_seed_set(self):
-        pass
+        nClasses = self.y_train.shape[1]
+        x_labeled, y_labeled = [], []
+
+        ids = np.arange(self.x_train.shape[0], dtype=int)
+        np.random.shuffle(ids)
+        perClassIntances = [0 for _ in range(nClasses)]
+        usedIds = []
+        for i in ids:
+            label = torch.argmax(self.y_train[i])
+            if perClassIntances[label] < self.initial_points_per_class:
+                x_labeled.append(i)
+                y_labeled.append(i)
+                usedIds.append(i)
+                perClassIntances[label] += 1
+            if sum(perClassIntances) >= self.initial_points_per_class * nClasses:
+                break
+        unusedIds = [i for i in np.arange(self.x_train.shape[0]) if i not in usedIds]
+        self.x_labeled = self.x_train[x_labeled]
+        self.y_labeled = self.y_train[y_labeled]
+        self.x_unlabeled = self.x_train[unusedIds]
+        self.y_unlabeled = self.y_train[unusedIds]
+        del self.x_train
+        del self.y_train
+
+        out_file = os.path.join(self.cache_folder, self.data_file)
+        torch.save({
+            "x_labeled": self.x_labeled,
+            "y_labeled": self.y_labeled,
+            "x_unlabeled": self.x_unlabeled,
+            "y_unlabeled": self.y_unlabeled,
+            "x_test": self.x_test,
+            "y_test": self.y_test,
+        }, out_file)
+        return True
 
 
     def _convert_data_to_tensors(self):
@@ -113,7 +158,10 @@ class BaseDataset(ABC):
         return self
 
     def get_meta_data(self)->str:
-        return f"{self.name}"
+        return f"{self.name}\n" \
+               f"Budget: {self.budget}\n" \
+               f"Seeding points per class: {self.initial_points_per_class}\n" \
+               f"Classifier Batch Size: {self.classifier_batch_size}"
 
 
 
@@ -139,6 +187,15 @@ def normalize(x_train, x_test, mode:Literal["none", "mean", "mean_std", "min_max
         raise ValueError(f"Normalization not known: {mode}")
     return x_train, x_test
 
+
+def postprocess_torch_dataset(train:VisionDataset, test:VisionDataset)->Tuple:
+    x_train, y_train = train.data, np.array(train.targets)
+    x_test, y_test = test.data, np.array(test.targets)
+    one_hot_train = np.zeros((len(y_train), y_train.max() + 1))
+    one_hot_train[np.arange(len(y_train)), y_train] = 1
+    one_hot_test = np.zeros((len(y_test), y_test.max() + 1))
+    one_hot_test[np.arange(len(y_test)), y_test] = 1
+    return x_train, one_hot_train, x_test, one_hot_test
 
 def postprocess_svm_data(train:tuple, test:tuple)->Tuple:
     # convert labels to int

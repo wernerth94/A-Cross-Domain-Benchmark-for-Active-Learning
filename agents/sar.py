@@ -146,7 +146,6 @@ class SAR(BaseAgent):
             interal_features = SAR._get_internal_features(initial_test_acc, current_test_acc, added_images, budget)
             interal_features = interal_features.unsqueeze(0).repeat(len(sample_features), 1)
             state = torch.cat([sample_features, interal_features], dim=1)
-            state = state.cpu()
         return state
 
 

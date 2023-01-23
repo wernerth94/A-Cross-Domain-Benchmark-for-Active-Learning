@@ -60,7 +60,7 @@ class ALGame(gym.Env):
                                            self.budget, self.added_images,
                                            self.initial_test_accuracy, self.current_test_accuracy,
                                            self.classifier, self.optimizer)
-        return state
+        return state.to(self.device)
 
 
     def step(self, action:int):
