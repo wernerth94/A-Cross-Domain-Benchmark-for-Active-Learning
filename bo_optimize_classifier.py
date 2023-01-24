@@ -21,7 +21,7 @@ bounds = torch.Tensor([
     [1e-6, 5e-2],  # LR
     [0.0, 1e-6],  # Weight Decay
     [12, 256],  # Batch Size
-    [1, 5],  # Number of Hidden Layers
+    [3, 6],  # Number of Hidden Layers
     [-100, 100],
     # Hidden size multiplier: This sets the size of each hidden layer by
     # size = layer number x multiplier      or
@@ -60,7 +60,7 @@ def to_dict(trial)->dict:
         hp_dict["batch_size"]  = int(torch.round(trial[2]).item())
         num_hidden = int(torch.round(trial[3]).item()) # num hidden layers
         # hidden layer sizes
-        mult = trial[4]
+        mult = float(trial[4].item())
         if mult >= 0:
             hp_dict["hidden_sizes"] = tuple([int((i+1) * mult) for i in range(num_hidden)])
         else:
@@ -89,7 +89,7 @@ def run_bo(dataset: BaseDataset):
         [0.001, # learning rate
          0.0,   # weight decay
          64,    # batch size
-         2,     # num hidden layers
+         3,     # num hidden layers
          20.0,    # hidden size multiplier
          ]
     ]).double()
@@ -131,8 +131,9 @@ def run_bo(dataset: BaseDataset):
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    from datasets.splice import Splice
-    dataset = Splice(cache_folder="../datasets")
+    from datasets import Cifar10
+    dataset = Cifar10(cache_folder="../datasets")
+    # dataset = Splice(cache_folder="../datasets")
     dataset = dataset.to(util.device)
 
     hp_trials, hp_responses = run_bo(dataset)

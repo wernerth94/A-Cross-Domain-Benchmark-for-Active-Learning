@@ -3,6 +3,7 @@ from typing import Tuple, Literal, Union, Callable
 import os
 import numpy as np
 import torch
+from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
 from torchvision.datasets import VisionDataset
@@ -61,12 +62,6 @@ class BaseDataset(ABC):
                 dataset["x_test"], dataset["y_test"]
         return None
 
-    @abstractmethod
-    def _normalize_data(self):
-        '''
-        Applies normalization to the data
-        '''
-        pass
 
     @abstractmethod
     def get_classifier(self, hidden_dims:tuple=tuple())->Module:
@@ -91,7 +86,6 @@ class BaseDataset(ABC):
             assert hasattr(self, "y_train")
             assert hasattr(self, "x_test")
             assert hasattr(self, "y_test")
-            self._normalize_data()
             self._convert_data_to_tensors()
             self._create_seed_set()
             data = self._load_data()
@@ -188,6 +182,15 @@ def normalize(x_train, x_test, mode:Literal["none", "mean", "mean_std", "min_max
         raise ValueError(f"Normalization not known: {mode}")
     return x_train, x_test
 
+
+def convert_to_channel_first(train:Union[Tensor, np.ndarray], test:Union[Tensor, np.ndarray]):
+    if isinstance(train, np.ndarray):
+        train = np.moveaxis(train, -1, 1)
+        test = np.moveaxis(test, -1, 1)
+    else:
+        train = train.permute(0, 3, 1, 2)
+        test = test.permute(0, 3, 1, 2)
+    return train, test
 
 def postprocess_torch_dataset(train:VisionDataset, test:VisionDataset)->Tuple:
     x_train, y_train = train.data, np.array(train.targets)

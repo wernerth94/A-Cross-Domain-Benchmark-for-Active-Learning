@@ -35,17 +35,13 @@ class DNA(BaseDataset):
             train = load_svmlight_file(train_file, n_features=180)
             test = load_svmlight_file(test_file, n_features=180)
             self.x_train, self.y_train, self.x_test, self.y_test = postprocess_svm_data(train, test)
+            self.x_train, self.x_test = normalize(self.x_train, self.x_test, mode="min_max")
             print("Download successful")
 
 
-    def _normalize_data(self):
-        self.x_train, self.x_test = normalize(self.x_train, self.x_test, mode="min_max")
-
-
     def get_classifier(self, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
-        input_size = self.x_test.size(1)
-        model = DenseModel(input_size=input_size,
-                           num_classes=self.y_test.size(1),
+        model = DenseModel(input_size=self.x_shape,
+                           num_classes=self.n_classes,
                            hidden_sizes=hidden_dims)
         return model
 

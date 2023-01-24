@@ -1,3 +1,4 @@
+from typing import Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -27,6 +28,45 @@ class DenseModel(nn.Module):
         for h_layer in self.hidden:
             x = h_layer(x)
             x = F.relu(x)
+        return x
+
+    def forward(self, x:Tensor)->Tensor:
+        x = self._encode(x)
+        x = self.out(x)
+        return x
+
+
+class ConvolutionalModel(nn.Module):
+    def __init__(self, input_size:Tuple[int], num_classes:int, hidden_sizes:Tuple[int]):
+        assert len(hidden_sizes) > 0
+        assert len(input_size) > 1 and len(input_size) < 4
+        if len(input_size) == 2:
+            print("found greyscale input. adding a color dimension for compatibility")
+            input_size = (1, *input_size)
+        super().__init__()
+
+        self.inpt = nn.Conv2d(input_size[0], hidden_sizes[0], kernel_size=3)
+        self.hidden = []
+        for i in range(len(hidden_sizes)):
+            self.hidden.append(nn.Conv2d(hidden_sizes[max(0, i - 1)], hidden_sizes[i], kernel_size=3))
+        self.flatten = nn.Flatten()
+
+        test_inpt = torch.zeros((1, *input_size))
+        test_out = self._encode(test_inpt)
+
+        self.out = nn.Linear(test_out.shape[-1], num_classes)
+
+    def _encode(self, x:Tensor)->Tensor:
+        """
+        The split bewteen encoding and prediction is important for agents that use latent features from the
+        classifier like Coreset
+        """
+        x = self.inpt(x)
+        x = F.relu(x)
+        for h_layer in self.hidden:
+            x = h_layer(x)
+            x = F.relu(x)
+        x = self.flatten(x)
         return x
 
     def forward(self, x:Tensor)->Tensor:

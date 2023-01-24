@@ -39,11 +39,11 @@ Each dataset class needs to inherit from BaseDataset and implement a set of func
   - classifier_batch_size: Batch size for classifier training
   - data_file: name of the file that will hold the normalized and processed data
   - cache_folder: location for downloaded and processed files
-- `_download_data()`: Automatically downloads the data source files into self.cache_folder and stores the data in self.x_train, self.y_train, self.x_test and self.y_test. <br>
+- `_download_data()`: Automatically downloads the data source files into self.cache_folder, stores the data in self.x_train, self.y_train, self.x_test and self.y_test and normalizes self.x_train and self.x_test. <br>
   Helper functions for processing the data:
-  - postprocess_torch_dataset
-  - postprocess_svm_data
-- `_normalize_data()`: normalizes the values stored in self.x_train and self.x_test
+  - `postprocess_torch_dataset`
+  - `postprocess_svm_data`
+  - `convert_to_channel_first`
 - `get_classifier(hidden_dims)`: constructs and returns the classifier for this dataset. hidden_dims sets the default size of the classifier and acts as a hyperparameter.
 The returned object is a torch.Module
 - `get_optimizer(model)`: constructs and returns the optimizer for the classifier.

@@ -1,13 +1,9 @@
-from typing import Tuple, Union, Callable
-import os
+from typing import Tuple
 import torch
 import torch.nn as nn
 import torchvision
-import torchvision.transforms as transforms
-import numpy as np
-from core.data import BaseDataset, normalize, postprocess_torch_dataset
-from core.classifier import DenseModel
-import requests
+from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel_first
+from core.classifier import ConvolutionalModel
 
 class Cifar10(BaseDataset):
 
@@ -20,30 +16,24 @@ class Cifar10(BaseDataset):
     def _download_data(self):
         train = torchvision.datasets.CIFAR10(root=self.cache_folder, train=True, download=True)
         test = torchvision.datasets.CIFAR10(root=self.cache_folder, train=False, download=True)
-        self.x_train, self.y_train, self.x_test, self.y_test = postprocess_torch_dataset(train, test)
-        print("Download successful")
+        x_train, self.y_train, x_test, self.y_test = postprocess_torch_dataset(train, test)
+        self.x_train, self.x_test = convert_to_channel_first(x_train, x_test)
 
-
-    def _normalize_data(self):
         # normalize pixel values from [0..255] to [-1..1]
         high = 255.0
         self.x_train = self.x_train / (high / 2.0) - 1.0
         self.x_test = self.x_test / (high / 2.0) - 1.0
-
+        print("Download successful")
 
 
     def get_classifier(self, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
-        raise NotImplementedError()
-        input_size = self.x_test.size(1)
-        model = DenseModel(input_size=input_size,
-                           num_classes=self.y_test.size(1),
-                           hidden_sizes=hidden_dims)
+        model = ConvolutionalModel(input_size=self.x_shape,
+                                   num_classes=self.n_classes,
+                                   hidden_sizes=hidden_dims)
         return model
 
 
 
     def get_optimizer(self, model, lr=0.001, weight_decay=0.0) -> torch.optim.Optimizer:
-        raise NotImplementedError()
-        return torch.optim.NAdam(model.parameters(), lr=0.001,
-                                 weight_decay=0.0)
+        return torch.optim.NAdam(model.parameters(), lr=0.001, weight_decay=0.0)
 
