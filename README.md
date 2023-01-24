@@ -84,3 +84,14 @@ An example can be found in `al_benchmark/eval_splice.py`
 | Vector | splice, dna  |                 |
 | Image  | cifar10/100  | office          |
 | Text   |              |                 |
+
+## Considerations
+### Classifier
+Should the class. be tuned based on a small held-out set, as it would be for conventional datasets?
+
+### Evaluation
+Different styles?
+- raw accuracy
+- percentage improvement over random
+- regret to an upper bound? (oracle curve)
+- percentage of way between random and upper bound? (0% -> random / 100% -> oracle)

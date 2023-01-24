@@ -33,7 +33,14 @@ class Cifar10(BaseDataset):
         return model
 
 
-
     def get_optimizer(self, model, lr=0.001, weight_decay=0.0) -> torch.optim.Optimizer:
         return torch.optim.NAdam(model.parameters(), lr=0.001, weight_decay=0.0)
+
+
+    def get_meta_data(self) ->str:
+        s = super().get_meta_data() + '\n'
+        s += "Source: TorchVision" \
+             "Normalization: Linear between [-1..1]" \
+             "Classifier: Vanilla ConvNet"
+        return s
 

@@ -1,6 +1,6 @@
 # Tabular Datasets
-from dna import DNA
-from splice import Splice
+from datasets.dna import DNA
+from datasets.splice import Splice
 
 # Image Datasets
-from cifar10 import Cifar10
+from datasets.cifar10 import Cifar10

@@ -40,7 +40,7 @@ class Splice(BaseDataset):
 
     def get_classifier(self, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
         input_size = self.x_test.size(1)
-        model = DenseModel(input_size=self.x_shape,
+        model = DenseModel(input_size=self.x_shape[-1],
                            num_classes=self.n_classes,
                            hidden_sizes=hidden_dims)
         return model
@@ -51,3 +51,9 @@ class Splice(BaseDataset):
         return torch.optim.NAdam(model.parameters(), lr=lr,
                                  weight_decay=weight_decay)
 
+    def get_meta_data(self) ->str:
+        s = super().get_meta_data() + '\n'
+        s += "Source: LibSVMTools" \
+             "Normalization: Linear between [0..1]" \
+             "Classifier: DenseNet"
+        return s

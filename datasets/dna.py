@@ -40,7 +40,7 @@ class DNA(BaseDataset):
 
 
     def get_classifier(self, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
-        model = DenseModel(input_size=self.x_shape,
+        model = DenseModel(input_size=self.x_shape[-1],
                            num_classes=self.n_classes,
                            hidden_sizes=hidden_dims)
         return model
@@ -50,3 +50,9 @@ class DNA(BaseDataset):
     def get_optimizer(self, model, lr=0.001, weight_decay=0.0) -> torch.optim.Optimizer:
         return torch.optim.NAdam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
+    def get_meta_data(self) ->str:
+        s = super().get_meta_data() + '\n'
+        s += "Source: LibSVMTools" \
+             "Normalization: Linear between [0..1]" \
+             "Classifier: DenseNet"
+        return s
