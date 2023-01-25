@@ -1,0 +1,295 @@
+%\ProvidesPackage{mathoperators}
+
+%% REQUIRED PACKAGES
+%  mathtools, physics, amsmath
+
+
+%%% Notes
+% \DeclareMathOperator{cmd}{operator}
+% \DeclareMathOperator*{}{} => with limits like max or lim
+
+
+%%
+% Useful commands:
+%\checkmark
+%\lightning
+%\cmark
+%\xmark
+
+
+\RequirePackage{faktor}
+\RequirePackage{physics}
+\RequirePackage{mathtools}
+\RequirePackage{amsmath,amsfonts,amssymb}
+\RequirePackage{xparse}
+\RequirePackage{marvosym}
+% When loading bold math, delcare hmmax and bmmax before !!!
+\DeclareDocumentCommand{\hmmax}{}{0}
+\DeclareDocumentCommand{\bmmax}{}{0}
+\RequirePackage{bm}
+\RequirePackage{mathtools}
+
+
+
+%% Beamer aware operators!!
+
+\RequirePackage{letltxmacro}
+\LetLtxMacro{\oldunderbrace}  {\underbrace}
+\LetLtxMacro{\oldoverbrace}   {\overbrace}
+\LetLtxMacro{\oldunderbracket}{\underbracket}
+\LetLtxMacro{\oldoverbracket} {\overbracket}
+\LetLtxMacro{\oldunderset}    {\underset}
+\LetLtxMacro{\oldoverset}     {\overset}
+
+%% Why do these work?
+% https://tex.stackexchange.com/q/565971
+
+\DeclareDocumentCommand{\underbrace}{d<> m e{_}}{%
+  \IfValueTF{#1}{% IF <overlay-specification> given
+    \oldunderbrace{#2\onslide<#1>}_{#3}\onslide
+  }{% ELSE
+    \oldunderbrace{#2}_{#3}
+  }%
+}%
+
+\DeclareDocumentCommand{\overbrace}{d<> m e{^}}{%
+  \IfValueTF{#1}{% IF <overlay-specification> given
+      \onslide<#1>\oldoverbrace{\onslide<1->#2}^{#3}\onslide
+  }{% ELSE
+    \oldoverbrace{#2}^{#3}
+  }%
+}%
+
+
+\DeclareDocumentCommand{\underbracket}{d<> m e{_}}{%
+  \IfValueTF{#1}{% IF <overlay-specification> given
+    \oldunderbracket{#2\onslide<#1>}_{#3}\onslide
+  }{% ELSE
+    \oldunderbracket{#2}_{#3}
+  }%
+}%
+
+\DeclareDocumentCommand{\overbracket}{d<> m e{^}}{%
+  \IfValueTF{#1}{% IF <overlay-specification> given
+    \onslide<#1>\oldoverbracket{\onslide<1->#2}^{#3}\onslide
+  }{% ELSE
+    \oldoverbracket{#2}^{#3}
+  }%
+}%
+
+
+\DeclareDocumentCommand{\underset}{d<> m m}{%
+  \IfValueTF{#1}{% IF <overlay-specification> given
+    \onslide<#1>\oldunderset{\onslide<1->#2}{#3}\onslide
+  }{% ELSE
+    \oldunderset{#2}{#3}
+  }%
+}%
+
+\DeclareDocumentCommand{\overset}{d<> m m}{%
+  \IfValueTF{#1}{% IF <overlay-specification> given
+    \oldoverset{#2\onslide<#1>}{#3}\onslide
+  }{% ELSE
+    \oldoverset{#2}{#3}
+  }%
+}%
+
+
+%% MISCELLANOUS
+\newcommand  {\mvert}    {\;\middle|\;}
+\newcommand  {\lightning}{\text{\Large\Lightning}}
+\newcommand  {\xmark}    {\sffamily X}
+\newcommand  {\lto}      {\longrightarrow}  %longer arrows
+\newcommand  {\lmapsto}  {\longmapsto}
+\newcommand  {\from}     {\leftarrow}
+\newcommand  {\lfrom}    {\longleftarrow}
+\newcommand  {\lmapsfrom}{\longmapsfrom}
+\newcommand  {\T}        {^{\mkern-2mu\mathsf{T} \!} }    %% transpose for capital variables
+\renewcommand{\H}        {^{\mkern-2mu\mathsf{H} \!} }    %% transpose for capital variables
+\renewcommand{\t}        {^{_{\mkern-1mu\bm{\mathsf{T}}}\!} } %% transpose for small   variables
+\newcommand  {\del}      { {{\scriptstyle\Delta}} }
+\DeclareDocumentCommand{\x}{}{\times}
+\newcommand  {\NaN}      {\texttt{NaN}}
+\let\oldpm\pm
+\RenewDocumentCommand{\pm}{}{\ensuremath{\oldpm}}
+
+\newcommand  {\p}        {\textup{\texttt{+}}}   %small (unary) plus
+\newcommand  {\m}        {\textup{\texttt{-}}}  %small (unary) minus
+\newcommand  {\underarrow} [2] {\underset{\overset{\uparrow}{\mathclap{#2}}}{#1}}
+\newcommand  {\overarrow} [2] {\overset{\overset{\mathclap{#2}}{\downarrow}}{#1}}
+\newcommand  {\Walpha}   {\BW\!\!\bm{\alpha}} %referencing Wolfram-alpha
+\newcommand  {\iid}      {\text{iid}}
+\newcommand  {\iidsim}   {\overset{\text{iid}}{\sim}}
+\newcommand  {\const}    {\text{const.}}
+
+%% Ordinal Numbers
+%\newcommand {\st} {\textsuperscript{st}}  %overwrites strikeout (soul)
+\newcommand   {\nd} {\textsuperscript{nd}\ }
+\newcommand   {\rd} {\textsuperscript{rd}\ }
+\newcommand   {\oo} {\textsuperscript{oo}\ }
+\renewcommand {\th} {\textsuperscript{th}\ }
+
+
+%%% Functions
+\DeclareMathOperator {\one}    {\mathds{1}}  %indicator
+\DeclareMathOperator {\id}     {id}            %identity
+\DeclareMathOperator {\sign}   {sign}
+\DeclareMathOperator {\rect}   {rect}
+\DeclareMathOperator {\dist}   {dist}
+\DeclareMathOperator {\Sim}    {sim}
+%\DeclareMathOperator{\erf}    {erf} %contained in physics package
+\DeclareMathOperator {\erfc}   {erfc}
+\DeclareMathOperator {\sinc}   {sinc}
+\DeclareMathOperator {\isin}   {\sin^{-1}}
+\DeclareMathOperator {\icos}   {\cos^{-1}}
+\DeclareMathOperator {\itan}   {\tan^{-1}}
+\DeclareMathOperator {\isinh}  {\sinh^{-1}}
+\DeclareMathOperator {\icosh}  {\cosh^{-1}}
+\DeclareMathOperator {\itanh}  {\tanh^{-1}}
+\DeclareMathOperator {\arsinh} {arsinh}
+\DeclareMathOperator {\arcosh} {arcosh}
+\DeclareMathOperator {\artanh} {artanh}
+
+
+\DeclareMathOperator*{\RSS}  {RSS}
+\DeclareMathOperator*{\MAE}  {MAE}
+\DeclareMathOperator*{\MSE}  {MSE}
+\DeclareMathOperator*{\RMAE} {RMAE}
+\DeclareMathOperator*{\RMSE} {RMSE}
+
+%%% Matrices and Vectors
+\newcommand   {\mat}   [2][c] {\begin{matrix*}[#1]  #2 \end{matrix*}}
+\renewcommand {\pmat}  [2][c] {\begin{pmatrix*}[#1] #2 \end{pmatrix*}}  %override pauli-matrix
+\newcommand   {\arr}[2] {\begin{array}{#1}#2\end{array}}
+\newcommand   {\parr}[2] {\left(\begin{array}{#1}#2\end{array}\right)}
+\newcommand   {\barr}[2] {\left[\begin{array}{#1}#2\end{array}\right]}
+\newcommand   {\bmat}  [2][c] {\begin{bmatrix*}[#1] #2 \end{bmatrix*}}
+
+% Small matrices
+\newcommand   {\smat}  [1]    {\begin{smallmatrix} #1\end{smallmatrix}}
+\newcommand   {\bsmat} [1]    {\begin{bsmallmatrix}#1\end{bsmallmatrix}}
+\newcommand   {\psmat} [1]    {\begin{psmallmatrix}#1\end{psmallmatrix}}
+
+
+%%% FRACTIONS
+\newcommand{\pfrac} [2]{\left(\frac {#1}{#2}\right)}
+\newcommand{\ptfrac}[2]{\left(\tfrac{#1}{#2}\right)}
+
+
+%% MODIFIERS
+\newcommand   {\conj}  [1] {\overline {#1}}
+\renewcommand {\Hat}   [1] {\widehat  {#1}}
+\renewcommand {\Bar}   [1] {\overline {#1}}
+\renewcommand {\Tilde} [1] {\widetilde{#1}}
+\newcommand   {\hateq}{\mathrel{\widehat{=}}}
+
+%% RELATIONS
+\newcommand {\coloniff}   {\mathrel{\vcentcolon\Longleftrightarrow}}
+\newcommand {\defiff}     {\mathrel{\overset{\text{def}}{\iff}}}
+\newcommand {\iseq}       {\mathrel{\overset{?}{=}}}
+\newcommand {\ISeq}       {\mathrel{\overset{!}{=}}}
+\newcommand {\eq}{\ensuremath{{}={}}} %equal sign with proper spaceing. useful for tabular{c @\eq c}
+\newcommand {\defeq}      {\mathrel{\overset{\text{def}}{=}}}
+\newcommand {\Mid}        {\bigm\vert}
+\newcommand {\ox}         {\otimes}
+%\newcommand {\x}          {\times}
+\newcommand {\s}  [2]     {\genfrac{\{}{\}}{0pt}{}{#1}{#2}}
+\newcommand {\notimplies} {\mathrel{{\ooalign{\hidewidth$\not\phantom{=}$\hidewidth\cr$\implies$}}}}
+
+
+%%% Operators acting on sets
+\DeclareMathOperator* {\minimize} {minimize}
+\DeclareMathOperator* {\maximize} {maximimze}
+\DeclareMathOperator* {\argmin}   {arg min}
+\DeclareMathOperator* {\argmax}   {arg max}
+\DeclareMathOperator* {\esssup}   {ess\,sup}
+\DeclareMathOperator* {\supp}     {supp}
+\DeclareMathOperator  {\dom}      {\mathbf{dom}}
+\DeclareMathOperator  {\vol}      {vol}
+\DeclareMathOperator  {\pot}      {\mathbf{Pot}}
+
+%%% Linear Algebra
+\DeclareMathOperator {\spec}  {spec}
+\DeclareMathOperator {\diag}  {diag}
+%\DeclareMathOperator{\rank}  {rank}  %contained in physics package
+%\DeclareMathOperator{\tr}    {tr}    %contained in physics package
+\DeclareMathOperator {\GL}    {GL}
+\DeclareMathOperator {\Ker}   {Ker}   % kernel
+\DeclareMathOperator {\Null}  {Null}  % null space
+\DeclareMathOperator {\Lin}  {Lin}  % space of linear functions
+\DeclareMathOperator {\Fun}  {Fun}  % space of  functions
+\DeclareMathOperator {\Ran}   {Ran}   % range 
+\DeclareMathOperator {\Exp}  {Exp} %Exponential (uppercase)
+\DeclareMathOperator {\eye}  {{\mathbb I}} % identity tensor
+\DeclareMathOperator {\Span}    {Span}  % linear span
+\DeclareMathOperator {\Mat}    {Mat}
+\let\ketbra\dyad
+
+%% convex optimization
+%\DeclareMathOperator {\span} {{span}}   % linear  hull
+\DeclareMathOperator {\lin}  { { lin} }      % linear  hull
+\DeclareMathOperator {\aff}  { { aff} }      % affine  hull
+\DeclareMathOperator {\conv} { {conv} }     % convex  hull
+\DeclareMathOperator {\cone} { {cone} }     % conical hull
+
+
+%%% Calculus
+\renewcommand {\d} {\mathrm{d}}
+\newcommand   {\D} {\mathrm{D}}
+\DeclareMathOperator{\Hess}{H}         % Hessian
+\newcommand   {\pdiff} [2][] {\frac{\partial #1}{\partial #2}} %partial derivative d/dx
+\newcommand   {\tpdiff} [2][] {\tfrac{\partial #1}{\partial #2}} %partial derivative d/dx
+\newcommand   {\diff} [2][] {\frac{\d #1}{\d #2}} %partial derivative d/dx
+
+\newcommand   {\Int}   [1]   { \int\limits_{\mathclap{#1}} } % for overwide domain args
+\newcommand{\Sum}{\displaystyle\sum\limits}
+\DeclareMathOperator {\intinf} {\textstyle    \int\nolimits_{\m\infty}^{\p\infty}}
+\DeclareMathOperator {\intInf} {\textstyle    \int\limits_  {\m\infty}^{\p\infty}}
+\DeclareMathOperator {\Intinf} {\displaystyle \int\nolimits_{\m\infty}^{\p\infty}}
+\DeclareMathOperator {\IntInf} {\displaystyle \int\limits_  {\m\infty}^{\p\infty}}
+
+
+
+%%% Probability
+\DeclareMathOperator {\Gam}    {\Gamma} %Gamma   distribution
+\DeclareMathOperator {\Unif}   {\mathbf{Unif}} %Uniform   distribution
+\DeclareMathOperator {\Lap}    {Lap} %Laplace   distribution
+\DeclareMathOperator {\Poi}    {Poi} %Poisson   distribution
+\DeclareMathOperator {\Dir}    {Dir} %Dirichlet distribution
+\DeclareMathOperator {\Ber}    {Ber} %Bernoulli distribution
+\DeclareMathOperator {\Cat}    {Cat} %Categorical distribution
+\DeclareMathOperator {\Mul}    {Mul} %Multinomial distribution
+\DeclareMathOperator {\Cov}    {{\bm{\rm{Cov}}}} %Covariance
+\DeclareMathOperator {\cov}    {cov} %covariance
+\DeclareMathOperator {\Var}    {{\bm{\rm{Var}}}} %Variance
+\DeclareMathOperator {\Bias}   {Bias} %Bias
+\DeclareMathOperator {\mean}   {mean} %Bias
+\DeclareMathOperator {\median} {median} %Bias
+\DeclareMathOperator {\E}      {{\bm{\rm{E}}}}   %Expected value
+\DeclareMathOperator {\corr}   {corr} % correlation
+
+%%% General Algebra
+\DeclareMathOperator {\Gal}   {Gal}
+\DeclareMathOperator {\Aut}   {Aut}
+\DeclareMathOperator {\charK} {char}  % characteristic
+
+%%% Machine Learning
+\DeclareMathOperator {\relu}   {\textsc{R}e\textsc{lu}}
+\DeclareMathOperator {\softmax}{softmax}
+\DeclareMathOperator {\softplus}{softplus}
+\DeclareMathOperator {\logit}{logit}
+\DeclareMathOperator {\probit}{probit}
+\DeclareMathOperator {\clip}{clip} % clipping operator
+\DeclareMathOperator {\prox}{prox} % proximal operator
+\DeclareMathOperator {\proj}{proj} % projection operator
+\DeclareMathOperator {\soft}{soft} % soft thresholding operator
+\DeclareMathOperator {\hard}{hard} % hard thresholding operator
+\DeclareMathOperator {\err}{err} % error term
+\DeclareMathOperator {\enc}{enc} % encoder
+\DeclareMathOperator {\dec}{dec} % decoder
+\DeclareMathOperator {\Att}{Att} % Attention
+\DeclareMathOperator {\AUC}{AUC} % Area under curve
+\newcommand{\train}{\text{train}} % hard thresholding operator
+\newcommand{\val}{\text{val}} % hard thresholding operator
+\newcommand{\test}{\text{test}} % hard thresholding operator
+\newcommand          {\ols}   {\textsc{ols}} % ordinary least squares
