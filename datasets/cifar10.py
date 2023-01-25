@@ -39,8 +39,8 @@ class Cifar10(BaseDataset):
 
     def get_meta_data(self) ->str:
         s = super().get_meta_data() + '\n'
-        s += "Source: TorchVision" \
-             "Normalization: Linear between [-1..1]" \
+        s += "Source: TorchVision\n" \
+             "Normalization: Linear between [-1..1]\n" \
              "Classifier: Vanilla ConvNet"
         return s
 

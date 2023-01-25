@@ -52,7 +52,7 @@ class DNA(BaseDataset):
 
     def get_meta_data(self) ->str:
         s = super().get_meta_data() + '\n'
-        s += "Source: LibSVMTools" \
-             "Normalization: Linear between [0..1]" \
+        s += "Source: LibSVMTools\n" \
+             "Normalization: Linear between [0..1]\n" \
              "Classifier: DenseNet"
         return s
