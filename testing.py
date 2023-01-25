@@ -16,7 +16,7 @@ import datasets
 parser = argparse.ArgumentParser()
 parser.add_argument("--agent", type=str, default="margin")
 parser.add_argument("--seed", type=int, default=42)
-parser.add_argument("--lambda", type=float, default=0.0)
+parser.add_argument("-w", "--weight_mult", type=float, default=0.5)
 args = parser.parse_args()
 
 if args.agent == "random":
@@ -44,9 +44,10 @@ dataset = dataset.to(util.device)
 env = ALGame(dataset,
              SAMPLE_SIZE,
              AgentClass.create_state_callback,
+             case_weight_multiplier=args.weight_mult,
              device=util.device)
 agent = AgentClass()
-log_path = os.path.join("runs_test", dataset.name, agent.name)
+log_path = os.path.join("runs_test", dataset.name, f"{agent.name}_{args.weight_mult}")
 
 util.save_meta_data(log_path, agent, env, dataset)
 

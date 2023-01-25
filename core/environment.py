@@ -81,7 +81,7 @@ class ALGame(gym.Env):
             self.x_unlabeled = torch.cat([self.x_unlabeled[:datapoint_id], self.x_unlabeled[datapoint_id + 1:]], dim=0)
             self.y_unlabeled = torch.cat([self.y_unlabeled[:datapoint_id], self.y_unlabeled[datapoint_id + 1:]], dim=0)
             # add next case weight and re-normalize
-            self.case_weights = np.concatenate([self.case_weights, np.array([sum(self.case_weights)])])
+            self.case_weights = np.concatenate([self.case_weights, np.array([sum(self.case_weights) * self.case_weight_multiplier])])
             self.case_weights /= self.case_weights.sum()
 
         # fit classification model
