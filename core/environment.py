@@ -23,6 +23,7 @@ class ALGame(gym.Env):
         self.fitting_mode = dataset.class_fitting_mode
         self.loss = nn.CrossEntropyLoss()
         self.create_state_callback = create_state_callback
+        self.case_weight_multiplier = case_weight_multiplier
 
         # set gym observation space and action space
         self.current_test_accuracy = 0.0
@@ -97,13 +98,15 @@ class ALGame(gym.Env):
         if from_scratch:
             self.classifier.load_state_dict(self.initial_weights)
 
-        sampler = torch.utils.data.WeightedRandomSampler(self.case_weights, self.dataset.classifier_batch_size)
-        train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
-                                      batch_size=self.dataset.classifier_batch_size,
-                                      sampler=sampler, num_workers=4)
-        # train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
-        #                               batch_size=self.dataset.classifier_batch_size,
-        #                               shuffle=True, num_workers=4)
+        if self.case_weight_multiplier > 0.0:
+            sampler = torch.utils.data.WeightedRandomSampler(self.case_weights, self.dataset.classifier_batch_size)
+            train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
+                                          batch_size=self.dataset.classifier_batch_size,
+                                          sampler=sampler, num_workers=4)
+        else:
+            train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
+                                          batch_size=self.dataset.classifier_batch_size,
+                                          shuffle=True, num_workers=4)
         test_dataloader = DataLoader(TensorDataset(self.dataset.x_test, self.dataset.y_test), batch_size=100,
                                      num_workers=4)
 

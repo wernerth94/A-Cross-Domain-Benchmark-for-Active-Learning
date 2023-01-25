@@ -1,4 +1,3 @@
-import datasets.dna
 import experiment_util as util
 import os, argparse
 from agents.random_agent import RandomAgent
@@ -11,10 +10,10 @@ from core.logging import EnvironmentLogger
 import torch
 import numpy
 from tqdm import tqdm
-from datasets.cifar10 import Cifar10
+import datasets
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--agent", type=str, default="coreset")
+parser.add_argument("--agent", type=str, default="agent")
 parser.add_argument("--seed", type=int, default=42)
 args = parser.parse_args()
 
@@ -37,8 +36,8 @@ torch.random.manual_seed(args.seed)
 SAMPLE_SIZE = 20
 
 # dataset = datasets.dna.DNA(cache_folder="../datasets")
-# dataset = datasets.splice.Splice(cache_folder="../datasets")
-dataset = Cifar10(cache_folder="../datasets")
+dataset = datasets.Splice(cache_folder="../datasets")
+# dataset = datasets.Cifar10(cache_folder="../datasets")
 dataset = dataset.to(util.device)
 env = ALGame(dataset,
              SAMPLE_SIZE,
