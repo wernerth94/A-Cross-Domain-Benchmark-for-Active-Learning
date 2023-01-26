@@ -1,6 +1,11 @@
 # Dataset: 
 Splice
-Budget: 900 
+Budget: 900
+Seeding points per class: 1
+Classifier Batch Size: 43
+Source: LibSVMTools
+Normalization: Linear between [0..1]
+Classifier: DenseNet 
 
 # Agent: 
 MarginScore 
