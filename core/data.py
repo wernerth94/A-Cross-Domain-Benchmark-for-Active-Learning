@@ -145,6 +145,7 @@ class BaseDataset(ABC):
         :param device: cuda or cpu
         :return: self
         """
+        self.device = device
         for attr in dir(self):
             if not attr.startswith('__'):
                 value = getattr(self, attr)
