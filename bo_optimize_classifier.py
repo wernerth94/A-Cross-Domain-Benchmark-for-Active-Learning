@@ -25,7 +25,7 @@ bounds = torch.Tensor([
     [-100, 100],
     # Hidden size multiplier: This sets the size of each hidden layer by
     # size = layer number x multiplier      or
-    # size = (1/layer number) x multiplier  if multiplier < 0
+    # size = (1/layer number) x -multiplier  if multiplier < 0
 ]).T
 
 norm_bounds = torch.stack([
@@ -158,3 +158,9 @@ if __name__ == '__main__':
     os.makedirs(folder, exist_ok=True)
     filename = os.path.join(folder, filename)
     df.to_csv(filename)
+    # write some meta information
+    filename = os.path.join(folder, "meta.txt")
+    with open(filename, "w") as f:
+        if hasattr(dataset, "get_meta_data"):
+            f.write("# Dataset: \n")
+            f.write(f"{dataset.get_meta_data()} \n\n")

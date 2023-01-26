@@ -82,6 +82,7 @@ def fit_and_evaluate(dataset:BaseDataset,
                      max_epochs:int=1000):
     loss = nn.CrossEntropyLoss()
     model = dataset.get_classifier(hidden_dims=hidden_sizes)
+    model = model.to(dataset.device)
     optimizer = dataset.get_optimizer(model, lr=lr, weight_decay=weight_decay)
 
     train_dataloader = DataLoader(TensorDataset(dataset.x_unlabeled, dataset.y_unlabeled),
@@ -106,7 +107,8 @@ def fit_and_evaluate(dataset:BaseDataset,
             return False
 
     early_stop = EarlyStopping()
-    for e in tqdm(range(max_epochs), disable=disable_progess_bar):
+    iterator = tqdm(range(max_epochs), disable=disable_progess_bar)
+    for e in iterator:
         for batch_x, batch_y in train_dataloader:
             yHat = model(batch_x)
             loss_value = loss(yHat, batch_y)
@@ -126,7 +128,8 @@ def fit_and_evaluate(dataset:BaseDataset,
                 class_loss = loss(yHat, torch.argmax(batch_y.long(), dim=1))
                 loss_sum += class_loss.detach().cpu().numpy()
             if early_stop.check_stop(loss_sum):
-                # print(f"Early stop after {e} epochs")
+                print(f"Early stop after {e} epochs")
                 break
+            iterator.set_postfix({"val loss": loss_sum, "val acc": correct / total})
     accuracy = correct / total
     return accuracy

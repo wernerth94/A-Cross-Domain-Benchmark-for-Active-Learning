@@ -27,9 +27,11 @@ class Cifar10(BaseDataset):
 
 
     def get_classifier(self, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
-        model = ConvolutionalModel(input_size=self.x_shape,
-                                   num_classes=self.n_classes,
-                                   hidden_sizes=hidden_dims)
+        from core.resnet import ResNet18
+        model = ResNet18()
+        # model = ConvolutionalModel(input_size=self.x_shape,
+        #                            num_classes=self.n_classes,
+        #                            hidden_sizes=hidden_dims)
         return model
 
 

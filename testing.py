@@ -1,3 +1,5 @@
+import sys
+
 import datasets.dna
 import experiment_util as util
 import os, argparse
@@ -38,9 +40,15 @@ torch.random.manual_seed(args.seed)
 SAMPLE_SIZE = 20
 
 # dataset = datasets.DNA(cache_folder="../datasets")
-dataset = datasets.Splice(cache_folder="../datasets")
-# dataset = datasets.Cifar10(cache_folder="../datasets")
+# dataset = datasets.Splice(cache_folder="../datasets")
+dataset = datasets.Cifar10(cache_folder="../datasets")
 dataset = dataset.to(util.device)
+
+from core.classifier import fit_and_evaluate
+acc = fit_and_evaluate(dataset, lr=0.1, weight_decay=0.0, batch_size=128, hidden_sizes=None)
+print("Final Acc", acc)
+sys.exit(0)
+
 env = ALGame(dataset,
              SAMPLE_SIZE,
              AgentClass.create_state_callback,
