@@ -151,11 +151,20 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}[fragile]{Cross Validation}
-	Splice: 
-	random 0.874 +- 0.01
-	margin 0.885 +- 0.015
-	difference 0.011
-	Changing the data vs. changing the model initialization
+	\begin{columns}
+		\begin{column}{0.3\linewidth}
+			Splice (Tabular): \\
+			Random: $0.874 \pm 0.01$ \\
+			Margin: $0.885 \pm 0.015$ \\
+			Difference: $0.011$
+			%Changing the data vs. changing the model initialization
+		\end{column}
+		\hspace{3mm}
+		\begin{column}{0.7\linewidth}
+			\includegraphics[width=0.9\linewidth]{pics/splice_performance.png}
+		\end{column}
+	\end{columns}
+	
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
