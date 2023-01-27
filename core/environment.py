@@ -56,6 +56,16 @@ class ALGame(gym.Env):
         return self.create_state()
 
 
+    def _send_state_to_device(self, state):
+        if isinstance(state, dict):
+            result = {}
+            for k,v in state.items():
+                result[k] = v.to(self.device)
+        else:
+            result = state.to(self.device)
+        return result
+
+
     def create_state(self):
         state = self.create_state_callback(self.state_ids,
                                            self.x_unlabeled,
@@ -64,7 +74,7 @@ class ALGame(gym.Env):
                                            self.budget, self.added_images,
                                            self.initial_test_accuracy, self.current_test_accuracy,
                                            self.classifier, self.optimizer)
-        return state.to(self.device)
+        return self._send_state_to_device(state)
 
 
     def step(self, action:int):

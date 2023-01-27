@@ -9,7 +9,7 @@ import core
 from core.helper_functions import save_meta_data
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--agent", type=str, default="margin")
+parser.add_argument("--agent", type=str, default="coreset")
 parser.add_argument("--seed", type=int, default=42)
 args = parser.parse_args()
 
