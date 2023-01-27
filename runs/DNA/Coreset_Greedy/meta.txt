@@ -2,7 +2,10 @@
 DNA
 Budget: 600
 Seeding points per class: 1
-Classifier Batch Size: 43 
+Classifier Batch Size: 43
+Source: LibSVMTools
+Normalization: Linear between [0..1]
+Classifier: DenseNet 
 
 # Agent: 
 Coreset_Greedy 

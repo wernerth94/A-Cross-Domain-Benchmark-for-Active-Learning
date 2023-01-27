@@ -164,7 +164,19 @@
 			\includegraphics[width=0.9\linewidth]{pics/splice_performance.png}
 		\end{column}
 	\end{columns}
-	
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]{Cross Validation}
+	AL can cross validate in two ways
+	\begin{itemize}
+		\item Changing the seed set
+		\item Changing the presented sub-samples of unlabeled points
+		\item Changing model initialization
+	\end{itemize}
+	Currently, I keep the seed set fixed \\ [2mm]
+	Is there value in fixing everything? (Model checkpoints, pre-sampling data*, etc.)
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
