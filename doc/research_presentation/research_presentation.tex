@@ -94,6 +94,7 @@
 	The framework will \textbf{not} include
 	\begin{itemize}
 		\item Batch Active Learning
+		\item Elaborate Training (Data Augmentation, etc.)
 	\end{itemize}
 \end{frame}
 
@@ -118,6 +119,15 @@
 	Datasets should be selected by their "potential"
 	
 	Each dataset needs an oracle curve that sets an upper bound performance
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]{Dataset Potential}
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.7\linewidth]{pics/splice_oracle.png}
+	\end{figure}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -202,6 +212,27 @@
 \begin{frame}[fragile]{Single Domain vs. Transfer}
 	pass
 \end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]{The End}
+	Cheers
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]{Classifier Training}
+	Labeled points are unweighted
+	
+	Always at least one epoch of training
+	
+	Aggressive early stopping with patience $0$
+	
+	Adam (NAdam) optimizer, since SGD proves to be too slow (needs more epochs)
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 
 \end{document}
