@@ -161,6 +161,19 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}[fragile]{Cross Validation}
+AL can cross validate in two ways
+\begin{itemize}
+	\item Changing the seed set
+	\item Changing the presented sub-samples of unlabeled points
+	\item Changing model initialization
+\end{itemize}
+Currently, I keep the seed set fixed \\ [2mm]
+Is there value in fixing everything? (Model checkpoints, pre-sampling data*, etc.)
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]{Cross Validation}
 	\begin{columns}
 		\begin{column}{0.3\linewidth}
 			Splice (Tabular): \\
@@ -179,20 +192,32 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}[fragile]{Cross Validation}
-	AL can cross validate in two ways
-	\begin{itemize}
-		\item Changing the seed set
-		\item Changing the presented sub-samples of unlabeled points
-		\item Changing model initialization
-	\end{itemize}
-	Currently, I keep the seed set fixed \\ [2mm]
-	Is there value in fixing everything? (Model checkpoints, pre-sampling data*, etc.)
+	\begin{columns}
+		\begin{column}{0.5\linewidth}
+			Random Sampling
+			\includegraphics[width=\linewidth]{pics/splice_random_convergence.jpg}
+		\end{column}
+		\hspace{3mm}
+		\begin{column}{0.5\linewidth}
+			Uncertainty Sampling
+			\includegraphics[width=\linewidth]{pics/splice_margin_convergence.jpg}
+		\end{column}
+	\end{columns}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]{Cross Validation}
+	\begin{figure}
+		\centering
+		\includegraphics[width=.7\linewidth]{pics/splice_margin100_convergence.jpg}
+	\end{figure}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}[fragile]{Hyperparameters}
-	Data HPs are fixed by the dataset (budget, seed set, ...)
+	Data HPs are fixed for each dataset (budget, seed set, ...)
 	
 	Classifier HPs are set with BO per dataset (architecture, learning rate, regularization, ...)
 	

@@ -14,14 +14,12 @@ doc/*.log
 doc/*.bbl
 doc/*.blg
 doc/*.out
-doc/*.pdf
 doc/*.synctex.gz
 doc/*/*.aux
 doc/*/*.log
 doc/*/*.bbl
 doc/*/*.blg
 doc/*/*.out
-doc/*/*.pdf
 doc/*/*.synctex.gz
 doc/*/*.bcf
 doc/*/*.nav
