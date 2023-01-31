@@ -191,12 +191,10 @@ class OracleALGame(ALGame):
         initial_optimizer_state = copy.deepcopy(self.optimizer.state_dict())
         initial_test_loss = self.current_test_loss
         initial_test_acc = self.current_test_accuracy
-        initial_total_weight = self.total_weight
         np_seed = len(self.x_labeled)
         torch_seed = len(self.x_labeled)
         return (initial_weights, initial_optimizer_state,
                 initial_test_loss, initial_test_acc,
-                initial_total_weight,
                 np_seed, torch_seed)
 
 
@@ -205,9 +203,8 @@ class OracleALGame(ALGame):
         self.optimizer.load_state_dict(state_tuple[1])
         self.current_test_loss = state_tuple[2]
         self.current_test_accuracy = state_tuple[3]
-        self.total_weight = state_tuple[4]
-        np.random.seed(state_tuple[5])
-        torch.random.manual_seed(state_tuple[6])
+        np.random.seed(state_tuple[4])
+        torch.random.manual_seed(state_tuple[5])
 
 
     def step(self, *args, **kwargs):
