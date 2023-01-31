@@ -2,23 +2,23 @@ from typing import Tuple
 import torch
 import torch.nn as nn
 import torchvision
-from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel_first
+from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel_first, subsample_data
 from core.classifier import ConvolutionalModel
 
 class Cifar10(BaseDataset):
 
-    def __init__(self, budget=2000, initial_points_per_class=1, classifier_batch_size=43,
+    def __init__(self, budget=2000, initial_points_per_class=1, classifier_batch_size=128,
                  data_file="cifar10_al.pt",
                  cache_folder:str="~/.al_benchmark/datasets"):
         super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, cache_folder)
 
 
-    def _download_data(self):
+    def _download_data(self, test_data_fraction=0.1):
         train = torchvision.datasets.CIFAR10(root=self.cache_folder, train=True, download=True)
         test = torchvision.datasets.CIFAR10(root=self.cache_folder, train=False, download=True)
-        x_train, self.y_train, x_test, self.y_test = postprocess_torch_dataset(train, test)
+        x_train, self.y_train, x_test, y_test = postprocess_torch_dataset(train, test)
+        x_test, self.y_test = subsample_data(x_test, y_test, test_data_fraction)
         self.x_train, self.x_test = convert_to_channel_first(x_train, x_test)
-
         # normalize pixel values from [0..255] to [-1..1]
         high = 255.0
         self.x_train = self.x_train / (high / 2.0) - 1.0
@@ -26,7 +26,7 @@ class Cifar10(BaseDataset):
         print("Download successful")
 
 
-    def get_classifier(self, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
+    def get_classifier(self, hidden_dims:Tuple[int]=(24, 12)) -> nn.Module:
         from core.resnet import ResNet18
         model = ResNet18()
         # model = ConvolutionalModel(input_size=self.x_shape,
@@ -35,14 +35,14 @@ class Cifar10(BaseDataset):
         return model
 
 
-    def get_optimizer(self, model, lr=0.001, weight_decay=0.0) -> torch.optim.Optimizer:
-        return torch.optim.NAdam(model.parameters(), lr=0.001, weight_decay=0.0)
+    def get_optimizer(self, model, lr=0.01, weight_decay=0.0) -> torch.optim.Optimizer:
+        return torch.optim.NAdam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
 
     def get_meta_data(self) ->str:
         s = super().get_meta_data() + '\n'
         s += "Source: TorchVision\n" \
              "Normalization: Linear between [-1..1]\n" \
-             "Classifier: Vanilla ConvNet"
+             "Classifier: ResNet18"
         return s
 

@@ -184,6 +184,16 @@ def normalize(x_train, x_test, mode:Literal["none", "mean", "mean_std", "min_max
     return x_train, x_test
 
 
+def subsample_data(x, y, fraction):
+    all_ids = np.arange(len(x))
+    np.random.shuffle(all_ids)
+    cutoff = int(len(all_ids) * fraction)
+    ids = all_ids[:cutoff]
+    new_x = x[ids]
+    new_y = y[ids]
+    return new_x, new_y
+
+
 def convert_to_channel_first(train:Union[Tensor, np.ndarray], test:Union[Tensor, np.ndarray]):
     if isinstance(train, np.ndarray):
         train = np.moveaxis(train, -1, 1)
