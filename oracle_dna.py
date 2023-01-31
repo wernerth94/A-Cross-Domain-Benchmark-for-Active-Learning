@@ -16,7 +16,7 @@ numpy.random.seed(args.seed)
 torch.random.manual_seed(args.seed)
 
 SAMPLE_SIZE = 20
-CROSS_VALIDATION = 50
+CROSS_VALIDATION = 1
 
 dataset = datasets.dna.DNA(cache_folder="../datasets")
 dataset = dataset.to(util.device)
