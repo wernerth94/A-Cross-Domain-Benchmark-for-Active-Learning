@@ -218,15 +218,26 @@ Is there value in fixing everything? (Model checkpoints, pre-sampling data*, etc
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}[fragile]{Hyperparameters}
-	Data HPs are fixed for each dataset (budget, seed set, ...)
+\begin{frame}[fragile]{Hyperparameters: Dataset}
+	Budget is set to allow convergence 
 	
-	Classifier HPs are set with BO per dataset (architecture, learning rate, regularization, ...)
+	Seed set is fixed to 1 point per class unless the cold start problem is to pronounced
 	
-	Environment HPs are choosen with respect to the classifiers (training loop, ...)
-	
+	Classifier batch size / LR / regularization is optimized for performance \\
+	Image datasets might require a trade-off for speed (Cifar10 currently needs 8 days)
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]{Hyperparameters: Agent}
 	Each AL agent defines its own state space with the information from the environment
 	
+	Other hyperparameters for baselines need to be investigated
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]{True Hyperparameters}
 	This leaves very few "true" hyperparameters: 
 	\begin{itemize}
 		\item Unlabeled Sample Size
@@ -264,6 +275,8 @@ Is there value in fixing everything? (Model checkpoints, pre-sampling data*, etc
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\appendix
+
 \begin{frame}[fragile]{Classifier Training}
 	\begin{table}
 		\centering
@@ -271,7 +284,7 @@ Is there value in fixing everything? (Model checkpoints, pre-sampling data*, etc
 			\textbf{General Setup} & \textbf{Speed Optimizations} \\
 			\hline
 			Cross-Entropy Loss & Fine tuning \\ [1mm]
-			No case weights & Agressive Early Stopping \\[1mm]
+			No case weights & Aggressive Early Stopping \\[1mm]
 			At least one epoch & \\[1mm]
 			NAdam optimizer &
 		\end{tabular}
@@ -280,7 +293,7 @@ Is there value in fixing everything? (Model checkpoints, pre-sampling data*, etc
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}[fragile]{Some Results}
+\begin{frame}[fragile]{Results for Splice}
 	\begin{table}
 		\centering
 		\begin{tabular}{l || c | c }
