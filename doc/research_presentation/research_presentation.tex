@@ -212,6 +212,7 @@ Is there value in fixing everything? (Model checkpoints, pre-sampling data*, etc
 	\begin{figure}
 		\centering
 		\includegraphics[width=.7\linewidth]{pics/splice_margin100_convergence.jpg}
+		\caption*{Uncertainty Sampling}
 	\end{figure}
 \end{frame}
 
@@ -235,8 +236,24 @@ Is there value in fixing everything? (Model checkpoints, pre-sampling data*, etc
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{frame}[fragile]{Ensemble Approaches}
+	Uncertainty Sampling profits a lot from ensembles
+	
+	The logical thing is to build the final classifier as an ensemble \\ [7mm]
+	%
+	How do you compare single model approaches to ensemble approaches?
+	
+	Prefix a single evaluation model out of the ensemble?
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \begin{frame}[fragile]{Single Domain vs. Transfer}
-	pass
+	Single Domain: Fit AL agent on the same dataset that you evaluate on (not useful in practice)
+	
+	Domain Transfer: Fit AL agent on domain with large resources and evaluate agent on domain with few resources
+	
+	Often used in NLP (fit agent on English data and evaluate for Spanish / German)
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -248,13 +265,36 @@ Is there value in fixing everything? (Model checkpoints, pre-sampling data*, etc
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}[fragile]{Classifier Training}
-	Labeled points are unweighted
-	
-	Always at least one epoch of training
-	
-	Aggressive early stopping with patience $0$
-	
-	Adam (NAdam) optimizer
+	\begin{table}
+		\centering
+		\begin{tabular}{l || l}
+			\textbf{General Setup} & \textbf{Speed Optimizations} \\
+			\hline
+			Cross-Entropy Loss & Fine tuning \\ [1mm]
+			No case weights & Agressive Early Stopping \\[1mm]
+			At least one epoch & \\[1mm]
+			NAdam optimizer &
+		\end{tabular}
+	\end{table}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]{Some Results}
+	\begin{table}
+		\centering
+		\begin{tabular}{l || c | c }
+			\textbf{Agent} & \textbf{Acc} & \textbf{AUC} \\
+			\hline
+			Oracle & 0.8806 $\pm$ 0.0141 & 0.8530 $\pm$ 0.0132 \\
+			SAR & 0.8839 $\pm$ 0.0142 & 0.8339 $\pm$ 0.0118 \\
+			Margin & 0.8849 $\pm$ 0.0112 & 0.8309 $\pm$ 0.0141 \\
+			Entropy & 0.8822 $\pm$ 0.0156 & 0.8285 $\pm$ 0.0154 \\
+			Coreset & 0.8788 $\pm$ 0.0105 & 0.8246 $\pm$ 0.0108 \\
+			Random & 0.8744 $\pm$ 0.0144 & 0.8152 $\pm$ 0.0129
+		\end{tabular}
+		\caption*{Results for Splice}
+	\end{table}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
