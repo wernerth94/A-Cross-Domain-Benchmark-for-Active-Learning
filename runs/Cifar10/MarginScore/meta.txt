@@ -2,7 +2,7 @@
 Cifar10
 Budget: 2000
 Seeding points per class: 1
-Classifier Batch Size: 128
+Classifier Batch Size: 256
 Source: TorchVision
 Normalization: Linear between [-1..1]
 Classifier: ResNet18 

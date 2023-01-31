@@ -7,7 +7,7 @@ from core.classifier import ConvolutionalModel
 
 class Cifar10(BaseDataset):
 
-    def __init__(self, budget=2000, initial_points_per_class=1, classifier_batch_size=128,
+    def __init__(self, budget=2000, initial_points_per_class=1, classifier_batch_size=256,
                  data_file="cifar10_al.pt",
                  cache_folder:str="~/.al_benchmark/datasets"):
         super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, cache_folder)
