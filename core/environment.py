@@ -1,5 +1,6 @@
 from typing import Callable, Tuple
 from time import time
+import copy
 import numpy as np
 import torch
 import torch.nn as nn
@@ -187,3 +188,92 @@ class ALGame(gym.Env):
     def get_meta_data(self)->str:
         return f"{str(self)} \n" \
                f"Sample Size: {self.sample_size}"
+
+
+
+class OracleALGame(ALGame):
+    def __init__(self, dataset: BaseDataset,
+                 labeled_sample_size,
+                 case_weight_multiplier = 0.0,
+                 device = None):
+        def empty_callback(*args, **kwargs):
+            return torch.zeros((1,10)) # dummy state
+        super().__init__(dataset, labeled_sample_size, empty_callback,
+                         case_weight_multiplier, device)
+
+
+    def _get_internal_state(self):
+        initial_weights = copy.deepcopy(self.classifier.state_dict())
+        initial_optimizer_state = copy.deepcopy(self.optimizer.state_dict())
+        initial_test_loss = self.current_test_loss
+        initial_test_acc = self.current_test_accuracy
+        initial_total_weight = self.total_weight
+        np_seed = len(self.x_labeled)
+        torch_seed = len(self.x_labeled)
+        return (initial_weights, initial_optimizer_state,
+                initial_test_loss, initial_test_acc,
+                initial_total_weight,
+                np_seed, torch_seed)
+
+
+    def _set_internal_state(self, state_tuple):
+        self.classifier.load_state_dict(state_tuple[0])
+        self.optimizer.load_state_dict(state_tuple[1])
+        self.current_test_loss = state_tuple[2]
+        self.current_test_accuracy = state_tuple[3]
+        self.total_weight = state_tuple[4]
+        np.random.seed(state_tuple[5])
+        torch.random.manual_seed(state_tuple[6])
+
+
+    def step(self, *args, **kwargs):
+        max_reward = -np.inf
+        best_i = -1
+        best_action = -1
+        # preserve the initial state for this iteration
+        self.initial_state = self._get_internal_state()
+        for act, i in enumerate(self.state_ids):
+            # add testing point to labeled pool
+            # keep track of the added images
+            self.per_class_instances[int(torch.argmax(self.y_unlabeled[i]).cpu())] += 1
+            # add the point to the labeled set
+            self.x_labeled = torch.cat([self.x_labeled, self.x_unlabeled[i:i + 1]], dim=0)
+            self.y_labeled = torch.cat([self.y_labeled, self.y_unlabeled[i:i + 1]], dim=0)
+            # self.x_labeled, self.y_labeled, \
+            # self.x_unlabeled, self.y_unlabeled, perClassIntances = add_datapoint_to_pool(self.x_labeled, self.y_labeled,
+            #                                                                              self.x_unlabeled, self.y_unlabeled,
+            #                                                                              self.per_class_intances, i,
+            #                                                                              remove_unlabeled_point=False)
+            # restore initial states
+            self._set_internal_state(self.initial_state)
+            reward = self.fit_classifier()
+            if reward > max_reward:
+                max_reward = reward
+                best_i = i
+                best_action = act
+            # remove the testing point
+            self.per_class_instances[int(torch.argmax(self.y_unlabeled[-1]).cpu())] -= 1  # keep track of the added images
+            self.x_labeled = self.x_labeled[:-1]
+            self.y_labeled = self.y_labeled[:-1]
+            # self.x_labeled, self.y_labeled, \
+            # self.x_unlabeled, self.y_unlabeled, perClassIntances = remove_last_point_from_pool(self.x_labeled, self.y_labeled,
+            #                                                                                    self.x_unlabeled, self.y_unlabeled,
+            #                                                                                    self.per_class_intances)
+        # add the oracle point and retrain one more time
+        self.per_class_instances[int(torch.argmax(self.y_unlabeled[best_i]).cpu())] += 1
+        # add the point to the labeled set
+        self.x_labeled = torch.cat([self.x_labeled, self.x_unlabeled[best_i:best_i + 1]], dim=0)
+        self.y_labeled = torch.cat([self.y_labeled, self.y_unlabeled[best_i:best_i + 1]], dim=0)
+        # remove the point from the unlabeled set
+        self.x_unlabeled = torch.cat([self.x_unlabeled[:best_i], self.x_unlabeled[best_i + 1:]], dim=0)
+        self.y_unlabeled = torch.cat([self.y_unlabeled[:best_i], self.y_unlabeled[best_i + 1:]], dim=0)
+        # self.x_labeled, self.y_labeled, \
+        # self.x_unlabeled, self.y_unlabeled, perClassIntances = add_datapoint_to_pool(self.x_labeled, self.y_labeled,
+        #                                                                              self.x_unlabeled, self.y_unlabeled,
+        #                                                                              self.per_class_intances, best_i)
+        self.fit_classifier()
+        self.added_images += 1
+        self.state_ids = np.random.choice(len(self.x_unlabeled), self.sample_size)
+        done = self.added_images >= self.budget
+        truncated, info = False, {"action":best_action}
+        return self.create_state(), max_reward, done, truncated, info
