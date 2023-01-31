@@ -13,7 +13,6 @@ class ALGame(gym.Env):
     def __init__(self, dataset:BaseDataset,
                  labeled_sample_size,
                  create_state_callback:Callable,
-                 case_weight_multiplier=0.0,
                  device=None):
         if device is None:
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -25,7 +24,6 @@ class ALGame(gym.Env):
         self.fitting_mode = dataset.class_fitting_mode
         self.loss = nn.CrossEntropyLoss()
         self.create_state_callback = create_state_callback
-        self.case_weight_multiplier = case_weight_multiplier
 
         # set gym observation space and action space
         self.current_test_accuracy = 0.0
@@ -53,8 +51,6 @@ class ALGame(gym.Env):
             self.initial_weights = self.classifier.state_dict()
             self.optimizer = self.dataset.get_optimizer(self.classifier)
             self.reset_al_pool()
-            self.case_weights = np.array([1.0]*len(self.x_labeled))
-            self.case_weights /= self.case_weights.sum()
         # first training of the model should be done from scratch
         self._fit_classifier(from_scratch=True)
         self.initial_test_accuracy = self.current_test_accuracy
@@ -96,9 +92,6 @@ class ALGame(gym.Env):
             # remove the point from the unlabeled set
             self.x_unlabeled = torch.cat([self.x_unlabeled[:datapoint_id], self.x_unlabeled[datapoint_id + 1:]], dim=0)
             self.y_unlabeled = torch.cat([self.y_unlabeled[:datapoint_id], self.y_unlabeled[datapoint_id + 1:]], dim=0)
-            # add next case weight and re-normalize
-            self.case_weights = np.concatenate([self.case_weights, np.array([sum(self.case_weights) * self.case_weight_multiplier])])
-            self.case_weights /= self.case_weights.sum()
 
         # fit classification model
         reward = self.fit_classifier()
@@ -113,16 +106,9 @@ class ALGame(gym.Env):
     def _fit_classifier(self, epochs=50, from_scratch=False):
         if from_scratch:
             self.classifier.load_state_dict(self.initial_weights)
-
-        if self.case_weight_multiplier > 0.0:
-            sampler = torch.utils.data.WeightedRandomSampler(self.case_weights, self.dataset.classifier_batch_size)
-            train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
-                                          batch_size=self.dataset.classifier_batch_size,
-                                          sampler=sampler, num_workers=4)
-        else:
-            train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
-                                          batch_size=self.dataset.classifier_batch_size,
-                                          shuffle=True, num_workers=4)
+        train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
+                                      batch_size=self.dataset.classifier_batch_size,
+                                      shuffle=True, num_workers=4)
         test_dataloader = DataLoader(TensorDataset(self.dataset.x_test, self.dataset.y_test), batch_size=100,
                                      num_workers=4)
 
@@ -194,12 +180,10 @@ class ALGame(gym.Env):
 class OracleALGame(ALGame):
     def __init__(self, dataset: BaseDataset,
                  labeled_sample_size,
-                 case_weight_multiplier = 0.0,
                  device = None):
         def empty_callback(*args, **kwargs):
             return torch.zeros((1,10)) # dummy state
-        super().__init__(dataset, labeled_sample_size, empty_callback,
-                         case_weight_multiplier, device)
+        super().__init__(dataset, labeled_sample_size, empty_callback, device)
 
 
     def _get_internal_state(self):
