@@ -30,7 +30,7 @@ class ALGame(gym.Env):
         start_time = time()
         state = self.reset()
         duration = time() - start_time
-        print("Estimated time per run (h): %1.1f"%(duration * self.budget / 60 / 60))
+        print("Estimated time per run (h): %1.1f"%(2 * duration * self.budget / 60 / 60))
 
         if isinstance(state, dict):
             self.observation_space = dict()
