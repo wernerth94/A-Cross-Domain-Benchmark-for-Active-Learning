@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Literal, Union, Callable
+from typing import Tuple, Literal, Union, Any, Optional
 import os
 import numpy as np
 import torch
@@ -8,7 +8,6 @@ from torch.nn import Module
 from torch.optim import Optimizer
 from torchvision.datasets import VisionDataset
 from sklearn.preprocessing import MinMaxScaler
-from core.helper_functions import to_torch
 
 class BaseDataset(ABC):
 
@@ -163,6 +162,26 @@ class BaseDataset(ABC):
 
 ##################################################################
 # Data loading functions, etc.
+
+def to_torch(x: Any, dtype: Optional[torch.dtype] = None,
+             device: Union[str, int, torch.device] = "cpu", ) -> torch.Tensor:
+    """
+    Convert an object to torch.Tensor
+    Ref: Tianshou
+    """
+    if isinstance(x, np.ndarray) and issubclass(
+        x.dtype.type, (np.bool_, np.number)
+    ):  # most often case
+        x = torch.from_numpy(x).to(device)
+        if dtype is not None:
+            x = x.type(dtype)
+        return x
+    elif isinstance(x, torch.Tensor):  # second often case
+        if dtype is not None:
+            x = x.type(dtype)
+        return x.to(device)
+    else:  # fallback
+        raise TypeError(f"object {x} cannot be converted to torch.")
 
 def normalize(x_train, x_test, mode:Literal["none", "mean", "mean_std", "min_max"]="min_max"):
     if mode == "mean":

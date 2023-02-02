@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, Callable
+from typing import Union, Callable
 import os
 from os.path import join, exists
 import torch
@@ -33,26 +33,6 @@ def save_meta_data(logpath, agent, env, dataset, additional:dict=None):
             for key, value in additional.items():
                 f.write(f"{key}: {value} \n")
 
-
-def to_torch(x: Any, dtype: Optional[torch.dtype] = None,
-             device: Union[str, int, torch.device] = "cpu", ) -> torch.Tensor:
-    """
-    Convert an object to torch.Tensor
-    Ref: Tianshou
-    """
-    if isinstance(x, np.ndarray) and issubclass(
-        x.dtype.type, (np.bool_, np.number)
-    ):  # most often case
-        x = torch.from_numpy(x).to(device)
-        if dtype is not None:
-            x = x.type(dtype)
-        return x
-    elif isinstance(x, torch.Tensor):  # second often case
-        if dtype is not None:
-            x = x.type(dtype)
-        return x.to(device)
-    else:  # fallback
-        raise TypeError(f"object {x} cannot be converted to torch.")
 
 
 
