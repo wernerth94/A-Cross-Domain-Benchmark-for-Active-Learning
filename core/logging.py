@@ -7,8 +7,9 @@ from core.helper_functions import plot_mean_std_development
 
 class EnvironmentLogger:
 
-    def __init__(self, environment:ALGame, out_path:str, is_cluster):
+    def __init__(self, environment:ALGame, out_path:str, is_cluster, planned_runs):
         self.is_cluster = is_cluster
+        self.planned_runs = planned_runs
         self.out_path = out_path
         self.env = environment
         self.accuracies_path = os.path.join(out_path, "accuracies.csv")
@@ -23,8 +24,8 @@ class EnvironmentLogger:
     def __exit__(self, type, value, traceback):
         # create base dirs
         os.makedirs(self.out_path, exist_ok=True)
-        if not self.is_cluster and self.current_run < 10:
-            resp = input(f"Only {self.current_run} runs computed. Do you want to overwrite existing results? (y/n)")
+        if not self.is_cluster and self.current_run < self.planned_runs-1:
+            resp = input(f"Only {self.current_run}/{self.planned_runs} runs computed. Do you want to overwrite existing results? (y/n)")
             if resp != "y":
                 print("Keeping old results...")
                 return

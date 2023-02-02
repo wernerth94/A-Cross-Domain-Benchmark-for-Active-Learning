@@ -1,12 +1,17 @@
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Callable
 import os
+from os.path import join, exists
 import torch
 import numpy as np
-from pandas import DataFrame
+import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
+from core.agent import BaseAgent
+import agents
+from core.data import BaseDataset
+import datasets
 
-def save_meta_data(logpath, agent, env, dataset):
+def save_meta_data(logpath, agent, env, dataset, additional:dict=None):
     if not os.path.exists(logpath):
         os.makedirs(logpath, exist_ok=True)
     file = os.path.join(logpath, "meta.txt")
@@ -23,6 +28,10 @@ def save_meta_data(logpath, agent, env, dataset):
         if hasattr(env, "get_meta_data"):
             f.write("# Environment: \n")
             f.write(f"{env.get_meta_data()} \n\n")
+        if additional is not None:
+            f.write("# Other: \n")
+            for key, value in additional.items():
+                f.write(f"{key}: {value} \n")
 
 
 def to_torch(x: Any, dtype: Optional[torch.dtype] = None,
@@ -75,3 +84,50 @@ def plot_mean_std_development(inpt:list, title:str, out_file:str=None):
     else:
         fig.savefig(out_file, dpi=100, bbox_inches='tight')
     plt.close(fig)
+
+
+def collect_results(base_path, folder_prefix):
+    def check_for_nan_cols(df: pd.DataFrame):
+        cleaned_pd = df.copy(deep=True)
+        for col_name in df:
+            if df[col_name].isnull().values.any():
+                cleaned_pd.drop(columns=[col_name], inplace=True)
+        return cleaned_pd
+
+    result_acc = pd.DataFrame()
+    result_loss = pd.DataFrame()
+    for run_folder in os.listdir(base_path):
+        if run_folder.startswith(folder_prefix):
+            accuracies = pd.read_csv(join(base_path, run_folder, "accuracies.csv"), header=0, index_col=0)
+            accuracies = check_for_nan_cols(accuracies)
+            result_acc = pd.concat([result_acc, accuracies], axis=1, ignore_index=True)
+            losses = pd.read_csv(join(base_path, run_folder, "losses.csv"), header=0, index_col=0)
+            losses = check_for_nan_cols(losses)
+            result_loss = pd.concat([result_loss, losses], axis=1, ignore_index=True)
+    result_acc.to_csv(join(base_path, "accuracies.csv"))
+    result_loss.to_csv(join(base_path, "losses.csv"))
+
+
+def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
+    if name == "splice":
+        return datasets.Splice
+    elif name == "dna":
+        return datasets.DNA
+    elif name == "cifar10":
+        return datasets.Cifar10
+    else:
+        raise ValueError(f"Dataset name '{name}' not recognized")
+
+def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
+    if name == "random":
+        return agents.RandomAgent
+    elif name == "entropy":
+        return agents.ShannonEntropy
+    elif name == "margin":
+        return agents.MarginScore
+    elif name == "coreset":
+        return agents.Coreset_Greedy
+    elif name == "agent":
+        return agents.SAR
+    else:
+        raise ValueError(f"Agent name '{name}' not recognized")
