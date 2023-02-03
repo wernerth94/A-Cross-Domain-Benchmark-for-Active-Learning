@@ -76,23 +76,29 @@ class ConvolutionalModel(nn.Module):
 
 
 def fit_and_evaluate(dataset:BaseDataset,
-                     lr:float, weight_decay:float, batch_size:int,
-                     hidden_sizes:tuple,
+                     lr:float=None, weight_decay:float=None, batch_size:int=None,
+                     hidden_sizes:tuple=None,
                      disable_progess_bar:bool=False,
                      max_epochs:int=1000):
     loss = nn.CrossEntropyLoss()
-    model = dataset.get_classifier(hidden_dims=hidden_sizes)
+    if hidden_sizes is not None:
+        model = dataset.get_classifier(hidden_dims=hidden_sizes)
+    else:
+        model = dataset.get_classifier()
     model = model.to(dataset.device)
-    optimizer = dataset.get_optimizer(model, lr=lr, weight_decay=weight_decay)
+    if lr is not None and weight_decay is not None:
+        optimizer = dataset.get_optimizer(model, lr=lr, weight_decay=weight_decay)
+    else:
+        optimizer = dataset.get_optimizer(model)
 
     train_dataloader = DataLoader(TensorDataset(dataset.x_unlabeled, dataset.y_unlabeled),
                                   batch_size=batch_size,
                                   shuffle=True, num_workers=4)
-    test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=256,
+    test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512,
                                  num_workers=4)
 
     class EarlyStopping:
-        def __init__(self, patience=3):
+        def __init__(self, patience=5):
             self.patience = patience
             self.best_loss = torch.inf
             self.steps_without_improvement = 0
