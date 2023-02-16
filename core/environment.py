@@ -109,6 +109,7 @@ class ALGame(gym.Env):
             self.classifier.load_state_dict(self.initial_weights)
         train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
                                       batch_size=self.dataset.classifier_batch_size,
+                                      drop_last=True,
                                       shuffle=True, num_workers=4)
         test_dataloader = DataLoader(TensorDataset(self.dataset.x_test, self.dataset.y_test), batch_size=100,
                                      num_workers=4)

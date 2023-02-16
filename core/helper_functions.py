@@ -83,7 +83,10 @@ def collect_results(base_path, folder_prefix):
                 accuracies = pd.read_csv(acc_file_path, header=0, index_col=0)
                 accuracies = check_for_nan_cols(accuracies)
                 result_acc = pd.concat([result_acc, accuracies], axis=1, ignore_index=True)
-                losses = pd.read_csv(join(base_path, run_folder, "losses.csv"), header=0, index_col=0)
+
+            loss_file_path = join(base_path, run_folder, "losses.csv")
+            if exists(loss_file_path):
+                losses = pd.read_csv(loss_file_path, header=0, index_col=0)
                 losses = check_for_nan_cols(losses)
                 result_loss = pd.concat([result_loss, losses], axis=1, ignore_index=True)
     result_acc.to_csv(join(base_path, "accuracies.csv"))

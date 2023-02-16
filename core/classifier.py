@@ -86,19 +86,20 @@ def fit_and_evaluate(dataset:BaseDataset,
     else:
         model = dataset.get_classifier()
     model = model.to(dataset.device)
+
     if lr is not None and weight_decay is not None:
         optimizer = dataset.get_optimizer(model, lr=lr, weight_decay=weight_decay)
     else:
         optimizer = dataset.get_optimizer(model)
+
     if batch_size is None:
         batch_size = dataset.classifier_batch_size
 
-    train_dataloader = DataLoader(TensorDataset(dataset.x_unlabeled, dataset.y_unlabeled),
+    train_dataloader = DataLoader(TensorDataset(dataset.x_train, dataset.y_train),
                                   batch_size=batch_size,
                                   shuffle=True, num_workers=4)
     test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512,
                                  num_workers=4)
-
     class EarlyStopping:
         def __init__(self, patience=5):
             self.patience = patience

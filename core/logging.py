@@ -24,6 +24,7 @@ class EnvironmentLogger:
     def __exit__(self, type, value, traceback):
         # create base dirs
         os.makedirs(self.out_path, exist_ok=True)
+        # Check if this was a test run, or if all runs finished
         if not self.is_cluster and self.current_run < self.planned_runs-1:
             resp = input(f"Only {self.current_run}/{self.planned_runs} runs computed. Do you want to overwrite existing results? (y/n)")
             if resp != "y":

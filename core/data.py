@@ -30,7 +30,9 @@ class BaseDataset(ABC):
         self.cache_folder = cache_folder
         self.initial_points_per_class = initial_points_per_class
 
-        self._load_or_download_data()
+        self._load_or_download_data() # Main call to load the data
+        self.reset() # resets the seed set
+
         self.n_classes = self.y_test.shape[-1]
         self.x_shape = self.x_unlabeled.shape[1:]
         self.name = str(self.__class__).split('.')[-1][:-2]
@@ -40,12 +42,18 @@ class BaseDataset(ABC):
         print(f"| Unlabeled Instances: {len(self.x_unlabeled)}")
         print(f"| Test Instances {len(self.x_test)}")
 
+
+    def reset(self):
+        self._create_seed_set()
+
+
     @abstractmethod
     def _download_data(self):
         '''
         Downloads the data from web and saves it into self.cache_folder
         '''
         pass
+
 
     def _load_data(self)->Union[None, Tuple]:
         '''
@@ -56,9 +64,8 @@ class BaseDataset(ABC):
         file = os.path.join(self.cache_folder, self.data_file)
         if os.path.exists(file):
             dataset = torch.load(file)
-            return dataset["x_labeled"], dataset["y_labeled"], \
-                dataset["x_unlabeled"], dataset["y_unlabeled"], \
-                dataset["x_test"], dataset["y_test"]
+            return dataset["x_train"], dataset["y_train"], \
+                   dataset["x_test"], dataset["y_test"]
         return None
 
 
@@ -86,11 +93,21 @@ class BaseDataset(ABC):
             assert hasattr(self, "x_test")
             assert hasattr(self, "y_test")
             self._convert_data_to_tensors()
-            self._create_seed_set()
+            self._save_data()
             data = self._load_data()
             if data is None:
                 raise ValueError(f"Dataset was not found in {self.cache_folder} and could not be downloaded")
-        self.x_labeled, self.y_labeled, self.x_unlabeled, self.y_unlabeled, self.x_test, self.y_test = data
+        self.x_train, self.y_train, self.x_test, self.y_test = data
+        return True
+
+    def _save_data(self):
+        out_file = os.path.join(self.cache_folder, self.data_file)
+        torch.save({
+            "x_train": self.x_train,
+            "y_train": self.y_train,
+            "x_test": self.x_test,
+            "y_test": self.y_test,
+        }, out_file)
         return True
 
 
@@ -116,18 +133,6 @@ class BaseDataset(ABC):
         self.y_labeled = self.y_train[y_labeled]
         self.x_unlabeled = self.x_train[unusedIds]
         self.y_unlabeled = self.y_train[unusedIds]
-        del self.x_train
-        del self.y_train
-
-        out_file = os.path.join(self.cache_folder, self.data_file)
-        torch.save({
-            "x_labeled": self.x_labeled,
-            "y_labeled": self.y_labeled,
-            "x_unlabeled": self.x_unlabeled,
-            "y_unlabeled": self.y_unlabeled,
-            "x_test": self.x_test,
-            "y_test": self.y_test,
-        }, out_file)
         return True
 
 

@@ -30,12 +30,20 @@
 \section{Overview}
 
 \subsection{Problem Description}
-We assume a dataset $\mathcal{D}$ consisting of a large pool of unlabeled data $\mathcal{U}$ and a small set of labeled data called the seed set $\mathcal{S}$: $\mathcal{D} := (\mathcal{U}, \mathcal{S}); \hspace{2mm} |\mathcal{S}| \ll |\mathcal{U|}$. 
+We assume a dataset $\mathcal{D} := (\mathcal{U}, \mathcal{L})$ consisting of a large pool of unlabeled data $\mathcal{U}$ and a small set of labeled data called the seed set with $|\mathcal{L}| \ll |\mathcal{U|}$. 
 For the purpose of this work, only fully labeled datasets are used and the labels for $\mathcal{U}$ are suppressed until they are selected for labeling.
-We consider only classification problems, hence the instances of a dataset have the form $x \in \mathbb{R}^M$ for $\mathcal{U}$ and $(x, y) \in (\mathbb{R}^M, \mathbb{R}^C)$ for $\mathcal{S}$.
+For evaluation purposes we also assume a held-out test set $(x_{test}, y_{test}) \in (\mathbb{R}^M, \mathbb{R}^C)$
+We consider only classification problems, hence the instances of a dataset have the form $x \in \mathbb{R}^M$ for $\mathcal{U}$ and $(x, y) \in (\mathbb{R}^M, \mathbb{R}^C)$ for $\mathcal{L}$.
 To perform classification, a model $\phi_\theta := \mathbb{R}^M \rightarrow \mathbb{R}^C$ is used. To fit the model, it is parameterized by $\theta$ and subjected to loss $l(y, \phi_\theta(x)) := \mathbb{R}^C \times \mathbb{R}^C \rightarrow \mathbb{R}$. For this work, categorical cross-entropy (CE) is used.
-For evaluating model performance, we use Accuracy \\ [1mm]
-Active learning is defined as
+For evaluating classification performance, we use Accuracy \\ [1mm]
+Active learning is defined as sequentially selecting single instances of $x_i \in \mathcal{U}$, requesting their label $y_i$ and adding them to the labeled pool $\mathcal{L} := \mathcal{L} \cup (x_i, y_i)$ until a fixed budget $B$ is exhausted $i := 0 \ldots B$.
+After each added instance the classification model is retrained according to section \ref{sec:training_the_classifier} and its performance is measured on a held-out test set.
+The quality of an active learning algorithm is evaluated by an "anytime" protocol that incorporates classification performance at every iteration, not just the final performance after the budget is exhausted.
+We employ normalized AUC:
+\begin{equation}
+	\operatorname{auc}(\mathcal{U}, \mathcal{L}, \phi, B) := \frac{1}{B} \sum_{i=1}^{B} acc(y_{test}, \phi_i(x_{test}))
+\end{equation}
+Where $\phi_i$ is the retrained classification model after the i-\textit{th} instance was selected
 
 \section{Methodology}
 
@@ -61,6 +69,16 @@ The callback includes the following information:
 	\item The current optimizer including it's full state
 \end{itemize}
 Every agent needs to implement this callback that transforms the given information into a state tensor that will be directly consumed by the agent to make it's prediction.
+
+\subsection{Training the Classifier}\label{sec:training_the_classifier}
+\subsection{Evaluation}\label{sec:evaluation}
+
+
+\section{Ablation Studies}
+\begin{itemize}
+	\item Weird drop of performance for multiples of batch size (drop\_last in DataLoader)
+	\item Reduction of the test set for speed
+\end{itemize}
 
 
 \bibliographystyle{plain}
