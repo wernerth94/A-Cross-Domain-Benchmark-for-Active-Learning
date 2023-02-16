@@ -18,7 +18,7 @@ AgentClass = get_agent_by_name(args.agent)
 DatasetClass = get_dataset_by_name(args.dataset)
 
 if args.sub_run_id is not None:
-    print("Sub-run ID given. This will override the seed")
+    print(f"Sub-run ID {args.sub_run_id} given. This will override the seed")
     numpy.random.seed(args.sub_run_id)
     torch.random.manual_seed(args.sub_run_id)
 else:

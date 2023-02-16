@@ -90,6 +90,8 @@ def fit_and_evaluate(dataset:BaseDataset,
         optimizer = dataset.get_optimizer(model, lr=lr, weight_decay=weight_decay)
     else:
         optimizer = dataset.get_optimizer(model)
+    if batch_size is None:
+        batch_size = dataset.classifier_batch_size
 
     train_dataloader = DataLoader(TensorDataset(dataset.x_unlabeled, dataset.y_unlabeled),
                                   batch_size=batch_size,

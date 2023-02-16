@@ -17,7 +17,7 @@ parser.add_argument("--restarts", type=int, default=50)
 args = parser.parse_args()
 
 if args.sub_run_id is not None:
-    print("Sub-run ID given. This will override the seed")
+    print(f"Sub-run ID {args.sub_run_id} given. This will override the seed")
     numpy.random.seed(args.sub_run_id)
     torch.random.manual_seed(args.sub_run_id)
 else:

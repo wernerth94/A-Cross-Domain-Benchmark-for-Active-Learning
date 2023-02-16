@@ -34,6 +34,8 @@ We assume a dataset $\mathcal{D}$ consisting of a large pool of unlabeled data $
 For the purpose of this work, only fully labeled datasets are used and the labels for $\mathcal{U}$ are suppressed until they are selected for labeling.
 We consider only classification problems, hence the instances of a dataset have the form $x \in \mathbb{R}^M$ for $\mathcal{U}$ and $(x, y) \in (\mathbb{R}^M, \mathbb{R}^C)$ for $\mathcal{S}$.
 To perform classification, a model $\phi_\theta := \mathbb{R}^M \rightarrow \mathbb{R}^C$ is used. To fit the model, it is parameterized by $\theta$ and subjected to loss $l(y, \phi_\theta(x)) := \mathbb{R}^C \times \mathbb{R}^C \rightarrow \mathbb{R}$. For this work, categorical cross-entropy (CE) is used.
+For evaluating model performance, we use Accuracy \\ [1mm]
+Active learning is defined as
 
 \section{Methodology}
 

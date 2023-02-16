@@ -78,12 +78,14 @@ def collect_results(base_path, folder_prefix):
     result_loss = pd.DataFrame()
     for run_folder in os.listdir(base_path):
         if run_folder.startswith(folder_prefix):
-            accuracies = pd.read_csv(join(base_path, run_folder, "accuracies.csv"), header=0, index_col=0)
-            accuracies = check_for_nan_cols(accuracies)
-            result_acc = pd.concat([result_acc, accuracies], axis=1, ignore_index=True)
-            losses = pd.read_csv(join(base_path, run_folder, "losses.csv"), header=0, index_col=0)
-            losses = check_for_nan_cols(losses)
-            result_loss = pd.concat([result_loss, losses], axis=1, ignore_index=True)
+            acc_file_path = join(base_path, run_folder, "accuracies.csv")
+            if exists(acc_file_path):
+                accuracies = pd.read_csv(acc_file_path, header=0, index_col=0)
+                accuracies = check_for_nan_cols(accuracies)
+                result_acc = pd.concat([result_acc, accuracies], axis=1, ignore_index=True)
+                losses = pd.read_csv(join(base_path, run_folder, "losses.csv"), header=0, index_col=0)
+                losses = check_for_nan_cols(losses)
+                result_loss = pd.concat([result_loss, losses], axis=1, ignore_index=True)
     result_acc.to_csv(join(base_path, "accuracies.csv"))
     result_loss.to_csv(join(base_path, "losses.csv"))
 
