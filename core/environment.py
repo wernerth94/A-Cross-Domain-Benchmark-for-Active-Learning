@@ -179,9 +179,7 @@ class OracleALGame(ALGame):
     def __init__(self, dataset: BaseDataset,
                  labeled_sample_size,
                  device = None):
-        def empty_callback(*args, **kwargs):
-            return torch.zeros((1,10)) # dummy state
-        super().__init__(dataset, labeled_sample_size, empty_callback, device)
+        super().__init__(dataset, labeled_sample_size, device)
 
 
     def _get_internal_state(self):
