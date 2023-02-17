@@ -9,18 +9,6 @@
 - tianshou
 - (gym)
 
-## Requirements
-- Datasets from different modalities / areas
-  - vector data
-  - image data
-  - text
-  - timeseries?
-- datasets are selected based on potential for complex AL algorithms
-  - upper bound is computed
-  - regret of heuristic methods is computed (relative to the upper bound)
-- fine-tuned classifiers for each dataset
-- two usecases: same domain / domain transfer
-
 ## Baselines
 - Uncertainty Sampling
   - Entropy
@@ -52,12 +40,9 @@ The returned object is a torch.Module
 ### Agent
 Each agent class needs to inherit from BaseAgent and implement a set of functions:
 - `__init__()`: sets hyperparameters for the agent, like a checkpoint or number of clusters, etc.
-- `predict(state, greed)`: implements the forward pass of the agent. Receives a state according to create_state_callback (see below) and a greed value.
-The agent computes a scalar score value for each input (along the batch dimension).
-The greed value is a hyperparameter for RL based agents and should not be set by the framework.
-- `create_state_callback(cls, ...)` (classmethod): This function is used by the environment to construct the specific state for each agent.
-This function has access to all available information in the environment excluding the test set and the (hidden) labels of the currently unlableled data.
-It returns a single 2D tensor of size len(state_ids) x state_space.
+- `predict(state, state_ids, ...)`: implements the forward pass of the agent. 
+Receives the full state with all available information.
+The agent computes a scalar score value for each data id in state_ids and picks the instance as it sees fit.
 - (optional) `get_meta_data()`: can be overwritten to save some meta information that concerns the agent, like the checkpoint or other hyperparameters
 
 ### Run Script
@@ -66,15 +51,17 @@ It implements the basic reinforcement learning flow:
 ```python
 done = False
 state = env.reset()
+dataset.reset()
 while not done:
-    action = agent.predict(state)
+    action = agent.predict(*state)
     state, reward, done, truncated, info = env.step(action.item())
 ```
 And wraps the environment into a logging context manager:
 ```python
 with EnvironmentLogger(env, log_path, util.is_cluster) as env:
 ```
-The cross-validation runs should be set to at least 50. \
+The EnvironmentLogger also handles restarts of the evaluation process, so the loop can be restarted any amount
+of times for cross-validation. \
 An example can be found in `al_benchmark/eval_splice.py`
 
 ## Datasets

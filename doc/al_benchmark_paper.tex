@@ -36,14 +36,18 @@ For evaluation purposes we also assume a held-out test set $(x_{test}, y_{test})
 We consider only classification problems, hence the instances of a dataset have the form $x \in \mathbb{R}^M$ for $\mathcal{U}$ and $(x, y) \in (\mathbb{R}^M, \mathbb{R}^C)$ for $\mathcal{L}$.
 To perform classification, a model $\phi_\theta := \mathbb{R}^M \rightarrow \mathbb{R}^C$ is used. To fit the model, it is parameterized by $\theta$ and subjected to loss $l(y, \phi_\theta(x)) := \mathbb{R}^C \times \mathbb{R}^C \rightarrow \mathbb{R}$. For this work, categorical cross-entropy (CE) is used.
 For evaluating classification performance, we use Accuracy \\ [1mm]
-Active learning is defined as sequentially selecting single instances of $x_i \in \mathcal{U}$, requesting their label $y_i$ and adding them to the labeled pool $\mathcal{L} := \mathcal{L} \cup (x_i, y_i)$ until a fixed budget $B$ is exhausted $i := 0 \ldots B$.
+Active learning is defined as sequentially removing single instances $x_i \in \mathcal{U}_i$, requesting their label $y_i$ and adding them to the labeled pool $\mathcal{L}_{i+1} := \mathcal{L}_i \cup (x_i, y_i)$ until a fixed budget $B$ is exhausted $i := 0 \ldots B$.
 After each added instance the classification model is retrained according to section \ref{sec:training_the_classifier} and its performance is measured on a held-out test set.
 The quality of an active learning algorithm is evaluated by an "anytime" protocol that incorporates classification performance at every iteration, not just the final performance after the budget is exhausted.
-We employ normalized AUC:
+We employ the normalized area under the accuracy curve (AUC):
 \begin{equation}
 	\operatorname{auc}(\mathcal{U}, \mathcal{L}, \phi, B) := \frac{1}{B} \sum_{i=1}^{B} acc(y_{test}, \phi_i(x_{test}))
 \end{equation}
-Where $\phi_i$ is the retrained classification model after the i-\textit{th} instance was selected
+Where $\phi_i$ is the retrained classification model after the i-\textit{th} instance was selected. \\ [1mm]
+We define the active learning process as an adapted reinforcement learning loop $(S, A, \tau, \Omega)$ where an environment will expose a state $s \in S$ to an agent $\Omega$, which will choose actions $a \in A$.
+One iteration consists of the environment sampling a subset of size $\tau$ of unlabeled instances $x_i \underset{\tau}{\sim} \mathcal{U}_i$, constructing the state $s_i := \omega(u_i)$ and presenting it to the agent to select an action $a_i := \Omega(s_i)$.
+The action $a_i$ is the index of the selected instance in $u_i$ out of all possible indices $A := [0 \ldots \tau]$.
+This process is repeated $B$ times $i := [0 \ldots B]$.
 
 \section{Methodology}
 

@@ -14,26 +14,17 @@ class Coreset_Greedy(BaseAgent):
     Taken from https://github.com/svdesai/coreset-al
     """
 
-    @classmethod
-    def create_state_callback(cls, state_ids: list[int],
-                              x_unlabeled: Tensor,
-                              x_labeled: Tensor, y_labeled: Tensor,
-                              per_class_instances: dict,
-                              budget:int, added_images:int,
-                              initial_test_acc:float, current_test_acc:float,
-                              classifier: Module, optimizer: Optimizer) -> Union[Tensor, dict]:
-        assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
-        with torch.no_grad():
-            labeled_features = classifier._encode(x_labeled)
-            unlabeled_features = classifier._encode(x_unlabeled[state_ids])
-        return {
-            "labeled_features" : labeled_features,
-            "unlabeled_features": unlabeled_features
-        }
+    def predict(self, state_ids: list[int],
+                      x_unlabeled: Tensor,
+                      x_labeled: Tensor, y_labeled: Tensor,
+                      per_class_instances: dict,
+                      budget:int, added_images:int,
+                      initial_test_acc:float, current_test_acc:float,
+                      classifier: Module, optimizer: Optimizer) -> Union[Tensor, dict]:
 
-    def predict(self, state:Union[Tensor, dict], greed:float=0.0) ->Tensor:
-        candidates = state["unlabeled_features"]
-        centers = state["labeled_features"]
+        assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
+        candidates = classifier._encode(x_unlabeled[state_ids])
+        centers = classifier._encode(x_labeled)
         dist = pairwise_distances(candidates, centers, metric='euclidean')
         dist = np.min(dist, axis=1).reshape(-1, 1)
         dist = torch.from_numpy(dist)

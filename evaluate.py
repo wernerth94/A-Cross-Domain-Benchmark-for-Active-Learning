@@ -7,10 +7,10 @@ from core.helper_functions import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--run_id", type=int, default=1)
-parser.add_argument("--agent", type=str, default="margin")
-parser.add_argument("--dataset", type=str, default="cifar10")
+parser.add_argument("--agent", type=str, default="entropy")
+parser.add_argument("--dataset", type=str, default="splice")
 parser.add_argument("--sample_size", type=int, default=20)
-parser.add_argument("--restarts", type=int, default=10)
+parser.add_argument("--restarts", type=int, default=50)
 args = parser.parse_args()
 
 numpy.random.seed(args.run_id)
@@ -23,7 +23,6 @@ dataset = DatasetClass(cache_folder="../datasets")
 dataset = dataset.to(util.device)
 env = core.ALGame(dataset,
                   args.sample_size,
-                  AgentClass.create_state_callback,
                   device=util.device)
 agent = AgentClass()
 base_path = os.path.join("runs", dataset.name, agent.name)
@@ -37,7 +36,7 @@ with core.EnvironmentLogger(env, log_path, util.is_cluster, args.restarts) as en
         dataset.reset()
         state = env.reset()
         while not done:
-            action = agent.predict(state)
+            action = agent.predict(*state)
             state, reward, done, truncated, info = env.step(action.item())
 
 # collect results from all runs
