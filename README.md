@@ -1,13 +1,11 @@
 # Active Learning Benchmark
 
 ## Dependencies
+- tianshou
+- torchvision
 - matplotlib
 - Pandas
-- PyTorch
-- torchvision
 - sklearn
-- tianshou
-- (gym)
 
 ## Baselines
 - Uncertainty Sampling
@@ -62,7 +60,10 @@ with EnvironmentLogger(env, log_path, util.is_cluster) as env:
 ```
 The EnvironmentLogger also handles restarts of the evaluation process, so the loop can be restarted any amount
 of times for cross-validation. \
-An example can be found in `al_benchmark/eval_splice.py`
+Currently I have three run scripts:
+- `al_benchmark/evaluation.py`: evaluates an AL agent on a dataset
+- `al_benchmark/evaluate_oracle.py`: evaluates the oracle on a dataset
+- `al_benchmark/compute_upper_bound.py`: computes maximum performance on a dataset with all data available
 
 ## Datasets
 
@@ -71,14 +72,3 @@ An example can be found in `al_benchmark/eval_splice.py`
 | Vector | splice, dna  |                 |
 | Image  | cifar10/100  | office          |
 | Text   |              |                 |
-
-## Considerations
-### Classifier
-Should the class. be tuned based on a small held-out set, as it would be for conventional datasets?
-
-### Evaluation
-Different styles?
-- raw accuracy
-- percentage improvement over random
-- regret to an upper bound? (oracle curve)
-- percentage of way between random and upper bound? (0% -> random / 100% -> oracle)
