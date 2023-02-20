@@ -12,7 +12,6 @@ class ALGame(gym.Env):
 
     def __init__(self, dataset:BaseDataset,
                  labeled_sample_size,
-                 create_state_callback:Callable,
                  device=None):
         if device is None:
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -23,7 +22,6 @@ class ALGame(gym.Env):
         self.sample_size = labeled_sample_size
         self.fitting_mode = dataset.class_fitting_mode
         self.loss = nn.CrossEntropyLoss()
-        self.create_state_callback = create_state_callback
 
         # set gym observation space and action space
         self.current_test_accuracy = 0.0
@@ -36,14 +34,14 @@ class ALGame(gym.Env):
         if isinstance(state, dict):
             self.observation_space = dict()
             for key, value in state.items():
-                self.observation_space[key] = gym.spaces.Box(-np.inf, np.inf, shape=[value.size(1),])
+                self.observation_space[key] = gym.spaces.Box(-np.inf, np.inf, shape=[len(value),])
         else:
-            self.observation_space = gym.spaces.Box(-np.inf, np.inf, shape=[state.size(1),])
+            self.observation_space = gym.spaces.Box(-np.inf, np.inf, shape=[len(state),])
         self.action_space = gym.spaces.Discrete(self.sample_size)
         self.spec = gym.envs.registration.EnvSpec("RlAl-v0", reward_threshold=np.inf, entry_point="ALGame")
 
 
-    def reset(self, *args, **kwargs)->Tuple[torch.Tensor, dict]:
+    def reset(self, *args, **kwargs)->list:
         with torch.no_grad():
             self.n_interactions = 0
             self.added_images = 0
@@ -59,25 +57,23 @@ class ALGame(gym.Env):
         return self.create_state()
 
 
-    def _send_state_to_device(self, state):
-        if isinstance(state, dict):
-            result = {}
-            for k,v in state.items():
-                result[k] = v.to(self.device)
-        else:
-            result = state.to(self.device)
-        return result
+    def _send_state_to_device(self, state:list):
+        for i, component in enumerate(state):
+            if isinstance(component, torch.Tensor):
+                state[i] = component.to(self.device)
+        return state
 
 
     def create_state(self):
-        state = self.create_state_callback(self.state_ids,
-                                           self.x_unlabeled,
-                                           self.x_labeled, self.y_labeled,
-                                           self.per_class_instances,
-                                           self.budget, self.added_images,
-                                           self.initial_test_accuracy, self.current_test_accuracy,
-                                           self.classifier, self.optimizer)
-        return self._send_state_to_device(state)
+        state = [self.state_ids,
+                 self.x_unlabeled,
+                 self.x_labeled, self.y_labeled,
+                 self.per_class_instances,
+                 self.budget, self.added_images,
+                 self.initial_test_accuracy, self.current_test_accuracy,
+                 self.classifier, self.optimizer]
+        return state
+        # return self._send_state_to_device(state)
 
 
     def step(self, action:int):
@@ -183,9 +179,7 @@ class OracleALGame(ALGame):
     def __init__(self, dataset: BaseDataset,
                  labeled_sample_size,
                  device = None):
-        def empty_callback(*args, **kwargs):
-            return torch.zeros((1,10)) # dummy state
-        super().__init__(dataset, labeled_sample_size, empty_callback, device)
+        super().__init__(dataset, labeled_sample_size, device)
 
 
     def _get_internal_state(self):
