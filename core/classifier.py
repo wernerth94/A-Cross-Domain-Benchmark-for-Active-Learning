@@ -79,7 +79,7 @@ def fit_and_evaluate(dataset:BaseDataset,
                      lr:float=None, weight_decay:float=None, batch_size:int=None,
                      hidden_sizes:tuple=None,
                      disable_progess_bar:bool=False,
-                     max_epochs:int=1000):
+                     max_epochs:int=4000):
     loss = nn.CrossEntropyLoss()
     if hidden_sizes is not None:
         model = dataset.get_classifier(hidden_dims=hidden_sizes)
@@ -115,7 +115,8 @@ def fit_and_evaluate(dataset:BaseDataset,
                 self.best_loss = loss_val
             return False
 
-    early_stop = EarlyStopping()
+    all_accs = []
+    early_stop = EarlyStopping(patience=7)
     iterator = tqdm(range(max_epochs), disable=disable_progess_bar)
     for e in iterator:
         for batch_x, batch_y in train_dataloader:
@@ -139,6 +140,7 @@ def fit_and_evaluate(dataset:BaseDataset,
             if early_stop.check_stop(loss_sum):
                 print(f"Early stop after {e} epochs")
                 break
-            iterator.set_postfix({"val loss": loss_sum, "val acc": correct / total})
-    accuracy = correct / total
-    return accuracy
+            current_acc = correct / total
+            all_accs.append(current_acc)
+            iterator.set_postfix({"val loss": "%1.4f"%loss_sum, "val acc": "%1.4f"%current_acc})
+    return all_accs

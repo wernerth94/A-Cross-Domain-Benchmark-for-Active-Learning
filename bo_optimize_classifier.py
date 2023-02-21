@@ -77,8 +77,9 @@ def run_bo(dataset: BaseDataset):
             values["disable_progess_bar"] = util.is_cluster
         responses = 0.0
         for _ in range(args.runs_per_trial):
-            responses += fit_and_evaluate(dataset,
+            all_accs = fit_and_evaluate(dataset,
                                           **values)
+            responses += all_accs[-1]
         del values
         return responses / args.runs_per_trial
 

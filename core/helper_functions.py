@@ -66,6 +66,20 @@ def plot_mean_std_development(inpt:list, title:str, out_file:str=None):
     plt.close(fig)
 
 
+def plot_learning_curves(list_of_accs:list, out_file:str=None):
+    for accs in list_of_accs:
+        x = range(len(accs))
+        plt.plot(x, accs, alpha=0.7)
+
+    plt.xlabel("epochs")
+    plt.ylabel("validation accuracy")
+    if out_file is None:
+        plt.show()
+    else:
+        plt.savefig(out_file, dpi=100, bbox_inches='tight')
+    plt.clf()
+
+
 def collect_results(base_path, folder_prefix):
     def check_for_nan_cols(df: pd.DataFrame):
         cleaned_pd = df.copy(deep=True)
