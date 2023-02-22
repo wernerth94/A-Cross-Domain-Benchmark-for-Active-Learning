@@ -7,9 +7,8 @@ from core.helper_functions import plot_mean_std_development
 
 class EnvironmentLogger:
 
-    def __init__(self, environment:ALGame, out_path:str, is_cluster, planned_runs):
+    def __init__(self, environment:ALGame, out_path:str, is_cluster):
         self.is_cluster = is_cluster
-        self.planned_runs = planned_runs
         self.out_path = out_path
         self.env = environment
         self.accuracies_path = os.path.join(out_path, "accuracies.csv")
@@ -25,8 +24,9 @@ class EnvironmentLogger:
         # create base dirs
         os.makedirs(self.out_path, exist_ok=True)
         # Check if this was a test run, or if all runs finished
-        if not self.is_cluster and self.current_run < self.planned_runs-1:
-            resp = input(f"Only {self.current_run}/{self.planned_runs} runs computed. Do you want to overwrite existing results? (y/n)")
+        if not self.is_cluster and \
+           len(self.accuracies[self.current_run]) < self.env.budget:
+            resp = input(f"Only {len(self.accuracies[self.current_run])}/{self.env.budget} iterations computed. Do you want to overwrite existing results? (y/n)")
             if resp != "y":
                 print("Keeping old results...")
                 return
@@ -40,16 +40,16 @@ class EnvironmentLogger:
         acc_df.to_csv(self.accuracies_path)
         loss_df = pd.DataFrame(self.losses)
         loss_df.to_csv(self.losses_path)
-        values = acc_df.values
-        plot_mean_std_development(values[-1, :] - values[0, :],
-                                  "Improvement",
-                                  os.path.join(self.out_path, "mean_std_convergence_improvement.jpg"))
-        plot_mean_std_development(values[-1, :],
-                                  "Final Accuracy",
-                                  os.path.join(self.out_path, "mean_std_convergence_final_value.jpg"))
+        # values = acc_df.values
+        # plot_mean_std_development(values[-1, :] - values[0, :],
+        #                           "Improvement",
+        #                           os.path.join(self.out_path, "mean_std_convergence_improvement.jpg"))
+        # plot_mean_std_development(values[-1, :],
+        #                           "Final Accuracy",
+        #                           os.path.join(self.out_path, "mean_std_convergence_final_value.jpg"))
 
 
-    def reset(self, *args, **kwargs)->Tuple[torch.Tensor, dict]:
+    def reset(self, *args, **kwargs)->list:
         return_values = self.env.reset(*args, **kwargs)
         self.current_run += 1
         self.accuracies[self.current_run] = [ self.env.current_test_accuracy ]
