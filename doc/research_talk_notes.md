@@ -1,10 +1,14 @@
-# Mean Std Convergence
-The plots are correct \
+# Evaluation
+The eval plots are correct \
 The Std is dominated by outliers \
-Maybe use Median instead and ignore Std? \
-Or use single runs on same dataset with Critical Difference Diagramm
+Other Options:
+- use Median instead and ignore Std? \
+- Critical Difference Diagramm
+- Evaluate on max instead of mean
 
-# Max Evaluation
-Daniel Lemire \
-Evaluate on max instead of mean \
+**Daniel Lemire** \
 Since we are searching for optima anyway, we are more interested in the best possible performance
+
+# Setting the Budget
+- 98% for oracle
+- 95% for random?

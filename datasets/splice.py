@@ -46,11 +46,10 @@ class Splice(BaseDataset):
         return model
 
 
-
     def get_optimizer(self, model, lr=0.001, weight_decay=0.0) -> torch.optim.Optimizer:
-        # return torch.optim.NAdam(model.parameters(), lr=lr,
-        #                          weight_decay=weight_decay)
-        return torch.optim.SGD(model.parameters(), lr=lr, weight_decay=weight_decay)
+        return torch.optim.NAdam(model.parameters(), lr=lr,
+                                 weight_decay=weight_decay)
+
 
     def get_meta_data(self) ->str:
         s = super().get_meta_data() + '\n'

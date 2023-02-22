@@ -7,14 +7,34 @@
 - Pandas
 - sklearn
 
+## Quick Start
+You can run an evaluation with `evaluate.py --agent <name> --dataset <name>`\
+Available Agents:
+- `random`
+- `margin`
+- `entropy`
+- `coreset` (CoreSet Greedy)
+- `agent` (Thorbens RL Agent)
+
+Available Datasets:
+- `splice`
+- `dna`
+- `cifar10`
+
+**Parallel Runs**\
+Parallelism is controlled by two parameters: `run_id`(default 1) and `restarts`(default 50)\
+This starts one run with seed 1 that sequentially executes the evaluation 50 times. \
+For full parallelism set `restarts` to 1 and execute 50 runs with increasing `run_ids`\
+This will automatically collect the results after each finished run and store it in `<dataset>/<agent>/accuracies.csv`
+
 ## Baselines
 - Uncertainty Sampling
   - Entropy
   - Margin
 - Coreset
-- BALD Dropout (MC Dropout for Uncertainty)
-- ActiveLearningByLearning (ALBL)
-- BadgeSampling
+- *BALD Dropout (MC Dropout for Uncertainty)
+- *ActiveLearningByLearning (ALBL)
+- *BadgeSampling
 
 ## Structure
 ### Dataset
