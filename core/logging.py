@@ -25,8 +25,8 @@ class EnvironmentLogger:
         os.makedirs(self.out_path, exist_ok=True)
         # Check if this was a test run, or if all runs finished
         if not self.is_cluster and \
-           len(self.accuracies[self.current_run]) < self.env.budget:
-            resp = input(f"Only {len(self.accuracies[self.current_run])}/{self.env.budget} iterations computed. Do you want to overwrite existing results? (y/n)")
+           self.env.added_images < self.env.budget:
+            resp = input(f"Only {self.env.added_images}/{self.env.budget} iterations computed. Do you want to overwrite existing results? (y/n)")
             if resp != "y":
                 print("Keeping old results...")
                 return

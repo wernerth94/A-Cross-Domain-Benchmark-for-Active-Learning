@@ -7,13 +7,16 @@ from core.helper_functions import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--run_id", type=int, default=1)
-parser.add_argument("--agent", type=str, default="entropy")
+parser.add_argument("--agent", type=str, default="margin")
 parser.add_argument("--dataset", type=str, default="splice")
 parser.add_argument("--sample_size", type=int, default=20)
-parser.add_argument("--restarts", type=int, default=50)
+parser.add_argument("--restarts", type=int, default=1)
 args = parser.parse_args()
 
-for run_id in tqdm(range(args.run_id, args.restarts)):
+run_id = args.run_id
+max_run_id = run_id + args.restarts
+while run_id < max_run_id:
+# for run_id in tqdm(range(args.run_id, args.restarts + 1)):
     numpy.random.seed(run_id)
     torch.random.manual_seed(run_id)
 
@@ -35,9 +38,12 @@ for run_id in tqdm(range(args.run_id, args.restarts)):
         done = False
         dataset.reset()
         state = env.reset()
-        while not done:
+        for i in tqdm(range(env.env.budget)):
             action = agent.predict(*state)
             state, reward, done, truncated, info = env.step(action.item())
+            if done or truncated:
+                break # fail save; should not happen
 
     # collect results from all runs
     collect_results(base_path, "run_")
+    run_id += 1

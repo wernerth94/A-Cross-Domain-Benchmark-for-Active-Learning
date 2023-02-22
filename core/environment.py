@@ -1,5 +1,3 @@
-from typing import Callable, Tuple
-from time import time
 import copy
 import numpy as np
 import torch
@@ -25,11 +23,7 @@ class ALGame(gym.Env):
 
         # set gym observation space and action space
         self.current_test_accuracy = 0.0
-        start_time = time()
         state = self.reset()
-        duration = time() - start_time
-        # completely heuristic
-        print("Estimated time per run (h): %1.1f"%(2.0 * duration * self.budget / 60 / 60))
 
         if isinstance(state, dict):
             self.observation_space = dict()
