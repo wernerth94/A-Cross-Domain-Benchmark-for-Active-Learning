@@ -6,6 +6,7 @@ import core
 from core.helper_functions import *
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent", type=str, default="margin")
 parser.add_argument("--dataset", type=str, default="splice")
@@ -23,7 +24,7 @@ while run_id < max_run_id:
     AgentClass = get_agent_by_name(args.agent)
     DatasetClass = get_dataset_by_name(args.dataset)
 
-    dataset = DatasetClass(cache_folder="../datasets")
+    dataset = DatasetClass(cache_folder=args.data_folder)
     dataset = dataset.to(util.device)
     env = core.ALGame(dataset,
                       args.sample_size,
