@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent", type=str, default="margin")
-parser.add_argument("--dataset", type=str, default="splice")
+parser.add_argument("--dataset", type=str, default="dna")
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=1)
 args = parser.parse_args()
@@ -17,7 +17,6 @@ args = parser.parse_args()
 run_id = args.run_id
 max_run_id = run_id + args.restarts
 while run_id < max_run_id:
-# for run_id in tqdm(range(args.run_id, args.restarts + 1)):
     numpy.random.seed(run_id)
     torch.random.manual_seed(run_id)
 

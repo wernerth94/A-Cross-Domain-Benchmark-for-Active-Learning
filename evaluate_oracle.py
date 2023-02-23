@@ -1,3 +1,5 @@
+import torch
+
 import experiment_util as util
 import argparse
 import numpy
@@ -8,9 +10,10 @@ from core.helper_functions import *
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--run_id", type=int, default=1)
-parser.add_argument("--dataset", type=str, default="splice")
+parser.add_argument("--dataset", type=str, default="dna")
 parser.add_argument("--sample_size", type=int, default=20)
-parser.add_argument("--restarts", type=int, default=50)
+parser.add_argument("--restarts", type=int, default=1)
+parser.add_argument("--store_dataset", type=bool, default=False)
 args = parser.parse_args()
 
 run_id = args.run_id
@@ -37,6 +40,15 @@ while run_id < max_run_id:
             state, reward, done, truncated, info = env.step()
             if done or truncated:
                 break # fail save; should not happen
+
+        if args.store_dataset:
+            # store dataset for later HP optimization
+            out_file = os.path.join(log_path, "labeled_data.pt")
+            torch.save({
+                "x": env.env.x_labeled,
+                "y": env.env.y_labeled
+            }, out_file)
+
 
     # collect results from all runs
     collect_results(base_path, "run_")
