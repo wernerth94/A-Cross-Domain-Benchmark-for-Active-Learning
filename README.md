@@ -8,7 +8,8 @@
 - sklearn
 
 ## Quick Start
-You can run an evaluation with `evaluate.py --agent <name> --dataset <name>`\
+You can run an evaluation with `evaluate.py --data_folder "<my_folder>" --agent <name> --dataset <name>`\
+`--data_folder` sets the folder, where dataset files will be downloaded to \
 Available Agents:
 - `random`
 - `margin`
