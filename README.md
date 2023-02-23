@@ -92,3 +92,8 @@ Currently I have three run scripts:
 | Vector | splice, dna  |                 |
 | Image  | cifar10/100  | office          |
 | Text   |              |                 |
+
+
+## Runtimes
+GPU Partition
+- Splice(900) 12min 
