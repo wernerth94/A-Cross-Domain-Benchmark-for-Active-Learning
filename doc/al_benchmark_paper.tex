@@ -6,7 +6,8 @@
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{algorithm}
-\usepackage{algorithmic}
+%\usepackage{algorithmic}
+\usepackage{algpseudocode}
 
 \title{Towards Comparable Active Learning}
 
@@ -38,7 +39,7 @@ After each added instance the classification model is retrained according to sec
 The quality of an active learning algorithm is evaluated by an "anytime" protocol that incorporates classification performance at every iteration, not just the final performance after the budget is exhausted.
 We employ the normalized area under the accuracy curve (AUC):
 \begin{equation}
-	\operatorname{auc}(\mathcal{U}, \mathcal{L}, \hat y, B) := \frac{1}{B} \sum_{i=1}^{B} acc(y_{test}, \hat y_i(x_{test}))
+	\operatorname{auc}(\mathcal{U}, \mathcal{L}, \hat y, B) := \frac{1}{B} \sum_{i=1}^{B} \operatorname{Acc}(y_{test}, \hat y_i(x_{test}))
 \end{equation}
 Where $\hat y_i$ is the retrained classification model after the i-\textit{th} instance was selected. \\ [1mm]
 %
@@ -47,6 +48,51 @@ We define the active learning process as an adapted reinforcement learning loop 
 For each iteration $i$ the environment samples a subset of size $\tau$ of unlabeled instances $x_i \underset{\tau}{\sim} \mathcal{U}_i$, constructs the state $s_i := \omega(x_i)$ and presents it to the agent to select an action $a_i := \Omega(s_i)$.
 The action $a_i$ is the index of the selected instance in $u_i$ out of all possible indices $A := [0 \ldots \tau]$.
 This process is repeated $B$ times $i := [0 \ldots B]$.
+
+\begin{algorithm}[H]
+	\caption{Active Learning}\label{alg:active_learning}
+	\begin{algorithmic}[1]
+		\Require $\mathcal{U}$ \Comment{Unlabeled Pool}
+		\Require $\tau$ \Comment{Unlabeled Sample Size}
+		\Require $\Omega$ \Comment{AL Agent}
+		\Require $\omega$ \Comment{Environment State function}
+		\State $\mathcal{L}^{(0)} \gets \operatorname{seed}(\mathcal{U})$  \Comment{Create the initial labeled set}
+		\State $\mathcal{U}^{(0)} \gets \mathcal{U}$
+		\For{$i := 0 \ldots B$}
+			\State $u^{(i)} \underset{\tau}{\sim} \mathcal{U}^{(i)}$
+			\State $s^{(i)} \gets \omega(u^{(i)})$
+			\State $a^{(i)} \gets \Omega(s^{(i)})$ \Comment{$a^{(i)}$ is an index inside of $u^{(i)}$}
+			\State $y^{(i)} \gets \operatorname{oracle}(u^{(i)}_{a})$ \Comment{$u^{(i)}_{a}$ is shorthand for $u^{(i)}_{a^{(i)}}$}
+			\State $\mathcal{L}^{(i+1)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_a, y^{(i)})\}$
+			\State $\mathcal{U}^{(i+1)} \gets \mathcal{U}^{(i)} \setminus \{u^{(i)}_a\}$
+			\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i+1)})$  \Comment{$\operatorname{Retrain}(\mathcal{L}^{(i+1)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i+1)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
+		\EndFor
+		\State
+		\Return $\frac{1}{B} \sum_{i=1}^{B} \text{acc}^{(i)}$
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+	\caption{Retrain}\label{alg:retrain}
+	\begin{algorithmic}[1]
+		\Require $\mathcal{L}$ \Comment{Labeled Pool}
+		\Require $\mathcal{L}^\text{test}$ \Comment{Labeled Test Data}
+		\Require $\hat y_\theta$ \Comment{Classification Model}
+		\Require $e^\text{max}$ \Comment{Maximum Epochs}
+		\State $\text{loss}^* \gets \infty$
+		\For{$i := 0 \ldots e^{\text{max}}$}
+			\State $\theta_{i+1} \gets \theta_i - \eta \nabla_\theta \ell(\mathcal{L}, \hat y_{\theta})$
+			\State $\text{loss}_i \gets \ell(\mathcal{L}^\text{test}, \hat y_{\theta})$
+			\If{$\text{loss}_i < \text{loss}^*$}
+				\State $\text{loss}^* \gets \text{loss}_i$
+			\Else
+				\State Break
+			\EndIf
+		\EndFor
+		\State
+		\Return Acc($\mathcal{L}^\text{test}, \hat y_{\theta}$)
+	\end{algorithmic}
+\end{algorithm}
 
 \section{Methodology}
 
