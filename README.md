@@ -20,7 +20,9 @@ Available Agents:
 Available Datasets:
 - `splice`
 - `dna`
+- `usps`
 - `cifar10`
+- `fashion_mnist`
 
 **Parallel Runs**\
 Parallelism is controlled by two parameters: `run_id`(default 1) and `restarts`(default 50)\
@@ -88,12 +90,11 @@ Currently I have three run scripts:
 
 ## Datasets
 
-|        | One Domain   | Domain Transfer |
-|--------|--------------|-----------------|
-| Vector | splice, dna  |                 |
-| Image  | cifar10/100  | office          |
-| Text   |              |                 |
-
+|         | One Domain            | Domain Transfer |
+|---------|-----------------------|-----------------|
+| Tabular | splice, dna, usps     |                 |
+| Image   | FashionMnist, cifar10 | office          |
+| Text    |                       |                 |
 
 ## Runtimes
 GPU Partition

@@ -5,3 +5,4 @@ from datasets.usps import USPS
 
 # Image Datasets
 from datasets.cifar10 import Cifar10
+from datasets.fashion_mnist import FashionMnist

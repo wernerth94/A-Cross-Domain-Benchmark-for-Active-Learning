@@ -118,6 +118,8 @@ def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
     # Image
     elif name == "cifar10":
         return datasets.Cifar10
+    elif name == "fashion_mnist":
+        return datasets.FashionMnist
     else:
         raise ValueError(f"Dataset name '{name}' not recognized")
 

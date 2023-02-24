@@ -1,5 +1,3 @@
-import torch
-
 import experiment_util as util
 import argparse
 import numpy
