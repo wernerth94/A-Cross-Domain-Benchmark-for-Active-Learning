@@ -108,10 +108,14 @@ def collect_results(base_path, folder_prefix):
 
 
 def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
+    # Tabular
     if name == "splice":
         return datasets.Splice
     elif name == "dna":
         return datasets.DNA
+    elif name == "usps":
+        return datasets.USPS
+    # Image
     elif name == "cifar10":
         return datasets.Cifar10
     else:

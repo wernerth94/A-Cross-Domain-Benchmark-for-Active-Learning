@@ -1,5 +1,6 @@
 from typing import Tuple, Union, Callable
 import os
+from os.path import exists
 import torch
 import torch.nn as nn
 import numpy as np
@@ -23,15 +24,16 @@ class DNA(BaseDataset):
 
         train_file = os.path.join(self.cache_folder, "dna_train.txt")
         test_file = os.path.join(self.cache_folder, "dna_test.txt")
-        with open(train_file, 'w') as f:
-            r = requests.get(train_url)
-            f.writelines(r.content.decode("utf-8"))
-        with open(test_file, 'w') as f:
-            r = requests.get(test_url)
-            f.writelines(r.content.decode("utf-8"))
-        del r
+        if not exists(train_file):
+            with open(train_file, 'w') as f:
+                r = requests.get(train_url)
+                f.writelines(r.content.decode("utf-8"))
+        if not exists(test_file):
+            with open(test_file, 'w') as f:
+                r = requests.get(test_url)
+                f.writelines(r.content.decode("utf-8"))
 
-        if os.path.exists(train_file) and os.path.exists(test_file):
+        if exists(train_file) and exists(test_file):
             train = load_svmlight_file(train_file, n_features=180)
             test = load_svmlight_file(test_file, n_features=180)
             self.x_train, self.y_train, self.x_test, self.y_test = postprocess_svm_data(train, test)

@@ -29,13 +29,13 @@ class BaseDataset(ABC):
         self.data_file = data_file
         self.cache_folder = cache_folder
         self.initial_points_per_class = initial_points_per_class
+        self.name = str(self.__class__).split('.')[-1][:-2]
 
         self._load_or_download_data() # Main call to load the data
         self.reset() # resets the seed set
 
         self.n_classes = self.y_test.shape[-1]
         self.x_shape = self.x_unlabeled.shape[1:]
-        self.name = str(self.__class__).split('.')[-1][:-2]
         print(f"Loaded dataset: {self.name}")
         print(f"| Number of classes: {self.n_classes}")
         print(f"| Labeled Instances: {len(self.x_labeled)}")
@@ -86,7 +86,7 @@ class BaseDataset(ABC):
     def _load_or_download_data(self):
         data = self._load_data()
         if data is None:
-            print(f"No local copy found in {self.cache_folder}. \nDownloading Data...")
+            print(f"No local copy of {self.name} found in {self.cache_folder}. \nDownloading Data...")
             self._download_data()
             assert hasattr(self, "x_train")
             assert hasattr(self, "y_train")
@@ -244,10 +244,17 @@ def postprocess_svm_data(train:tuple, test:tuple)->Tuple:
     x_train = x_train.toarray()
     x_test = x_test.toarray()
     # convert svm labels to onehot
-    mask = y_train == -1
-    y_train[mask] += 1
-    mask = y_test == -1
-    y_test[mask] += 1
+    if -1 in y_train:
+        # binary case
+        mask = y_train == -1
+        y_train[mask] += 1
+        mask = y_test == -1
+        y_test[mask] += 1
+    elif 0 not in y_train:
+        # multi label, but starts at 1
+        assert len(np.unique(y_train)) == y_train.max() # sanity check
+        y_train = y_train - 1
+        y_test = y_test - 1
     one_hot_train = np.zeros((len(y_train), y_train.max() + 1))
     one_hot_train[np.arange(len(y_train)), y_train] = 1
     one_hot_test = np.zeros((len(y_test), y_test.max() + 1))
