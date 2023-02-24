@@ -24,19 +24,20 @@
 
 \section{Overview}
 
+
 \subsection{Problem Description / Delineation}
 \textbf{Basic Classification}\\
-We assume a dataset $\mathcal{D} := (x_i, y_i) \hspace{0.5mm}; \hspace{1mm} i := 0 \ldots N$ consisting of instances $x_i \in \mathbb{R}^M$ and corresponding $y_i \in \mathbb{R}^C$.
+We assume a dataset $\mathcal{D} := (x_i, y_i) \hspace{0.5mm}; \hspace{1mm} i := 1 \ldots N$ consisting of instances $x_i \in \mathbb{R}^M$ and corresponding $y_i \in \mathbb{R}^C$.
 For evaluation purposes we assume a held-out test set $\mathcal{D}^{\text{test}}$ with the same characteristics.
 We consider classification problems with one-hot encoded classes, hence $C$ models the number of classes.
 To perform classification, a model $\hat y_\theta : \mathbb{R}^M \rightarrow \mathbb{R}^C$ is used. To fit the model, it is parameterized by $\theta$ and subjected to loss $\ell: \mathbb{R}^C \times \mathbb{R}^C \rightarrow \mathbb{R}$. For this work, categorical cross-entropy (CE) is used.
 For evaluating classification performance, we use accuracy on the test set $\operatorname{Acc}(\mathcal{D}^{\text{test}}, \hat{y}_\theta)$. \\ [1mm]
 %
 \textbf{Pool-based AL with single instances (non-batch setting)}\\
-To construct the active learning setting, we suppress the labels $y_i$ of $\mathcal{D}$ to form the unlabeled pool $\mathcal{U} := x_i \hspace{0.5mm}; \hspace{1mm} i := 0 \ldots N$ and form and initial labeled pool $\mathcal{L}$ by uniformly sampling $k$ number of instances per class from $\mathcal{U}$ and recovering their label. 
-The result of this so-called "seeding" process is $\mathcal{L} := (x_i, y_i) \hspace{0.5mm}; \hspace{1mm} i := 0 \ldots k*C$. \\
-Active learning is defined as sequentially removing single instances $x_i \in \mathcal{U}_i\hspace{1mm}; \hspace{2mm} \mathcal{U}_{i+1} := \mathcal{U}_i \setminus´ \{x_i\}$, recovering their label $y_i$ and adding them to the labeled pool $\mathcal{L}_{i+1} := \mathcal{L}_i \cup (x_i, y_i)$ until a fixed budget $B$ is exhausted $i := 0 \ldots B$.
-After each added instance the classification model is retrained according to section \ref{sec:training_the_classifier} and its performance is measured on a held-out test set.
+To construct the active learning setting, we suppress the labels $y_i$ of $\mathcal{D}$ to form the unlabeled pool $\mathcal{U} := u_i \hspace{0.5mm}; \hspace{1mm} i := 1 \ldots N$ and form and initial labeled pool $\mathcal{L}$ by uniformly sampling $k$ number of instances per class from $\mathcal{U}$ and recovering their label. 
+The result of this so-called "seeding" process is $\mathcal{L} := (u_i, y_i) \hspace{0.5mm}; \hspace{1mm} i := 1 \ldots k*C$. \\
+Active learning is defined as sequentially removing single instances $u^{(i)} \in \mathcal{U}^{(i)}\hspace{1mm}; \hspace{2mm} \mathcal{U}^{(i+1)} := \mathcal{U}^{(i)} \setminus´ \{u^{(i)}\}$, recovering their label $y^{(i)}$ and adding them to the labeled pool $\mathcal{L}^{(i+1)} := \mathcal{L}^{(i)} \cup (u^{(i)}, y^{(i)})$ until a fixed budget $B$ is exhausted $i := 1 \ldots B$.
+After each added instance the classification model is retrained according to section \ref{sec:training_the_classifier} and its performance is measured on the held-out test set $\mathcal{D}^{\text{test}}$.
 The quality of an active learning algorithm is evaluated by an "anytime" protocol that incorporates classification performance at every iteration, not just the final performance after the budget is exhausted.
 We employ the normalized area under the accuracy curve (AUC):
 \begin{equation}
@@ -46,7 +47,7 @@ Where $\hat y_i$ is the retrained classification model after the i-\textit{th} i
 %
 \textbf{Framing AL as RL}\\
 We define the active learning process as an adapted reinforcement learning loop $(S, A, \tau, \Omega, \omega)$ where an environment iteratively will expose a state $s \in S$ to an agent $\Omega$, which will choose actions $a \in A$.
-For each iteration $i$ the environment samples a subset of size $\tau$ of unlabeled instances $x^{(i)} \underset{\tau}{\sim} \mathcal{U}^{(i)}$, constructs the state $s^{(i)} := \omega(x^{(i)})$ and presents it to the agent to select an action $a^{(i)} := \Omega(s^{(i)})$.
+For each iteration $i$ the environment samples a subset of size $\tau$ of unlabeled instances $u^{(i)} \underset{\tau}{\sim} \mathcal{U}^{(i)}$, constructs the state $s^{(i)} := \omega(u^{(i)})$ and presents it to the agent to select an action $a^{(i)} := \Omega(s^{(i)})$.
 The action $a^{(i)}$ is the index of the selected instance in $u^{(i)}$ out of all possible indices $A := [1 \ldots \tau]$.
 This process is repeated $B$ times $i := [1 \ldots B]$.
 

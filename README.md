@@ -98,3 +98,5 @@ Currently I have three run scripts:
 ## Runtimes
 GPU Partition
 - Splice(900) 12min 
+- DNA(600) 10min
+- DNA Oracle(600) 3:40h
