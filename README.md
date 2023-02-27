@@ -8,6 +8,7 @@
 - sklearn
 
 ## Quick Start
+Prepare the data `download_all_datasets.py --data_folder <your_folder>`\
 You can run an evaluation with `evaluate.py --data_folder "<my_folder>" --agent <name> --dataset <name>`\
 `--data_folder` sets the folder, where dataset files will be downloaded to \
 Available Agents:
