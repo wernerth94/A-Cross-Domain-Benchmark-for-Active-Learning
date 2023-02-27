@@ -26,7 +26,7 @@ class Coreset_Greedy(BaseAgent):
         with torch.no_grad():
             candidates = classifier._encode(x_unlabeled[state_ids])
             centers = classifier._encode(x_labeled)
-            dist = pairwise_distances(candidates, centers, metric='euclidean')
+            dist = pairwise_distances(candidates.detach(), centers.detach(), metric='euclidean')
             dist = np.min(dist, axis=1).reshape(-1, 1)
             dist = torch.from_numpy(dist)
         return torch.argmax(dist, dim=0)
