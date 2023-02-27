@@ -23,9 +23,10 @@ class Coreset_Greedy(BaseAgent):
                       classifier: Module, optimizer: Optimizer) -> Union[Tensor, dict]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
-        candidates = classifier._encode(x_unlabeled[state_ids])
-        centers = classifier._encode(x_labeled)
-        dist = pairwise_distances(candidates, centers, metric='euclidean')
-        dist = np.min(dist, axis=1).reshape(-1, 1)
-        dist = torch.from_numpy(dist)
+        with torch.no_grad():
+            candidates = classifier._encode(x_unlabeled[state_ids])
+            centers = classifier._encode(x_labeled)
+            dist = pairwise_distances(candidates, centers, metric='euclidean')
+            dist = np.min(dist, axis=1).reshape(-1, 1)
+            dist = torch.from_numpy(dist)
         return torch.argmax(dist, dim=0)

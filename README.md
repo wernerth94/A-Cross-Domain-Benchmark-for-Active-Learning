@@ -98,6 +98,8 @@ Currently I have three run scripts:
 
 ## Runtimes
 GPU Partition
-- Splice(900) 12min 
-- DNA(600) 10min
-- DNA Oracle(600) 3:40h
+- Splice(900): 12m 
+- DNA(600): 10m
+- DNA Oracle(600): 3h 40m
+- USPS (900): 16m
+- Cifar10(2000) BatchSize=64: 40h (~72s per retraining)
