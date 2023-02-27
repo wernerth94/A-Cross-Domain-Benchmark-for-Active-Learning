@@ -88,11 +88,12 @@ Currently I have three run scripts:
 - `al_benchmark/compute_upper_bound.py`: computes maximum performance on a dataset with all data available
 
 ## Datasets
+To download the datasets all at once, please execute `download_all_datasets.py --data_folder <your_folder>`
 
 |         | One Domain            | Domain Transfer |
 |---------|-----------------------|-----------------|
 | Tabular | splice, dna, usps     |                 |
-| Image   | FashionMnist, cifar10 | office          |
+| Image   | FashionMnist, cifar10 | office*         |
 | Text    |                       |                 |
 
 ## Oracle
