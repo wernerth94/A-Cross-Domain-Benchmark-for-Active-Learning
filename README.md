@@ -68,18 +68,17 @@ The agent computes a scalar score value for each data id in state_ids and picks 
 
 ### Run Script
 A run script can execute any number of agents and datasets. \
-It implements the basic reinforcement learning flow:
+It implements the basic reinforcement learning flow and wraps the environment into a logging context manager:
 ```python
-done = False
-state = env.reset()
-dataset.reset()
-while not done:
-    action = agent.predict(*state)
-    state, reward, done, truncated, info = env.step(action.item())
-```
-And wraps the environment into a logging context manager:
-```python
-with EnvironmentLogger(env, log_path, util.is_cluster) as env:
+with core.EnvironmentLogger(env, log_path, util.is_cluster) as env:
+    done = False
+    dataset.reset()
+    state = env.reset()
+    for i in tqdm(range(env.env.budget)):
+        action = agent.predict(*state)
+        state, reward, done, truncated, info = env.step(action.item())
+        if done or truncated:
+            break # fail save; should not happen
 ```
 The EnvironmentLogger also handles restarts of the evaluation process, so the loop can be restarted any amount
 of times for cross-validation. \
@@ -95,6 +94,12 @@ Currently I have three run scripts:
 | Tabular | splice, dna, usps     |                 |
 | Image   | FashionMnist, cifar10 | office          |
 | Text    |                       |                 |
+
+## Oracle
+Alternative Approach:
+- sample random batches of instances and take the best batch
+  - pro: might even be faster
+  - con: not clear how many random batches need to be checked
 
 ## Runtimes
 GPU Partition
