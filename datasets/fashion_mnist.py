@@ -7,7 +7,7 @@ from core.classifier import ConvolutionalModel
 
 class FashionMnist(BaseDataset):
     def __init__(self, budget=1000, initial_points_per_class=1, classifier_batch_size=64,
-                 data_file="mnist_al.pt",
+                 data_file="fashion_mnist_al.pt",
                  cache_folder:str="~/.al_benchmark/datasets"):
         # TODO: decide on a budget
         super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, cache_folder)
