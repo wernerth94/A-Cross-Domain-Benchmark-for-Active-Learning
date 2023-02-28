@@ -1,0 +1,16 @@
+# Dataset: 
+FashionMnist
+Budget: 1000
+Seeding points per class: 1
+Classifier Batch Size: 64
+Source: TorchVision
+Normalization: Linear between [-1..1]
+Classifier: Vanilla ConvNet 
+
+# Agent: 
+RandomAgent 
+
+# Environment: 
+<ALGame<RlAl-v0>> 
+Sample Size: 20 
+
