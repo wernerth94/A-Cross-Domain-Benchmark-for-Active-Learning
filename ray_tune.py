@@ -66,15 +66,15 @@ if __name__ == '__main__':
     else:
         raise NameError(f"Benchmark folder cannot be fount in {base_path}")
         # output
-    log_folder = join(base_path, benchmark_folder, "runs/DNA")
+    log_folder = join(base_path, benchmark_folder, "runs/Splice")
     # test data loading from the original dataset
     cache_folder = join(base_path, "datasets")
     # training data
     # all training data
-    data_file = join(cache_folder, "dna_al.pt")
+    data_file = join(cache_folder, "splice_al.pt")
     # oracle data
     # data_file = join(base_path, benchmark_folder, "runs/DNA/Oracle/run_1/labeled_data.pt")
-    dataset_class = get_dataset_by_name("dna")
+    dataset_class = get_dataset_by_name("splice")
     config = {
         "h1": tune.choice([8, 12, 16, 32, 64]),
         "h2": tune.choice([0, 12, 16, 32, 64]),
