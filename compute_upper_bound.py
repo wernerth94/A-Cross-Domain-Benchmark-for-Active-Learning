@@ -7,8 +7,8 @@ from core.helper_functions import *
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--run_id", type=int, default=1)
-parser.add_argument("--dataset", type=str, default="splice")
-parser.add_argument("--restarts", type=int, default=15)
+parser.add_argument("--dataset", type=str, default="dna")
+parser.add_argument("--restarts", type=int, default=3)
 args = parser.parse_args()
 
 run_id = args.run_id

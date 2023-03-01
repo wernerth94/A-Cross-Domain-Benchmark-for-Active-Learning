@@ -109,6 +109,7 @@ def collect_results(base_path, folder_prefix):
 
 def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
     # Tabular
+    name = name.lower()
     if name == "splice":
         return datasets.Splice
     elif name == "dna":

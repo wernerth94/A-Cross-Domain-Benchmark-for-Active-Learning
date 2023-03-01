@@ -43,8 +43,8 @@ while run_id < max_run_id:
             # store dataset for later HP optimization
             out_file = os.path.join(log_path, "labeled_data.pt")
             torch.save({
-                "x": env.env.x_labeled,
-                "y": env.env.y_labeled
+                "x_train": env.env.x_labeled, # specific naming convention to
+                "y_train": env.env.y_labeled  # be consistent with normal dataset files
             }, out_file)
 
 
