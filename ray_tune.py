@@ -57,7 +57,7 @@ def evaluate_config(config, train_data_file=None, dataset_class=None, cache_fold
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    NUM_SAMPLES = 5
+    NUM_SAMPLES = 100
     base_path = os.path.split(os.getcwd())[0]
     if exists(join(base_path, "al_benchmark")):
         benchmark_folder = "al_benchmark"
