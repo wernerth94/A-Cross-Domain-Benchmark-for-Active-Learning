@@ -107,10 +107,13 @@ Alternative Approach:
   - con: not clear how many random batches need to be checked
 
 ## Runtimes
-GPU Partition
+GPU Partition:
 - Splice(900): 12m 
 - DNA(600): 10m
 - DNA Oracle(600): 3h 40m
 - USPS (900): 16m
 - FashionMnist(1000): 6-10h ( (12, 24, 48)-Vanilla-CNN ) 
 - Cifar10(2000) BatchSize=64: 40h (~72s per retraining)
+
+NGPU Partition:
+- USPS Oracle(900): 8-20h 

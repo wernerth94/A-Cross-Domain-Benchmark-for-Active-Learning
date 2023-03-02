@@ -6,7 +6,7 @@ from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel
 from core.classifier import ConvolutionalModel
 
 class FashionMnist(BaseDataset):
-    def __init__(self, budget=1000, initial_points_per_class=1, classifier_batch_size=64,
+    def __init__(self, budget=1000, initial_points_per_class=100, classifier_batch_size=64,
                  data_file="fashion_mnist_al.pt",
                  cache_folder:str="~/.al_benchmark/datasets"):
         # TODO: decide on a budget
