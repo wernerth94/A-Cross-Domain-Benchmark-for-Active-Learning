@@ -1,5 +1,6 @@
 from core.helper_functions import plot_mean_std_development
 import pandas as pd
+import numpy as np
 import os
 
 for dataset in os.listdir("runs"):
@@ -10,9 +11,10 @@ for dataset in os.listdir("runs"):
         if os.path.exists(acc_file):
             accuracies = pd.read_csv(acc_file, header=0, index_col=0)
             values = accuracies.values
-            plot_mean_std_development(values[-1, :] - values[0, :],
-                                      "Improvement",
-                                      os.path.join(agent_folder, "mean_std_convergence_improvement.jpg"))
-            plot_mean_std_development(values[-1, :],
-                                      "Final Accuracy",
-                                      os.path.join(agent_folder, "mean_std_convergence_final_value.jpg"))
+            auc = np.sum(values, axis=0) / values.shape[0]
+            try:
+                plot_mean_std_development(list(np.squeeze(auc)),
+                                          "AUC",
+                                          os.path.join(agent_folder, "mean_std_convergence_auc.jpg"))
+            except Exception as ex:
+                print(f"failed for {acc_file} with exception {str(ex)}")
