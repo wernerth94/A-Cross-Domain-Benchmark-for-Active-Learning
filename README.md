@@ -26,11 +26,14 @@ Available Datasets:
 - `cifar10`
 - `fashion_mnist`
 
-**Parallel Runs**\
+## Parallel Runs
 Parallelism is controlled by two parameters: `run_id`(default 1) and `restarts`(default 50)\
 This starts one run with seed 1 that sequentially executes the evaluation 50 times. \
 For full parallelism set `restarts` to 1 and execute 50 runs with increasing `run_ids`\
 This will automatically collect the results after each finished run and store it in `<dataset>/<agent>/accuracies.csv`
+
+Here is an example on how to run 6 seeded runs in three different levels of parallelism
+![](doc/img/parallel_runs_example.png)
 
 ## Baselines
 - Uncertainty Sampling
