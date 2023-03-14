@@ -10,8 +10,8 @@
 
 ## Quick Start
 Prepare the data `download_all_datasets.py --data_folder <your_folder>`\
-You can run an evaluation with `evaluate.py --data_folder "<my_folder>" --agent <name> --dataset <name>`\
 `--data_folder` sets the folder, where dataset files will be downloaded to \
+You can run an evaluation with `evaluate.py --data_folder "<my_folder>" --agent <name> --dataset <name>`\
 Available Agents:
 - `random`
 - `margin`
@@ -32,7 +32,7 @@ This starts one run with seed 1 that sequentially executes the evaluation 50 tim
 For full parallelism set `restarts` to 1 and execute 50 runs with increasing `run_ids`\
 This will automatically collect the results after each finished run and store it in `<dataset>/<agent>/accuracies.csv`
 
-Here is an example how to run 6 seeded runs in three different levels of parallelism
+Here is an example how to run 6 seeded runs in three different levels of parallelism \
 ![](doc/img/parallel_runs_example.png)
 
 ## Agents
