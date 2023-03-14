@@ -32,17 +32,24 @@ This starts one run with seed 1 that sequentially executes the evaluation 50 tim
 For full parallelism set `restarts` to 1 and execute 50 runs with increasing `run_ids`\
 This will automatically collect the results after each finished run and store it in `<dataset>/<agent>/accuracies.csv`
 
-Here is an example on how to run 6 seeded runs in three different levels of parallelism
+Here is an example how to run 6 seeded runs in three different levels of parallelism
 ![](doc/img/parallel_runs_example.png)
 
-## Baselines
+## Agents
+[Basic Overview](https://jacobgil.github.io/deeplearning/activelearning#active-learning-for-deep-learning)
 - Uncertainty Sampling
   - Entropy
   - Margin
 - Coreset
-- *BALD Dropout (MC Dropout for Uncertainty)
-- *ActiveLearningByLearning (ALBL)
-- *BadgeSampling
+- AL by Surrogate (Thorben) 
+- *MC Dropout for Uncertainty ([Link](https://openaccess.thecvf.com/content_cvpr_2018/papers/Beluch_The_Power_of_CVPR_2018_paper.pdf))
+- *Learning Loss for Active Learning ([Link](https://openaccess.thecvf.com/content_CVPR_2019/papers/Yoo_Learning_Loss_for_Active_Learning_CVPR_2019_paper.pdf))
+- *Learning to Sample ([Link](https://arxiv.org/pdf/1909.03585.pdf))
+
+### Problematic Agents
+- PAL: needs CRF classifiers and Word2Vec features
+- BADGE: uses kmeans initialization for selecting samples, which (probably) only works for multiple selected samples
+- Deep Bayesian Active Learning with Image Data: Needs Bayesian classifiers
 
 ## Structure
 ### Dataset
