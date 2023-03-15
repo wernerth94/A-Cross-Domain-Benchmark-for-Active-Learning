@@ -111,20 +111,24 @@ This process is repeated $B$ times $i := [1 \ldots B]$.
 		\State $\mathcal{L}^{(1)} \gets \operatorname{seed}(\mathcal{U})$  \Comment{Create the initial labeled set}
 		\State $\mathcal{U}^{(1)} \gets \mathcal{U}$
 		\For{$i := 1 \ldots B$}
-			\State $\text{acc}^{(0)} \gets \operatorname{Retrain}(\mathcal{L}^{(i)})$  \Comment{$\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
+			\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i)})$  \Comment{$\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
 			\State $u^{(i)} \underset{\tau}{\sim} \mathcal{U}^{(i)}$
 			\State $r* \gets -\infty$
 			\State $j* \gets -1$
 			\For{$j := 1 \ldots \tau$}
 				\State $y^{(j)} \gets \operatorname{label}(u^{(i)}_{j})$
-				\State $\mathcal{L}^{(j)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_j¸, y^{(j)})\}$
-				\State $\mathcal{U}^{(j)} \gets \mathcal{U}^{(i)} \setminus \{u^{(i)}_j\}$
+				\State $\mathcal{L}^{(j)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_j, y^{(j)})\}$
+				%\State $\mathcal{U}^{(j)} \gets \mathcal{U}^{(i)} \setminus \{u^{(i)}_j\}$
 				\State $\text{acc}^{(j)} \gets \operatorname{Retrain}(\mathcal{L}^{(j)})$  
+				\State $r^{(j)} \gets \text{acc}^{(j)} - \text{acc}^{(i)}$
+				\If{$r^{(j)} > r^*$}
+					\State $r* \gets r^{(j)}$
+					\State $j* \gets j$
+				\EndIf  
 			\EndFor
-			\State $y^{(i)} \gets \operatorname{label}(u^{(i)}_{j})$
-			\State $\mathcal{L}^{(i+1)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_j¸, y^{(i)})\}$
-			\State $\mathcal{U}^{(i+1)} \gets \mathcal{U}^{(i)} \setminus \{u^{(i)}_j\}$
-			\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i+1)})$  \Comment{$\operatorname{Retrain}(\mathcal{L}^{(i+1)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i+1)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
+			\State $y^{(i)} \gets \operatorname{label}(u^{(i)}_{j*})$
+			\State $\mathcal{L}^{(i+1)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_{j*}, y^{(i)})\}$
+			\State $\mathcal{U}^{(i+1)} \gets \mathcal{U}^{(i)} \setminus \{u^{(i)}_{j*}\}$
 		\EndFor
 		\State
 		\Return $\frac{1}{B} \sum_{i=1}^{B} \text{acc}^{(i)}$
