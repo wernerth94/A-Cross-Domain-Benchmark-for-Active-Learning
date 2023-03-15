@@ -110,18 +110,17 @@ This process is repeated $B$ times $i := [1 \ldots B]$.
 		\Require $\omega$ \Comment{Environment State function}
 		\State $\mathcal{L}^{(1)} \gets \operatorname{seed}(\mathcal{U})$  \Comment{Create the initial labeled set}
 		\State $\mathcal{U}^{(1)} \gets \mathcal{U}$
-		\For{$i := 1 \ldots B$}
+		\For{$i := 1 \ldots B$} 
 			\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i)})$  \Comment{$\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
 			\State $u^{(i)} \underset{\tau}{\sim} \mathcal{U}^{(i)}$
 			\State $r* \gets -\infty$
 			\State $j* \gets -1$
-			\For{$j := 1 \ldots \tau$}
+			\For{$j := 1 \ldots \tau$} \Comment{Testing every unlabeled point}
 				\State $y^{(j)} \gets \operatorname{label}(u^{(i)}_{j})$
 				\State $\mathcal{L}^{(j)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_j, y^{(j)})\}$
-				%\State $\mathcal{U}^{(j)} \gets \mathcal{U}^{(i)} \setminus \{u^{(i)}_j\}$
 				\State $\text{acc}^{(j)} \gets \operatorname{Retrain}(\mathcal{L}^{(j)})$  
 				\State $r^{(j)} \gets \text{acc}^{(j)} - \text{acc}^{(i)}$
-				\If{$r^{(j)} > r^*$}
+				\If{$r^{(j)} > r^*$} \Comment{Select point with largest increase in performance}
 					\State $r* \gets r^{(j)}$
 					\State $j* \gets j$
 				\EndIf  
@@ -135,6 +134,12 @@ This process is repeated $B$ times $i := [1 \ldots B]$.
 	\end{algorithmic}
 \end{algorithm}
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\linewidth]{img/oracle_performance.png}
+	\caption{Performance drop for Oracle in late stages of Active Learning.}
+\end{figure}
+
 \section{Methodology}
 
 \subsection{Classification Model}
@@ -145,10 +150,9 @@ If special capabilities of the model are needed (i.e. Monte-Carlo Dropout), an e
 To ensure comparability between models, the model's configuration should not be changed or an additional evaluation of the new configuration should be conducted to compare the baseline expressivity.
 
 \subsection{State Space}
-Since every AL agent needs a different state space our environment exposes a callback-function that gives the agent full control over how the state is constructed. \\ [1mm]
-The callback includes the following information:
+Since every AL agent needs a different state space our environment exposes a full state to the agent, so that the agent has full control of what information will be used. \\ [1mm]
+The state can include the following information:
 \begin{itemize}
-	\item The current sample of IDs that point to the presented unlabeled datapoints
 	\item The entire labeled dataset $\mathcal{L}$
 	\item The entire unlabeled dataset $\mathcal{U}$
 	\item A histogram of labeled points per class (count)
@@ -157,8 +161,8 @@ The callback includes the following information:
 	\item The initial validation accuracy and current validation accuracy
 	\item The current classification model including all model weights
 	\item The current optimizer including it's full state
+	\item The current sample of unlabeled points 
 \end{itemize}
-Every agent needs to implement this callback that transforms the given information into a state tensor that will be directly consumed by the agent to make it's prediction.
 
 \subsection{Training the Classifier}\label{sec:training_the_classifier}
 \subsection{Evaluation}\label{sec:evaluation}
