@@ -2,6 +2,7 @@
 
 ## Dependencies
 - tianshou
+- gym
 - torchvision
 - matplotlib
 - Pandas

@@ -40,13 +40,6 @@ class EnvironmentLogger:
         acc_df.to_csv(self.accuracies_path)
         loss_df = pd.DataFrame(self.losses)
         loss_df.to_csv(self.losses_path)
-        # values = acc_df.values
-        # plot_mean_std_development(values[-1, :] - values[0, :],
-        #                           "Improvement",
-        #                           os.path.join(self.out_path, "mean_std_convergence_improvement.jpg"))
-        # plot_mean_std_development(values[-1, :],
-        #                           "Final Accuracy",
-        #                           os.path.join(self.out_path, "mean_std_convergence_final_value.jpg"))
 
 
     def reset(self, *args, **kwargs)->list:

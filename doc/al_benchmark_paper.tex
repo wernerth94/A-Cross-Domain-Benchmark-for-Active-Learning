@@ -62,13 +62,13 @@ This process is repeated $B$ times $i := [1 \ldots B]$.
 			\State $\mathcal{L}^{(1)} \gets \operatorname{seed}(\mathcal{U})$  \Comment{Create the initial labeled set}
 			\State $\mathcal{U}^{(1)} \gets \mathcal{U}$
 			\For{$i := 1 \ldots B$}
-			\State $u^{(i)} \underset{\tau}{\sim} \mathcal{U}^{(i)}$
-			\State $s^{(i)} \gets \omega(u^{(i)})$
-			\State $a^{(i)} \gets \Omega(s^{(i)})$ \Comment{$a^{(i)}$ is an index inside of $u^{(i)}$}
-			\State $y^{(i)} \gets \operatorname{oracle}(u^{(i)}_{a})$ \Comment{$u^{(i)}_{a}$ is shorthand for $u^{(i)}_{a^{(i)}}$}
-			\State $\mathcal{L}^{(i+1)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_a, y^{(i)})\}$
-			\State $\mathcal{U}^{(i+1)} \gets \mathcal{U}^{(i)} \setminus \{u^{(i)}_a\}$
-			\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i+1)})$  \Comment{$\operatorname{Retrain}(\mathcal{L}^{(i+1)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i+1)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
+				\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i)})$  \Comment{$\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
+				\State $u^{(i)} \underset{\tau}{\sim} \mathcal{U}^{(i)}$
+				\State $s^{(i)} \gets \omega(u^{(i)})$
+				\State $a^{(i)} \gets \Omega(s^{(i)})$ \Comment{$a^{(i)}$ is an index inside of $u^{(i)}$}
+				\State $y^{(i)} \gets \operatorname{label}(u^{(i)}_{a})$ \Comment{$u^{(i)}_{a}$ is shorthand for $u^{(i)}_{a^{(i)}}$}
+				\State $\mathcal{L}^{(i+1)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_a, y^{(i)})\}$
+				\State $\mathcal{U}^{(i+1)} \gets \mathcal{U}^{(i)} \setminus \{u^{(i)}_a\}$
 			\EndFor
 			\State
 			\Return $\frac{1}{B} \sum_{i=1}^{B} \text{acc}^{(i)}$
@@ -101,7 +101,35 @@ This process is repeated $B$ times $i := [1 \ldots B]$.
 \end{minipage}
 
 
-
+\begin{algorithm}
+	\caption{Oracle}\label{alg:oracle}
+	\begin{algorithmic}[1]
+		\Require $\mathcal{U}$ \Comment{Unlabeled Pool}
+		\Require $\tau$ \Comment{Unlabeled Sample Size}
+		\Require $\Omega$ \Comment{AL Agent}
+		\Require $\omega$ \Comment{Environment State function}
+		\State $\mathcal{L}^{(1)} \gets \operatorname{seed}(\mathcal{U})$  \Comment{Create the initial labeled set}
+		\State $\mathcal{U}^{(1)} \gets \mathcal{U}$
+		\For{$i := 1 \ldots B$}
+			\State $\text{acc}^{(0)} \gets \operatorname{Retrain}(\mathcal{L}^{(i)})$  \Comment{$\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
+			\State $u^{(i)} \underset{\tau}{\sim} \mathcal{U}^{(i)}$
+			\State $r* \gets -\infty$
+			\State $j* \gets -1$
+			\For{$j := 1 \ldots \tau$}
+				\State $y^{(j)} \gets \operatorname{label}(u^{(i)}_{j})$
+				\State $\mathcal{L}^{(j)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_j¸, y^{(j)})\}$
+				\State $\mathcal{U}^{(j)} \gets \mathcal{U}^{(i)} \setminus \{u^{(i)}_j\}$
+				\State $\text{acc}^{(j)} \gets \operatorname{Retrain}(\mathcal{L}^{(j)})$  
+			\EndFor
+			\State $y^{(i)} \gets \operatorname{label}(u^{(i)}_{j})$
+			\State $\mathcal{L}^{(i+1)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_j¸, y^{(i)})\}$
+			\State $\mathcal{U}^{(i+1)} \gets \mathcal{U}^{(i)} \setminus \{u^{(i)}_j\}$
+			\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i+1)})$  \Comment{$\operatorname{Retrain}(\mathcal{L}^{(i+1)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i+1)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
+		\EndFor
+		\State
+		\Return $\frac{1}{B} \sum_{i=1}^{B} \text{acc}^{(i)}$
+	\end{algorithmic}
+\end{algorithm}
 
 \section{Methodology}
 
