@@ -13,7 +13,7 @@ class DenseModel(nn.Module):
         super().__init__()
 
         self.inpt = nn.Linear(input_size, hidden_sizes[0])
-        self.hidden = []
+        self.hidden = nn.ModuleList()
         for i in range(len(hidden_sizes)):
             self.hidden.append(nn.Linear(hidden_sizes[max(0, i - 1)], hidden_sizes[i]))
         self.out = nn.Linear(hidden_sizes[-1], num_classes)
@@ -46,7 +46,7 @@ class ConvolutionalModel(nn.Module):
         super().__init__()
 
         self.inpt = nn.Conv2d(input_size[0], hidden_sizes[0], kernel_size=3)
-        self.hidden = []
+        self.hidden = nn.ModuleList()
         for i in range(len(hidden_sizes)):
             self.hidden.append(nn.Conv2d(hidden_sizes[max(0, i - 1)], hidden_sizes[i], kernel_size=3))
         self.flatten = nn.Flatten()
@@ -74,11 +74,11 @@ class ConvolutionalModel(nn.Module):
         x = self.out(x)
         return x
 
-    def to(self, *args, **kwargs):
-        self = super().to(*args, **kwargs)
-        for i in range(len(self.hidden)):
-            self.hidden[i] = self.hidden[i].to(*args, **kwargs)
-        return self
+    # def to(self, *args, **kwargs):
+    #     self = super().to(*args, **kwargs)
+    #     for i in range(len(self.hidden)):
+    #         self.hidden[i] = self.hidden[i].to(*args, **kwargs)
+    #     return self
 
 
 def fit_and_evaluate(dataset:BaseDataset,
