@@ -40,9 +40,9 @@ class ALGame(gym.Env):
             self.n_interactions = 0
             self.added_images = 0
             self.classifier = self.dataset.get_classifier()
-            self.classifier = self.classifier.to(self.device)
+            self.classifier.to(self.device)
             if torch.cuda.is_available():
-                self.classifier = self.classifier.cuda()
+                self.classifier.cuda()
             self.initial_weights = self.classifier.state_dict()
             self.optimizer = self.dataset.get_optimizer(self.classifier)
             self.reset_al_pool()
