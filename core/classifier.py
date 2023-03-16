@@ -74,6 +74,12 @@ class ConvolutionalModel(nn.Module):
         x = self.out(x)
         return x
 
+    def to(self, *args, **kwargs):
+        self = super().to(*args, **kwargs)
+        for i in range(len(self.hidden)):
+            self.hidden[i] = self.hidden[i].to(*args, **kwargs)
+        return self
+
 
 def fit_and_evaluate(dataset:BaseDataset,
                      lr:float=None, weight_decay:float=None, batch_size:int=None,
