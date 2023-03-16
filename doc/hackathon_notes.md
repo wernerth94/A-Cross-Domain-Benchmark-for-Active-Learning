@@ -1,3 +1,20 @@
+```commandline
+conda deactivate
+conda create --name al_bench
+conda activate al_bench
+pip freeze | xargs pip uninstall -y #purges old links of installed packages
+pip install -r first.txt
+pip install -r second.txt
+conda install requests
+```
+
+```commandline
+conda deactivate
+conda create --name al_bench
+conda install pytorch==1.12.0 torchvision==0.13.0 cudatoolkit=11.6 -c pytorch -c conda-forge
+conda install tianshou gym pandas matplotlib sklearn -c conda-forge
+```
+
 # Implementing Baselines
 - MC Dropout for Uncertainty ([Link](https://openaccess.thecvf.com/content_cvpr_2018/papers/Beluch_The_Power_of_CVPR_2018_paper.pdf))
 - Learning Loss for Active Learning ([Link](https://openaccess.thecvf.com/content_CVPR_2019/papers/Yoo_Learning_Loss_for_Active_Learning_CVPR_2019_paper.pdf))

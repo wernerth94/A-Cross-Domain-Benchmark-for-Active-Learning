@@ -100,9 +100,11 @@ class ALGame(gym.Env):
         train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
                                       batch_size=self.dataset.classifier_batch_size,
                                       drop_last=True,
-                                      shuffle=True, num_workers=4)
+                                      # num_workers=4, # dropped for CUDA compat
+                                      shuffle=True)
         test_dataloader = DataLoader(TensorDataset(self.dataset.x_test, self.dataset.y_test), batch_size=100,
-                                     num_workers=4)
+                                     #num_workers=4 # dropped for CUDA compat
+                                     )
 
         lastLoss = torch.inf
         for e in range(epochs):
