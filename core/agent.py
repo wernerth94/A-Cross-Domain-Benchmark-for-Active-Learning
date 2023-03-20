@@ -8,7 +8,8 @@ from torch.optim import Optimizer
 
 class BaseAgent(ABC):
 
-    def __init__(self):
+    def __init__(self, agent_rng):
+        self.agent_rng = agent_rng
         self.name = str(self.__class__).split('.')[-1][:-2]
         print(f"Loaded Agent: {self.name}")
 

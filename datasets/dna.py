@@ -11,10 +11,10 @@ import requests
 
 class DNA(BaseDataset):
 
-    def __init__(self, budget=600, initial_points_per_class=1, classifier_batch_size=64,
+    def __init__(self, pool_rng, budget=600, initial_points_per_class=1, classifier_batch_size=64,
                  data_file="dna_al.pt",
                  cache_folder:str="~/.al_benchmark/datasets"):
-        super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, cache_folder)
+        super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, pool_rng, cache_folder)
 
 
     def _download_data(self):

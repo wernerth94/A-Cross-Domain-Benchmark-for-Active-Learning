@@ -6,10 +6,10 @@ from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel
 from core.classifier import ConvolutionalModel
 
 class Cifar10(BaseDataset):
-    def __init__(self, budget=2000, initial_points_per_class=1, classifier_batch_size=64,
+    def __init__(self, pool_rng, budget=2000, initial_points_per_class=1, classifier_batch_size=64,
                  data_file="cifar10_al.pt",
                  cache_folder:str="~/.al_benchmark/datasets"):
-        super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, cache_folder)
+        super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, pool_rng, cache_folder)
 
 
     def _download_data(self, test_data_fraction=0.1):

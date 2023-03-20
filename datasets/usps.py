@@ -11,11 +11,10 @@ import requests
 import bz2
 
 class USPS(BaseDataset):
-
-    def __init__(self, budget=900, initial_points_per_class=1, classifier_batch_size=43,
+    def __init__(self, pool_rng, budget=900, initial_points_per_class=1, classifier_batch_size=43,
                  data_file="usps_al.pt",
                  cache_folder:str="~/.al_benchmark/datasets"):
-        super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, cache_folder)
+        super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, pool_rng, cache_folder)
 
 
     def _download_data(self):
@@ -46,8 +45,9 @@ class USPS(BaseDataset):
             print("Download successful")
 
 
-    def get_classifier(self, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
-        model = DenseModel(input_size=self.x_shape[-1],
+    def get_classifier(self, model_rng, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
+        model = DenseModel(model_rng,
+                           input_size=self.x_shape[-1],
                            num_classes=self.n_classes,
                            hidden_sizes=hidden_dims)
         return model

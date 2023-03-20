@@ -3,18 +3,30 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
+import classifier
 import gym
 from core.data import BaseDataset
 
 class ALGame(gym.Env):
 
     def __init__(self, dataset:BaseDataset,
-                 labeled_sample_size,
+                 labeled_sample_size:int,
+                 pool_rng:np.random.Generator,
+                 model_seed:int,
+                 data_loader_seed:int=2023,
                  device=None):
         if device is None:
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         else:
             self.device = device
+        self.pool_rng = pool_rng
+        self.data_loader_seed =data_loader_seed
+        self.model_rng = torch.Generator()
+        self.model_rng.manual_seed(model_seed)
+        self.data_loader_rng = torch.Generator()
+        self.data_loader_rng.manual_seed(self.data_loader_seed)
+        # torch.random.manual_seed(model_seed)
+
         self.dataset = dataset
         self.budget = dataset.budget
         self.sample_size = labeled_sample_size
@@ -39,17 +51,15 @@ class ALGame(gym.Env):
         with torch.no_grad():
             self.n_interactions = 0
             self.added_images = 0
-            self.classifier = self.dataset.get_classifier()
+            self.classifier = self.dataset.get_classifier(self.model_rng)
+            # classifier.custom_init(self.classifier, self.model_rng)
             self.classifier.to(self.device)
-            # if torch.cuda.is_available():
-            #     self.classifier.cuda()
             self.initial_weights = self.classifier.state_dict()
             self.optimizer = self.dataset.get_optimizer(self.classifier)
             self.reset_al_pool()
         # first training of the model should be done from scratch
         self._fit_classifier(from_scratch=True)
         self.initial_test_accuracy = self.current_test_accuracy
-        self.state_ids = np.random.choice(len(self.x_unlabeled), self.sample_size)
         return self.create_state()
 
 
@@ -61,6 +71,8 @@ class ALGame(gym.Env):
 
 
     def create_state(self):
+        self.state_ids = self.pool_rng.choice(len(self.x_unlabeled), self.sample_size)
+        # self.state_ids = np.random.choice(len(self.x_unlabeled), self.sample_size)
         state = [self.state_ids,
                  self.x_unlabeled,
                  self.x_labeled, self.y_labeled,
@@ -89,7 +101,6 @@ class ALGame(gym.Env):
         # fit classification model
         reward = self.fit_classifier()
         # pick new sample for the next state
-        self.state_ids = np.random.choice(len(self.x_unlabeled), self.sample_size)
         next_state = self.create_state()
         done = self.added_images >= self.budget
         truncated = False
@@ -99,9 +110,16 @@ class ALGame(gym.Env):
     def _fit_classifier(self, epochs=50, from_scratch=False):
         if from_scratch:
             self.classifier.load_state_dict(self.initial_weights)
+
+        # def seed_worker(worker_id):
+        #     worker_seed = torch.initial_seed() % 2**32
+        #     numpy.random.seed(worker_seed)
+        #     random.seed(worker_seed)
+
         train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
                                       batch_size=self.dataset.classifier_batch_size,
                                       drop_last=True,
+                                      generator=self.data_loader_rng,
                                       # num_workers=4, # dropped for CUDA compat
                                       shuffle=True)
         test_dataloader = DataLoader(TensorDataset(self.dataset.x_test, self.dataset.y_test), batch_size=100,
@@ -185,11 +203,11 @@ class OracleALGame(ALGame):
         initial_optimizer_state = copy.deepcopy(self.optimizer.state_dict())
         initial_test_loss = self.current_test_loss
         initial_test_acc = self.current_test_accuracy
-        np_seed = len(self.x_labeled)
         torch_seed = len(self.x_labeled)
+        pool_rng = copy.deepcopy(self.pool_rng)
         return (initial_weights, initial_optimizer_state,
                 initial_test_loss, initial_test_acc,
-                np_seed, torch_seed)
+                torch_seed, pool_rng)
 
 
     def _set_internal_state(self, state_tuple):
@@ -197,8 +215,8 @@ class OracleALGame(ALGame):
         self.optimizer.load_state_dict(state_tuple[1])
         self.current_test_loss = state_tuple[2]
         self.current_test_accuracy = state_tuple[3]
-        np.random.seed(state_tuple[4])
-        torch.random.manual_seed(state_tuple[5])
+        torch.random.manual_seed(state_tuple[4])
+        self.pool_rng = copy.deepcopy(state_tuple[5])
 
 
     def step(self, *args, **kwargs):
@@ -235,7 +253,6 @@ class OracleALGame(ALGame):
             self.y_unlabeled = torch.cat([self.y_unlabeled[:best_i], self.y_unlabeled[best_i + 1:]], dim=0)
         reward = self.fit_classifier()
         self.added_images += 1
-        self.state_ids = np.random.choice(len(self.x_unlabeled), self.sample_size)
         done = self.added_images >= self.budget
         truncated, info = False, {"action":best_action}
         return self.create_state(), reward, done, truncated, info

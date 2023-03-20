@@ -33,3 +33,19 @@ When
 
 # Planting Non-Reducable Noise in the Data
 A good AL algorithm should be able to distinguish data-noise from model-noise that stems from underfitting and needs to focus on the model-noise and ignore the data-noise.
+
+
+# Postprocessing
+- Checking seeding for all tabular datasets with all agents
+- deriving SeededConvLayer
+- ToyData Surrogate Agent
+- GPU Env for Surrogate Agent
+- Skim other NIPS benchmark papers
+- AL Eval: Towards Robust Reprocudible Active Learning Using Neural Networks
+- TypiClust Code (unsupervised embeddings, retraining the embeddings)
+- TypiClust Oracle
+- HP config
+- Rework the Pseudocode
+  - <img height="300" src="img/tmp.jpeg" width="500"/>
+- Active Few Shot Learning (Split classes into train classes and testing classes)
+- 

@@ -35,12 +35,13 @@ class SurrogatePolicy(BasePolicy):
 
     def __init__(
         self,
+        agent_rng,
         model: torch.nn.Module,
         optim: torch.optim.Optimizer,
         clip_loss_grad: bool = False,
         **kwargs: Any,
     ) -> None:
-        super().__init__(**kwargs)
+        super().__init__(agent_rng, **kwargs)
         self.model = model
         self.optim = optim
         self.eps = 0.0

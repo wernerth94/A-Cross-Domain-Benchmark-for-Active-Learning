@@ -15,6 +15,7 @@ class BaseDataset(ABC):
                  initial_points_per_class:int,
                  classifier_batch_size:int,
                  data_file:str,
+                 pool_rng:np.random.Generator,
                  cache_folder:str="~/.al_benchmark/datasets",
                  device=None,
                  class_fitting_mode:Literal["from_scratch", "finetuning"]="finetuning"):
@@ -23,6 +24,7 @@ class BaseDataset(ABC):
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         else:
             self.device = device
+        self.pool_rng = pool_rng
         self.budget = budget
         self.classifier_batch_size = classifier_batch_size
         self.class_fitting_mode = class_fitting_mode
@@ -70,7 +72,7 @@ class BaseDataset(ABC):
 
 
     @abstractmethod
-    def get_classifier(self, hidden_dims:tuple=tuple())->Module:
+    def get_classifier(self, model_rng, hidden_dims:tuple=tuple())->Module:
         '''
         This creates a torch model that serves as a classification model for this dataset
         :return: PyTorch Model
@@ -116,7 +118,8 @@ class BaseDataset(ABC):
         x_labeled, y_labeled = [], []
 
         ids = np.arange(self.x_train.shape[0], dtype=int)
-        np.random.shuffle(ids)
+        self.pool_rng.shuffle(ids)
+        # np.random.shuffle(ids)
         perClassIntances = [0 for _ in range(nClasses)]
         usedIds = []
         for i in ids:
@@ -208,9 +211,10 @@ def normalize(x_train, x_test, mode:Literal["none", "mean", "mean_std", "min_max
     return x_train, x_test
 
 
-def subsample_data(x, y, fraction):
+def subsample_data(x, y, fraction:float, pool_rng:np.random.Generator):
     all_ids = np.arange(len(x))
-    np.random.shuffle(all_ids)
+    pool_rng.shuffle(all_ids)
+    # np.random.shuffle(all_ids)
     cutoff = int(len(all_ids) * fraction)
     ids = all_ids[:cutoff]
     new_x = x[ids]

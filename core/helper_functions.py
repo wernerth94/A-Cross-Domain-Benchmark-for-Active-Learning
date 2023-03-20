@@ -1,7 +1,9 @@
 from typing import Union, Callable
 import os
+import math
 from os.path import join, exists
 import torch
+from torch.nn.init import calculate_gain, _calculate_correct_fan
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -32,8 +34,6 @@ def save_meta_data(logpath, agent, env, dataset, additional:dict=None):
             f.write("# Other: \n")
             for key, value in additional.items():
                 f.write(f"{key}: {value} \n")
-
-
 
 
 def plot_mean_std_development(inpt:list, title:str, out_file:str=None):
@@ -137,3 +137,29 @@ def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
         return agents.SAR
     else:
         raise ValueError(f"Agent name '{name}' not recognized")
+
+
+def custom_init(model:torch.nn.Module, model_rng:torch.random.Generator, mode: str = 'fan_in', nonlinearity: str = 'leaky_relu'):
+    for i, tensor in enumerate(model.parameters()):
+        if tensor.ndim == 1:
+            # Bias
+            fan_in, _ = _calculate_fan_in_and_fan_out(list(model.parameters())[i-1])
+            bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
+            with torch.no_grad():
+                tensor.uniform_(-bound, bound, generator=model_rng)
+        else:
+            if tensor.ndim == 2:
+                # Linear
+                a = math.sqrt(5)
+            else:
+                raise ValueError("Oh No")
+            # Other
+            if 0 in tensor.shape:
+                # warnings.warn("Initializing zero-element tensors is a no-op")
+                return tensor
+            fan = _calculate_correct_fan(tensor, mode)
+            gain = calculate_gain(nonlinearity, a)
+            std = gain / math.sqrt(fan)
+            bound = math.sqrt(3.0) * std  # Calculate uniform bounds from standard deviation
+            with torch.no_grad():
+                tensor.uniform_(-bound, bound, generator=model_rng)
