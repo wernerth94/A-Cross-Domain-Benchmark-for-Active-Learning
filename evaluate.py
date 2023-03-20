@@ -20,7 +20,7 @@ args = parser.parse_args()
 run_id = args.run_id
 max_run_id = run_id + args.restarts
 while run_id < max_run_id:
-    pool_rng = np.random.default_rng(args.pool_seed + run_id)
+    pool_rng = np.random.default_rng(args.pool_seed)# + run_id)
     agent_rng = np.random.default_rng(args.agent_seed)
     model_seed = args.model_seed # + run_id
     data_loader_seed = 1
