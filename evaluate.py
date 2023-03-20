@@ -13,8 +13,9 @@ parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--agent", type=str, default="margin")
 parser.add_argument("--dataset", type=str, default="usps")
+parser.add_argument("--experiment_postfix", type=str, default=None)
 parser.add_argument("--sample_size", type=int, default=20)
-parser.add_argument("--restarts", type=int, default=20)
+parser.add_argument("--restarts", type=int, default=50)
 args = parser.parse_args()
 
 run_id = args.run_id
@@ -39,7 +40,10 @@ while run_id < max_run_id:
                       data_loader_seed=data_loader_seed,
                       device=util.device)
     agent = AgentClass(agent_rng)
-    base_path = os.path.join("runs", dataset.name, agent.name)
+    if args.experiment_postfix is not None:
+        base_path = os.path.join("runs", dataset.name, f"{agent.name}_{args.experiment_postfix}")
+    else:
+        base_path = os.path.join("runs", dataset.name, agent.name)
     log_path = os.path.join(base_path, f"run_{run_id}")
 
     save_meta_data(log_path, agent, env, dataset)
