@@ -63,9 +63,9 @@ def main():
     base_dataloader = get_validation_dataloader_for_dataset(args.dataset, base_dataset)
 
     memory_bank_base = create_memory_bank(args.dataset, base_dataset)
-    memory_bank_base = memory_bank_base.to(util.device)
+    memory_bank_base.to(util.device)
     memory_bank_val = create_memory_bank(args.dataset, val_dataset)
-    memory_bank_val = memory_bank_val.to(util.device)
+    memory_bank_val.to(util.device)
 
     # Criterion
     print('Retrieve criterion')
