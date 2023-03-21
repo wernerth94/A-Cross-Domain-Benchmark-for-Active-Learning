@@ -8,6 +8,8 @@ from core.helper_functions import *
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--run_id", type=int, default=1)
+parser.add_argument("--pool_seed", type=int, default=1)
+parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--dataset", type=str, default="dna")
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=1)
@@ -17,14 +19,18 @@ args = parser.parse_args()
 run_id = args.run_id
 max_run_id = run_id + args.restarts
 while run_id < max_run_id:
-    numpy.random.seed(run_id)
-    torch.random.manual_seed(run_id)
+    pool_rng = np.random.default_rng(args.pool_seed + run_id)
+    model_seed = args.model_seed + run_id
+    data_loader_seed = 1
 
     DatasetClass = get_dataset_by_name(args.dataset)
     dataset = DatasetClass(cache_folder=args.data_folder)
     dataset = dataset.to(util.device)
     env = core.OracleALGame(dataset,
                             args.sample_size,
+                            pool_rng,
+                            model_seed=model_seed,
+                            data_loader_seed=data_loader_seed,
                             device=util.device)
     base_path = os.path.join("runs", dataset.name, f"Oracle")
     log_path = os.path.join(base_path, f"run_{run_id}")

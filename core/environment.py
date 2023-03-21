@@ -31,7 +31,7 @@ class ALGame(gym.Env):
         self.budget = dataset.budget
         self.sample_size = labeled_sample_size
         self.fitting_mode = dataset.class_fitting_mode
-        self.loss = nn.CrossEntropyLoss()
+        self.loss = nn.CrossEntropyLoss().to(self.device)
 
         # set gym observation space and action space
         self.current_test_accuracy = 0.0
@@ -194,8 +194,11 @@ class ALGame(gym.Env):
 class OracleALGame(ALGame):
     def __init__(self, dataset: BaseDataset,
                  labeled_sample_size,
+                 pool_rng:np.random.Generator,
+                 model_seed:int,
+                 data_loader_seed:int=2023,
                  device = None):
-        super().__init__(dataset, labeled_sample_size, device)
+        super().__init__(dataset, labeled_sample_size, pool_rng, model_seed, data_loader_seed, device)
 
 
     def _get_internal_state(self):
@@ -203,11 +206,10 @@ class OracleALGame(ALGame):
         initial_optimizer_state = copy.deepcopy(self.optimizer.state_dict())
         initial_test_loss = self.current_test_loss
         initial_test_acc = self.current_test_accuracy
-        torch_seed = len(self.x_labeled)
-        pool_rng = copy.deepcopy(self.pool_rng)
+        dataloader_rng = copy.deepcopy(self.data_loader_rng)
         return (initial_weights, initial_optimizer_state,
                 initial_test_loss, initial_test_acc,
-                torch_seed, pool_rng)
+                dataloader_rng)
 
 
     def _set_internal_state(self, state_tuple):
@@ -215,8 +217,7 @@ class OracleALGame(ALGame):
         self.optimizer.load_state_dict(state_tuple[1])
         self.current_test_loss = state_tuple[2]
         self.current_test_accuracy = state_tuple[3]
-        torch.random.manual_seed(state_tuple[4])
-        self.pool_rng = copy.deepcopy(state_tuple[5])
+        self.data_loader_rng = copy.deepcopy(state_tuple[4])
 
 
     def step(self, *args, **kwargs):

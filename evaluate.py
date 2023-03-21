@@ -25,8 +25,6 @@ while run_id < max_run_id:
     agent_rng = np.random.default_rng(args.agent_seed)
     model_seed = args.model_seed + run_id
     data_loader_seed = 1
-    # numpy.random.seed(run_id)
-    # torch.random.manual_seed(run_id)
 
     AgentClass = get_agent_by_name(args.agent)
     DatasetClass = get_dataset_by_name(args.dataset)

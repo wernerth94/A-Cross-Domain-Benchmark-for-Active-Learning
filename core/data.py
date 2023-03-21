@@ -84,6 +84,10 @@ class BaseDataset(ABC):
     def get_optimizer(self, model:Module, lr:float=0.001, weight_decay:float=0.0)->Optimizer:
         pass
 
+    @abstractmethod
+    def get_sim_clr_config(self)->dict:
+        pass
+
 
     def _load_or_download_data(self):
         data = self._load_data()

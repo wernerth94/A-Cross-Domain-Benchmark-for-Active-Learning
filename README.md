@@ -7,6 +7,7 @@
 - matplotlib
 - Pandas
 - sklearn
+- faiss-cpu
 - ray\[tune\] (Optional)
 
 ## Quick Start

@@ -3,6 +3,7 @@ import sys
 sys.path.append("agents")
 sys.path.append("core")
 sys.path.append("datasets")
+sys.path.append("sim_clr")
 print(F"updated path is {sys.path}")
 
 import getpass

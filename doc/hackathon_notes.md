@@ -36,7 +36,6 @@ A good AL algorithm should be able to distinguish data-noise from model-noise th
 
 
 # Postprocessing
-- Checking seeding for all tabular datasets with all agents
 - deriving SeededConvLayer
 - ToyData Surrogate Agent
 - GPU Env for Surrogate Agent
@@ -48,4 +47,7 @@ A good AL algorithm should be able to distinguish data-noise from model-noise th
 - Rework the Pseudocode
   - <img height="300" src="img/tmp.jpeg" width="500"/>
 - Active Few Shot Learning (Split classes into train classes and testing classes)
+- fix seeding in other run scripts (oracle...)
 - 
+### Done
+- Checking seeding for all tabular datasets with all agents
