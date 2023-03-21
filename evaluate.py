@@ -13,7 +13,7 @@ parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--agent", type=str, default="margin")
 parser.add_argument("--dataset", type=str, default="usps")
-parser.add_argument("--experiment_postfix", type=str, default="both")
+parser.add_argument("--experiment_postfix", type=str, default="model")
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=50)
 args = parser.parse_args()
@@ -21,7 +21,7 @@ args = parser.parse_args()
 run_id = args.run_id
 max_run_id = run_id + args.restarts
 while run_id < max_run_id:
-    pool_rng = np.random.default_rng(args.pool_seed + run_id)
+    pool_rng = np.random.default_rng(args.pool_seed)# + run_id)
     agent_rng = np.random.default_rng(args.agent_seed)
     model_seed = args.model_seed + run_id
     data_loader_seed = 1
