@@ -4,6 +4,8 @@ Hacohen, Guy, Avihu Dekel, and Daphna Weinshall.
 "Active learning on a budget: Opposite strategies suit high and low budgets." arXiv preprint arXiv:2202.02794 (2022).
 Licensed under the CC BY-NC 4.0 license (https://creativecommons.org/licenses/by-nc/4.0/)
 """
+import shutil
+
 import experiment_util as util
 import argparse
 import os
@@ -78,11 +80,15 @@ def main():
     optimizer = get_optimizer_for_dataset(args.dataset, model)
     print(optimizer)
 
-    pretext_checkpoint = os.path.join("checkpoints", args.dataset, f'checkpoint_seed{args.seed}.pth.tar')
-    pretext_model = os.path.join("checkpoints", args.dataset, f'model_seed{args.seed}.pth.tar')
-    pretext_features = os.path.join("checkpoints", args.dataset, f'features_seed{args.seed}.npy')
-    topk_neighbors_train_path = os.path.join("checkpoints", args.dataset, f'topk-train-neighbors_seed{args.seed}.npy')
-    topk_neighbors_val_path = os.path.join("checkpoints", args.dataset, f'topk-val-neighbors_seed{args.seed}.npy')
+    chkpt_folder = os.path.join("checkpoints", args.dataset)
+    if os.path.exists(chkpt_folder):
+        shutil.rmtree(chkpt_folder)
+    os.makedirs(chkpt_folder)
+    pretext_checkpoint = os.path.join(chkpt_folder, f'checkpoint_seed{args.seed}.pth.tar')
+    pretext_model = os.path.join(chkpt_folder, f'model_seed{args.seed}.pth.tar')
+    pretext_features = os.path.join(chkpt_folder, f'features_seed{args.seed}.npy')
+    topk_neighbors_train_path = os.path.join(chkpt_folder, f'topk-train-neighbors_seed{args.seed}.npy')
+    topk_neighbors_val_path = os.path.join(chkpt_folder, f'topk-val-neighbors_seed{args.seed}.npy')
 
     start_epoch = 0
     # Checkpoint
