@@ -53,7 +53,7 @@ class SeededLinear(nn.Linear):
 
 
 class DenseModel(nn.Module):
-    def __init__(self, model_rng, input_size:int, num_classes:int, hidden_sizes:tuple):
+    def __init__(self, model_rng, input_size:int, num_classes:int, hidden_sizes:tuple, add_head=True):
         assert len(hidden_sizes) > 0
         super().__init__()
 
@@ -61,13 +61,17 @@ class DenseModel(nn.Module):
         self.hidden = nn.ModuleList()
         for i in range(len(hidden_sizes)):
             self.hidden.append(SeededLinear(model_rng, hidden_sizes[max(0, i - 1)], hidden_sizes[i]))
-        self.out = SeededLinear(model_rng, hidden_sizes[-1], num_classes)
+        if add_head:
+            self.out = SeededLinear(model_rng, hidden_sizes[-1], num_classes)
 
     def _encode(self, x:Tensor)->Tensor:
         """
         The split bewteen encoding and prediction is important for agents that use latent features from the
         classifier like Coreset
         """
+        if len(x.size()) == 4:
+            # SimCLR workaround
+            x = x.squeeze()
         x = self.inpt(x)
         x = F.relu(x)
         for h_layer in self.hidden:
@@ -77,7 +81,8 @@ class DenseModel(nn.Module):
 
     def forward(self, x:Tensor)->Tensor:
         x = self._encode(x)
-        x = self.out(x)
+        if hasattr(self, "out"):
+            x = self.out(x)
         return x
 
 

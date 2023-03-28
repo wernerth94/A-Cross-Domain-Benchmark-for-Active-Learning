@@ -49,18 +49,22 @@ class ProgressMeter(object):
 def get_training_parameters(dataset_name):
     if dataset_name == "cifar10":
         return 500
+    if dataset_name == "splice":
+        return 200
     else:
         raise NotImplementedError
 
 
-def adjust_learning_rate(dataset_name, optimizer, epoch):
+def adjust_learning_rate(config, optimizer, epoch):
 
     def cosine(lr, decay, max_epochs):
         eta_min = lr * (decay ** 3)
         return eta_min + (lr - eta_min) * (1 + math.cos(math.pi * epoch / max_epochs)) / 2
 
-    if dataset_name == "cifar10":
-        lr = cosine(0.4, 0.1, 500)
+    if config["optimizer"]["lr_scheduler"] == "cosine":
+        lr = cosine(config["optimizer"]["lr"],
+                    config["optimizer"]["lr_scheduler_decay"],
+                    config["training"]["epochs"])
     else:
         raise NotImplementedError
 
@@ -89,9 +93,7 @@ def simclr_train(train_loader, model, criterion, optimizer, epoch, device):
         input_ = torch.cat([images.unsqueeze(1), images_augmented.unsqueeze(1)], dim=1)
         input_ = input_.view(-1, c, h, w)
         input_ = input_.to(device, non_blocking=True)
-        # input_ = input_.cuda(non_blocking=True)
-        targets = batch['target'].to(device, non_blocking=True)
-        # targets = batch['target'].cuda(non_blocking=True)
+        # targets = batch['target'].to(device, non_blocking=True)
 
         output = model(input_).view(b, 2, -1)
         loss = criterion(output)
@@ -106,14 +108,14 @@ def simclr_train(train_loader, model, criterion, optimizer, epoch, device):
 
 
 @torch.no_grad()
-def fill_memory_bank(loader, model, memory_bank):
+def fill_memory_bank(loader, model, memory_bank, device):
     model.eval()
     memory_bank.reset()
 
     for i, batch in enumerate(loader):
-        images = batch['image'].cuda(non_blocking=True)
-        targets = batch['target'].cuda(non_blocking=True)
+        images = batch['image'].to(device, non_blocking=True)
+        targets = batch['target'].to(device, non_blocking=True)
         output, pre_last = model(images, return_pre_last=True)
         memory_bank.update(output, pre_last, targets)
-        if i % 100 == 0:
-            print('Fill Memory Bank [%d/%d]' %(i, len(loader)))
+        # if i % 100 == 0:
+        #     print('Fill Memory Bank [%d/%d]' %(i, len(loader)))

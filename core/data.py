@@ -3,9 +3,11 @@ from typing import Tuple, Literal, Union, Any, Optional
 import os
 import numpy as np
 import torch
+import torchvision.transforms
 from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
+from torch.utils.data import Dataset
 from torchvision.datasets import VisionDataset
 from sklearn.preprocessing import MinMaxScaler
 
@@ -50,10 +52,25 @@ class BaseDataset(ABC):
 
 
     @abstractmethod
-    def _download_data(self):
+    def _download_data(self, target_to_one_hot=True):
         '''
         Downloads the data from web and saves it into self.cache_folder
         '''
+        pass
+
+    @abstractmethod
+    def load_pretext_data(self)->tuple[Dataset, Dataset]:
+        '''
+        Loads the raw data files for the pretext task (SimCLR)
+        '''
+        pass
+
+    @abstractmethod
+    def get_pretext_transforms(self)->torchvision.transforms.Compose:
+        pass
+
+    @abstractmethod
+    def get_pretext_validation_transforms(self)->torchvision.transforms.Compose:
         pass
 
 
@@ -72,7 +89,7 @@ class BaseDataset(ABC):
 
 
     @abstractmethod
-    def get_classifier(self, model_rng, hidden_dims:tuple=tuple())->Module:
+    def get_classifier(self, model_rng)->Module:
         '''
         This creates a torch model that serves as a classification model for this dataset
         :return: PyTorch Model
@@ -81,11 +98,16 @@ class BaseDataset(ABC):
 
 
     @abstractmethod
-    def get_optimizer(self, model:Module, lr:float=0.001, weight_decay:float=0.0)->Optimizer:
+    def get_pretext_encoder(self, config:dict) -> Module:
+        '''
+        This creates a torch model that serves as a encoder for this dataset
+        :return: PyTorch Model
+        '''
         pass
 
+
     @abstractmethod
-    def get_sim_clr_config(self)->dict:
+    def get_optimizer(self, model:Module, lr:float=0.001, weight_decay:float=0.0)->Optimizer:
         pass
 
 
@@ -172,6 +194,24 @@ class BaseDataset(ABC):
 
 
 
+class VectorDataset(Dataset[Tuple[torch.Tensor, ...]]):
+    '''
+    Extension of the torch BaseDataset
+    Used for pretext training
+    '''
+    arrays: Tuple[np.ndarray, ...]
+
+    def __init__(self, *arrays: Union[np.ndarray, torch.Tensor]) -> None:
+        # assert all(arrays[0].shape[0] == tensor.shape[0] for tensor in arrays), "Size mismatch between tensors"
+        self.arrays = arrays
+
+    def __getitem__(self, index):
+        return tuple(array[index] for array in self.arrays)
+
+    def __len__(self):
+        return self.arrays[0].shape[0]
+
+
 ##################################################################
 # Data loading functions, etc.
 
@@ -244,7 +284,7 @@ def postprocess_torch_dataset(train:VisionDataset, test:VisionDataset)->Tuple:
     one_hot_test[np.arange(len(y_test)), y_test] = 1
     return x_train, one_hot_train, x_test, one_hot_test
 
-def postprocess_svm_data(train:tuple, test:tuple)->Tuple:
+def postprocess_svm_data(train:tuple, test:tuple, target_to_one_hot=True)->Tuple:
     # convert labels to int
     x_train, y_train = train[0], train[1].astype(int)
     x_test, y_test = test[0], test[1].astype(int)
@@ -263,11 +303,13 @@ def postprocess_svm_data(train:tuple, test:tuple)->Tuple:
         assert len(np.unique(y_train)) == y_train.max() # sanity check
         y_train = y_train - 1
         y_test = y_test - 1
-    one_hot_train = np.zeros((len(y_train), y_train.max() + 1))
-    one_hot_train[np.arange(len(y_train)), y_train] = 1
-    one_hot_test = np.zeros((len(y_test), y_test.max() + 1))
-    one_hot_test[np.arange(len(y_test)), y_test] = 1
-    return x_train, one_hot_train, x_test, one_hot_test
+    if target_to_one_hot:
+        one_hot_train = np.zeros((len(y_train), y_train.max() + 1))
+        one_hot_train[np.arange(len(y_train)), y_train] = 1
+        one_hot_test = np.zeros((len(y_test), y_test.max() + 1))
+        one_hot_test[np.arange(len(y_test)), y_test] = 1
+        return x_train, one_hot_train, x_test, one_hot_test
+    return x_train, y_train, x_test, y_test
 
 
 def load_numpy_dataset(file_name:str)->Union[None, Tuple]:

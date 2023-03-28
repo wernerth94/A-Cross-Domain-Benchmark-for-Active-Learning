@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from core.resnet import ResNet18
 
 class ContrastiveModel(nn.Module):
     """
@@ -39,10 +38,3 @@ class ContrastiveModel(nn.Module):
 
 
 
-def get_encoder_for_dataset(dataset:str)->torch.nn.Module:
-    if dataset == "cifar10":
-        backbone = ResNet18(add_head=False)
-        model = ContrastiveModel({'backbone': backbone, 'dim': 512}, head="mlp", features_dim=128)
-        return model
-    else:
-        raise NotImplementedError

@@ -2,13 +2,13 @@ from training import AverageMeter
 import torch
 
 @torch.no_grad()
-def contrastive_evaluate(val_loader, model, memory_bank):
+def contrastive_evaluate(val_loader, model, memory_bank, device):
     top1 = AverageMeter('Acc@1', ':6.2f')
     model.eval()
 
     for batch in val_loader:
-        images = batch['image'].cuda(non_blocking=True)
-        target = batch['target'].cuda(non_blocking=True)
+        images = batch['image'].to(device, non_blocking=True)
+        target = batch['target'].to(device, non_blocking=True)
 
         output = model(images)
         output = memory_bank.weighted_knn(output)

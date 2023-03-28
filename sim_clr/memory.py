@@ -94,8 +94,10 @@ class MemoryBank(object):
 
 
 
-def create_memory_bank(dataset_name, dataset:AugmentedDataset)->MemoryBank:
-    if dataset_name == "cifar10":
-        return MemoryBank(len(dataset), 128, len(dataset.dataset.classes), 0.1)
-    else:
-        raise NotImplementedError
+def create_memory_bank(config, dataset:AugmentedDataset)->MemoryBank:
+    return MemoryBank(len(dataset),
+                      dim=config["encoder"]["feature_dim"],
+                      feature_dim=config["encoder"]["encoder_dim"],
+                      num_classes=config["data"]["n_classes"],
+                      temperature=config["clr_loss"]["temperature"])
+

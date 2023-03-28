@@ -45,8 +45,5 @@ class SimCLRLoss(nn.Module):
         return loss
 
 
-def get_loss_for_dataset(dataset_name, device):
-    if dataset_name == "cifar10":
-        return SimCLRLoss(0.1, device)
-    else:
-        raise NotImplementedError
+def get_loss_for_dataset(config, device):
+    return SimCLRLoss(config["clr_loss"]["temperature"], device)
