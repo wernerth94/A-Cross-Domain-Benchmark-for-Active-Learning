@@ -72,7 +72,7 @@ class DNA(BaseDataset):
     def get_pretext_encoder(self, config:dict, seed=1) -> nn.Module:
         model_rng = torch.Generator()
         model_rng.manual_seed(seed)
-        backbone = DenseModel(model_rng, input_size=60, num_classes=self.n_classes,
+        backbone = DenseModel(model_rng, input_size=180, num_classes=self.n_classes,
                               hidden_sizes=config["encoder"]["encoder_hidden"], add_head=False)
         model = ContrastiveModel({'backbone': backbone, 'dim': config["encoder"]["encoder_hidden"][-1]},
                                  head="linear", features_dim=config["encoder"]["feature_dim"])

@@ -60,13 +60,13 @@ class FashionMnist(BaseDataset):
             ])
 
     def get_pretext_encoder(self, config:dict, seed=None) -> nn.Module:
-        backbone = ResNet18(add_head=False)
+        backbone = ResNet18(in_channels=1, add_head=False)
         model = ContrastiveModel({'backbone': backbone, 'dim':config["encoder"]["encoder_dim"]},
                                  head="mlp", features_dim=config["encoder"]["feature_dim"])
         return model
 
     def get_classifier(self, model_rng) -> nn.Module:
-        model = ResNet18(num_classes=self.n_classes)
+        model = ResNet18(num_classes=self.n_classes, in_channels=1)
         return model
 
 

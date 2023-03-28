@@ -25,13 +25,11 @@ from sim_clr.evaluate import contrastive_evaluate
 # Parser
 parser = argparse.ArgumentParser(description='SimCLR')
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument('--dataset', type=str, default="splice")
+parser.add_argument('--dataset', type=str, default="fashion_mnist")
 parser.add_argument('--seed', type=int, default=1)
 
 
-def main(args):
-    with open(f"sim_clr/configs/{args.dataset}.yaml", 'r') as f:
-        config = yaml.load(f, yaml.Loader)
+def main(args, config, store_output=True):
     DatasetClass = get_dataset_by_name(args.dataset)
     dataset = DatasetClass(np.random.default_rng(args.seed), cache_folder=args.data_folder)
     # Model
@@ -82,16 +80,18 @@ def main(args):
     print(optimizer)
 
     chkpt_folder = os.path.join("encoder_checkpoints", args.dataset)
-    if os.path.exists(chkpt_folder):
-        shutil.rmtree(chkpt_folder)
-    os.makedirs(chkpt_folder, exist_ok=True)
+    if store_output:
+        if os.path.exists(chkpt_folder):
+            shutil.rmtree(chkpt_folder)
+        os.makedirs(chkpt_folder, exist_ok=True)
     pretext_checkpoint = os.path.join(chkpt_folder, f'checkpoint_seed{args.seed}.pth.tar')
     pretext_model = os.path.join(chkpt_folder, f'model_seed{args.seed}.pth.tar')
     pretext_features = os.path.join(chkpt_folder, f'features_seed{args.seed}.npy')
     topk_neighbors_train_path = os.path.join(chkpt_folder, f'topk-train-neighbors_seed{args.seed}.npy')
     topk_neighbors_val_path = os.path.join(chkpt_folder, f'topk-val-neighbors_seed{args.seed}.npy')
 
-    writer = SummaryWriter(chkpt_folder)
+    if store_output:
+        writer = SummaryWriter(chkpt_folder)
 
     moving_avrg = 0.0
     start_epoch = 0
@@ -116,7 +116,8 @@ def main(args):
         # Evaluate (To monitor progress - Not for validation)
         top1 = contrastive_evaluate(val_dataloader, model, memory_bank_base, util.device)
         moving_avrg = 0.9 * moving_avrg + 0.1 * top1
-        writer.add_scalar("kNN Eval", top1, epoch)
+        if store_output:
+            writer.add_scalar("kNN Eval", top1, epoch)
         print('Result of kNN evaluation is %.2f' %(top1))
 
         # Checkpoint
@@ -129,12 +130,13 @@ def main(args):
         # np.save(topk_neighbors_train_path, indices)
         # np.save(pretext_features, memory_bank_base.pre_lasts.cpu().numpy())
         # np.save(pretext_features.replace('features', 'test_features'), memory_bank_val.pre_lasts.cpu().numpy())
+    if store_output:
+        # End logging
+        writer.close()
 
-    # End logging
-    writer.close()
-
-    # Save final model
-    torch.save(model.state_dict(), pretext_model)
+    if store_output:
+        # Save final model
+        torch.save(model.state_dict(), pretext_model)
     return moving_avrg
     # Mine the topk nearest neighbors at the very end (Train)
     # These will be served as input to the SCAN loss.
@@ -163,4 +165,6 @@ def main(args):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    main(args)
+    with open(f"sim_clr/configs/{args.dataset}.yaml", 'r') as f:
+        config = yaml.load(f, yaml.Loader)
+    main(args, config)
