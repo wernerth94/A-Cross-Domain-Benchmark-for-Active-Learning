@@ -120,8 +120,8 @@ def main(args):
         print('Result of kNN evaluation is %.2f' %(top1))
 
         # Checkpoint
-        torch.save({'optimizer': optimizer.state_dict(), 'model': model.state_dict(),
-                    'epoch': epoch + 1}, pretext_checkpoint)
+        # torch.save({'optimizer': optimizer.state_dict(), 'model': model.state_dict(),
+        #             'epoch': epoch + 1}, pretext_checkpoint)
 
         # topk = 20
         # print('Mine the nearest neighbors (Top-%d)' % (topk))
