@@ -2,6 +2,9 @@ data:
   batch_size: 64
   n_classes: 2
 
+transforms:
+  gauss_scale: 0.1
+
 encoder:
   encoder_hidden: [12, 24, 48]
   encoder_dim: 48

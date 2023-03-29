@@ -122,6 +122,8 @@ def evaluate_pretext_config(raytune_config, cache_folder, benchmark_folder, data
     config["optimizer"]["lr"] = raytune_config["lr"]
     config["optimizer"]["weight_decay"] = raytune_config["weight_decay"]
     config["optimizer"]["lr_scheduler_decay"] = raytune_config["lr_scheduler_decay"]
+    config["clr_loss"]["temperature"] = raytune_config["temperature"]
+    config["transforms"]["gauss_scale"] = raytune_config["gauss_scale"]
     final_acc = main(args, config, store_output=False)
     tune.report(acc=final_acc)
 
@@ -129,14 +131,16 @@ def evaluate_pretext_config(raytune_config, cache_folder, benchmark_folder, data
 def tune_pretext(num_samples, cache_folder, benchmark_folder, log_folder, dataset):
     log_folder = join(log_folder, "pretext")
     ray_config = {
-        "h1": tune.choice([8, 12, 16, 32, 64]),
-        "h2": tune.choice([0, 12, 16, 32, 64]),
-        "h3": tune.choice([0, 16, 32, 64, 128]),
-        "feature_dim": tune.choice([8, 12, 24, 48]),
+        "h1": tune.choice([16, 32, 64]),
+        "h2": tune.choice([0, 16, 32, 64]),
+        "h3": tune.choice([0, 32, 64, 128]),
+        "feature_dim": tune.choice([24, 48]),
         "batch_size": tune.randint(12, 500),
-        "lr": tune.loguniform(1e-6, 1e-1),
+        "lr": tune.loguniform(1e-5, 1e-3),
         "weight_decay": tune.loguniform(1e-8, 1e-3),
-        "lr_scheduler_decay": tune.loguniform(1e-3, 5e-1)
+        "lr_scheduler_decay": tune.loguniform(1e-4, 3e-1),
+        "temperature": tune.uniform(0.1, 1.0),
+        "gauss_scale": tune.uniform(0.01, 0.3)
     }
 
     # fixes some parameters of the function

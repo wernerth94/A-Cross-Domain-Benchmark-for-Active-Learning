@@ -47,8 +47,8 @@ def main(args, config, store_output=True):
     print('Retrieve dataset')
     train_dataset, val_dataset = dataset.load_pretext_data()
 
-    train_dataset.transform = dataset.get_pretext_transforms()
-    val_dataset.transform = dataset.get_pretext_validation_transforms()
+    train_dataset.transform = dataset.get_pretext_transforms(config)
+    val_dataset.transform = dataset.get_pretext_validation_transforms(config)
     train_dataset = AugmentedDataset(train_dataset)
     val_dataset = AugmentedDataset(val_dataset)
 
@@ -59,7 +59,7 @@ def main(args, config, store_output=True):
     # Memory Bank
     print('Build MemoryBank')
     base_dataset, _ = dataset.load_pretext_data()
-    base_dataset.transform = dataset.get_pretext_validation_transforms() # Dataset w/o augs for knn eval
+    base_dataset.transform = dataset.get_pretext_validation_transforms(config) # Dataset w/o augs for knn eval
     base_dataset = AugmentedDataset(base_dataset)
     base_dataloader = get_validation_dataloader_for_dataset(config, base_dataset)
 

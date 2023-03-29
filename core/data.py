@@ -66,11 +66,11 @@ class BaseDataset(ABC):
         pass
 
     @abstractmethod
-    def get_pretext_transforms(self)->torchvision.transforms.Compose:
+    def get_pretext_transforms(self, config:dict)->torchvision.transforms.Compose:
         pass
 
     @abstractmethod
-    def get_pretext_validation_transforms(self)->torchvision.transforms.Compose:
+    def get_pretext_validation_transforms(self, config:dict)->torchvision.transforms.Compose:
         pass
 
 
@@ -322,3 +322,16 @@ def load_numpy_dataset(file_name:str)->Union[None, Tuple]:
         except:
             pass
     return None
+
+
+class GaussianNoise(Module):
+    '''
+    Custom transform for augmenting vector datasets
+    '''
+    def __init__(self, scale=0.1, seed=1):
+        super().__init__()
+        self.scale = scale
+        self.rng = np.random.default_rng(seed)
+
+    def forward(self, x:Tensor):
+        return x + (self.rng.normal(0, self.scale, size=x.size())).astype(np.float32)

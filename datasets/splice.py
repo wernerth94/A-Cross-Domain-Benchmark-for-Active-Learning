@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
 from torchvision import transforms
+from core.data import GaussianNoise
 import numpy as np
 from sklearn.datasets import load_svmlight_file
 from core.data import BaseDataset, VectorDataset, normalize, postprocess_svm_data
@@ -57,13 +58,13 @@ class Splice(BaseDataset):
             test_dataset = VectorDataset(x_test.reshape([-1, 60, 1, 1]), torch.from_numpy(y_test))
             return (train_dataset, test_dataset)
 
-    def get_pretext_transforms(self)->transforms.Compose:
+    def get_pretext_transforms(self, config:dict)->transforms.Compose:
         return transforms.Compose([
                 transforms.ToTensor(),
-                transforms.GaussianBlur(kernel_size=1),
+                GaussianNoise(config["transforms"]["gauss_scale"])
             ])
 
-    def get_pretext_validation_transforms(self)->transforms.Compose:
+    def get_pretext_validation_transforms(self, config:dict)->transforms.Compose:
         return transforms.Compose([
                 transforms.ToTensor(),
             ])
