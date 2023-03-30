@@ -124,9 +124,10 @@ def evaluate_pretext_config(raytune_config, cache_folder, benchmark_folder, data
     config["pretext_optimizer"]["lr_scheduler_decay"] = raytune_config["lr_scheduler_decay"]
     config["pretext_clr_loss"]["temperature"] = raytune_config["temperature"]
     config["pretext_transforms"]["gauss_scale"] = raytune_config["gauss_scale"]
+    final_acc = main(FakeNameSpace(), config, store_output=False, verbose=False)
     RESTARTS = 3
-    runs = [main(FakeNameSpace(seed=i), config, store_output=False, verbose=False) for i in range(RESTARTS)]
-    final_acc = sum(runs) / float(RESTARTS)
+    # runs = [main(FakeNameSpace(seed=i), config, store_output=False, verbose=False) for i in range(RESTARTS)]
+    # final_acc = sum(runs) / float(RESTARTS)
     tune.report(acc=final_acc)
 
 
@@ -167,13 +168,18 @@ def tune_pretext(num_samples, cache_folder, benchmark_folder, log_folder, datase
 if __name__ == '__main__':
     args = parser.parse_args()
     NUM_SAMPLES = 100
+
+    benchmark_folder = "al-benchmark"
     base_path = os.path.split(os.getcwd())[0]
     cache_folder = join(base_path, "datasets")
+
+    with open(join(base_path, benchmark_folder, f"configs/{args.dataset}.yaml"), 'r') as f:
+        config = yaml.load(f, yaml.Loader)
     # check the dataset
     DatasetClass = get_dataset_by_name(args.dataset)
-    dataset = DatasetClass(np.random.default_rng(1), encoded=False, cache_folder=cache_folder)
+    dataset = DatasetClass(np.random.default_rng(1), encoded=False, config=config,
+                           cache_folder=cache_folder)
     # output
-    benchmark_folder = "al-benchmark"
     output_folder = join(base_path, benchmark_folder, "raytune_output")
     log_folder = join(output_folder, dataset.name)
     os.makedirs(log_folder, exist_ok=True)
