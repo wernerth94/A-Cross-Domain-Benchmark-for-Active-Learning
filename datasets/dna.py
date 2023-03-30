@@ -18,7 +18,7 @@ class DNA(BaseDataset):
     def __init__(self, pool_rng, encoded,
                  data_file="dna_al.pt",
                  pretext_config_file="configs/dna.yaml",
-                 encoder_model_checkpoint="",
+                 encoder_model_checkpoint="encoder_checkpoints/dna_30.03/model_seed1.pth.tar",
                  budget=600, initial_points_per_class=1, classifier_batch_size=64,
                  cache_folder:str="~/.al_benchmark/datasets"):
         self.train_file = os.path.join(cache_folder, "dna_train.txt")

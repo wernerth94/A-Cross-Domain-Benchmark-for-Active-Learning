@@ -18,7 +18,7 @@ class Splice(BaseDataset):
     def __init__(self, pool_rng, encoded,
                  data_file="splice_al.pt",
                  pretext_config_file="configs/splice.yaml",
-                 encoder_model_checkpoint="",
+                 encoder_model_checkpoint="encoder_checkpoints/splice_30.03/model_seed1.pth.tar",
                  budget=900, initial_points_per_class=1, classifier_batch_size=43,
                  cache_folder:str="~/.al_benchmark/datasets"):
         self.raw_train_file = os.path.join(cache_folder, "splice_train.txt")

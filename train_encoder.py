@@ -19,13 +19,13 @@ from sim_clr.data import get_train_dataloader_for_dataset, \
 from sim_clr.memory import create_memory_bank
 from sim_clr.loss import get_loss_for_dataset
 from sim_clr.optim import get_optimizer_for_dataset
-from sim_clr.training import get_training_parameters, adjust_learning_rate, simclr_train, fill_memory_bank
+from sim_clr.training import adjust_learning_rate, simclr_train, fill_memory_bank
 from sim_clr.evaluate import contrastive_evaluate
 
 # Parser
 parser = argparse.ArgumentParser(description='SimCLR')
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument('--dataset', type=str, default="fashion_mnist")
+parser.add_argument('--dataset', type=str, default="dna")
 parser.add_argument('--seed', type=int, default=1)
 
 

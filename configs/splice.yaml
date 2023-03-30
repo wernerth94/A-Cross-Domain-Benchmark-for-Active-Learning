@@ -1,24 +1,24 @@
 data:
-  batch_size: 132
+  batch_size: 169
   n_classes: 2
 
 transforms:
-  gauss_scale: 0.101598500078393
+  gauss_scale: 0.213351438270739
 
 encoder:
-  encoder_hidden: [64, 16]
-  encoder_dim: 16
+  encoder_hidden: [64, 64]
+  encoder_dim: 64
   feature_dim: 24
 
 optimizer:
   type: NAdam
-  lr: 0.000158210984200795
-  weight_decay: 2.43353418282822E-05
+  lr: 0.000241583061943485
+  weight_decay: 6.01796488272691E-06
   lr_scheduler: cosine
-  lr_scheduler_decay: 0.00509461248526362
+  lr_scheduler_decay: 0.000159669730361258
 
 clr_loss:
-  temperature: 0.129134175026587
+  temperature: 0.161415045140356
 
 training:
   epochs: 200
