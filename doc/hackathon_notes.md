@@ -38,8 +38,6 @@ A good AL algorithm should be able to distinguish data-noise from model-noise th
 # Postprocessing
 - deriving SeededConvLayer
   - Apply that to Resnet
-- ToyData Surrogate Agent
-- GPU Env for Surrogate Agent
 - Skim other NIPS benchmark papers
 - AL Eval: Towards Robust Reprocudible Active Learning Using Neural Networks
 - TypiClust Code (unsupervised embeddings, retraining the embeddings)
@@ -47,6 +45,8 @@ A good AL algorithm should be able to distinguish data-noise from model-noise th
 - HP config
 - Rework the Pseudocode
   - <img height="300" src="img/tmp.jpeg" width="500"/>
+- ToyData Surrogate Agent
+- GPU Env for Surrogate Agent
 - Active Few Shot Learning (Split classes into train classes and testing classes)
 - 
 ### Done

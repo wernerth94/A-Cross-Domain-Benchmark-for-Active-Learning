@@ -104,6 +104,8 @@ class BaseDataset(ABC):
         if self.encoded and not exists(join(self.cache_folder, f"encoded_{self.data_file}")):
             print("Encoding the dataset...")
             x_train, y_train, x_test, y_test = self._load_data(encoded=False)
+            self.n_classes = y_train.shape[-1]
+            self.x_shape = x_train.shape[1:]
             self._encode(x_train, y_train, x_test, y_test)
             self._save_data()
 
