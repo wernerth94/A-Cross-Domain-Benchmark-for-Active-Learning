@@ -62,16 +62,8 @@ class ALGame(gym.Env):
         return self.create_state()
 
 
-    def _send_state_to_device(self, state:list):
-        for i, component in enumerate(state):
-            if isinstance(component, torch.Tensor):
-                state[i] = component.to(self.device)
-        return state
-
-
     def create_state(self):
         self.state_ids = self.pool_rng.choice(len(self.x_unlabeled), self.sample_size)
-        # self.state_ids = np.random.choice(len(self.x_unlabeled), self.sample_size)
         state = [self.state_ids,
                  self.x_unlabeled,
                  self.x_labeled, self.y_labeled,
@@ -80,7 +72,6 @@ class ALGame(gym.Env):
                  self.initial_test_accuracy, self.current_test_accuracy,
                  self.classifier, self.optimizer]
         return state
-        # return self._send_state_to_device(state)
 
 
     def step(self, action:int):
@@ -110,19 +101,15 @@ class ALGame(gym.Env):
         if from_scratch:
             self.classifier.load_state_dict(self.initial_weights)
 
-        # def seed_worker(worker_id):
-        #     worker_seed = torch.initial_seed() % 2**32
-        #     numpy.random.seed(worker_seed)
-        #     random.seed(worker_seed)
-
+        drop_last = self.dataset.classifier_batch_size < len(self.x_labeled)
         train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
                                       batch_size=self.dataset.classifier_batch_size,
-                                      drop_last=True,
+                                      drop_last=drop_last,
                                       generator=self.data_loader_rng,
                                       # num_workers=4, # dropped for CUDA compat
                                       shuffle=True)
         test_dataloader = DataLoader(TensorDataset(self.dataset.x_test, self.dataset.y_test), batch_size=100,
-                                     #num_workers=4 # dropped for CUDA compat
+                                     # num_workers=4 # dropped for CUDA compat
                                      )
 
         lastLoss = torch.inf

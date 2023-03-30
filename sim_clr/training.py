@@ -89,13 +89,19 @@ def simclr_train(train_loader, model, criterion, optimizer, epoch, device):
     for i, batch in enumerate(train_loader):
         images = batch['image']
         images_augmented = batch['image_augmented']
-        b, c, h, w = images.size()
-        input_ = torch.cat([images.unsqueeze(1), images_augmented.unsqueeze(1)], dim=1)
-        input_ = input_.view(-1, c, h, w)
+        if len(images.size()) == 4:
+            b, c, h, w = images.size()
+            input_ = torch.cat([images.unsqueeze(1), images_augmented.unsqueeze(1)], dim=1)
+            input_ = input_.view(-1, c, h, w)
+        elif len(images.size()) == 2:
+            input_ = torch.cat([images.unsqueeze(1), images_augmented.unsqueeze(1)], dim=1)
+            input_ = input_.view(-1, images.size(-1))
+        else:
+            raise NotImplementedError
         input_ = input_.to(device, non_blocking=True)
         # targets = batch['target'].to(device, non_blocking=True)
 
-        output = model(input_).view(b, 2, -1)
+        output = model(input_).view(images.size(0), 2, -1)
         loss = criterion(output)
         losses.update(loss.item())
 

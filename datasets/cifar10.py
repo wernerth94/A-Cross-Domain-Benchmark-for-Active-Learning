@@ -1,7 +1,8 @@
 from typing import Tuple
+import yaml
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, TensorDataset, DataLoader
 import torchvision
 from torchvision import transforms
 from core.resnet import ResNet18
@@ -9,10 +10,16 @@ from sim_clr.encoder import ContrastiveModel
 from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel_first, subsample_data
 
 class Cifar10(BaseDataset):
-    def __init__(self, pool_rng, budget=2000, initial_points_per_class=1, classifier_batch_size=64,
+    def __init__(self, pool_rng, encoded,
                  data_file="cifar10_al.pt",
+                 pretext_config_file="configs/cifar10.yaml",
+                 encoder_model_checkpoint="encoder_checkpoints/cifar10_27.03/model_seed1.pth.tar",
+                 budget=200, initial_points_per_class=1, classifier_batch_size=32,
                  cache_folder:str="~/.al_benchmark/datasets"):
-        super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, pool_rng, cache_folder)
+        fitting_mode = "from_scratch" if encoded else "finetuning"
+        super().__init__(budget, initial_points_per_class, classifier_batch_size,
+                         data_file, pretext_config_file, encoder_model_checkpoint,
+                         pool_rng, encoded, cache_folder, fitting_mode)
 
 
     def _download_data(self, target_to_one_hot=True, test_data_fraction=0.1):
@@ -27,7 +34,6 @@ class Cifar10(BaseDataset):
         self.x_test = self.x_test / (high / 2.0) - 1.0
         print("Download successful")
 
-
     def load_pretext_data(self)->tuple[Dataset, Dataset]:
         train_dataset = torchvision.datasets.CIFAR10(root=self.cache_folder, train=True, download=True)
         val_dataset = torchvision.datasets.CIFAR10(root=self.cache_folder, train=False, download=True)
@@ -35,7 +41,7 @@ class Cifar10(BaseDataset):
         val_dataset.targets = torch.Tensor(val_dataset.targets).int()
         return (train_dataset, val_dataset)
 
-    def get_pretext_transforms(self)->transforms.Compose:
+    def get_pretext_transforms(self, config:dict)->transforms.Compose:
         return transforms.Compose([
                 transforms.RandomResizedCrop(size=32),
                 transforms.RandomHorizontalFlip(),
@@ -48,7 +54,7 @@ class Cifar10(BaseDataset):
                 transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010])
             ])
 
-    def get_pretext_validation_transforms(self)->transforms.Compose:
+    def get_pretext_validation_transforms(self, config:dict)->transforms.Compose:
         return transforms.Compose([
                 transforms.CenterCrop(32),
                 transforms.ToTensor(),
@@ -63,7 +69,10 @@ class Cifar10(BaseDataset):
 
 
     def get_classifier(self, model_rng) -> nn.Module:
-        model = ResNet18(num_classes=self.n_classes)
+        if self.encoded:
+            model = nn.Sequential(nn.Linear(self.x_shape[-1], self.n_classes))
+        else:
+            model = ResNet18(num_classes=self.n_classes)
         return model
 
 

@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
 from torchvision import transforms
-from core.data import GaussianNoise
+from core.data import GaussianNoise, VectorToTensor
 import numpy as np
 from sklearn.datasets import load_svmlight_file
 from core.data import BaseDataset, VectorDataset, normalize, postprocess_svm_data
@@ -15,12 +15,18 @@ import requests
 import bz2
 
 class USPS(BaseDataset):
-    def __init__(self, pool_rng, budget=900, initial_points_per_class=1, classifier_batch_size=43,
+    def __init__(self, pool_rng, encoded,
                  data_file="usps_al.pt",
+                 pretext_config_file="configs/usps.yaml",
+                 encoder_model_checkpoint="",
+                 budget=900, initial_points_per_class=1, classifier_batch_size=43,
                  cache_folder:str="~/.al_benchmark/datasets"):
         self.train_file = os.path.join(cache_folder, "usps_train.txt")
         self.test_file = os.path.join(cache_folder, "usps_test.txt")
-        super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, pool_rng, cache_folder)
+        fitting_mode = "from_scratch" if encoded else "finetuning"
+        super().__init__(budget, initial_points_per_class, classifier_batch_size,
+                         data_file, pretext_config_file, encoder_model_checkpoint,
+                         pool_rng, encoded, cache_folder, fitting_mode)
 
 
     def _download_data(self, target_to_one_hot=True):
@@ -60,20 +66,19 @@ class USPS(BaseDataset):
             x_train, x_test = normalize(self.x_train, self.x_test, mode="min_max")
             x_train = x_train.astype('float32')
             x_test = x_test.astype('float32')
-            # we need to emulate a vision dataset for compatibility
-            train_dataset = VectorDataset(x_train.reshape([-1, 256, 1, 1]), torch.from_numpy(y_train))
-            test_dataset = VectorDataset(x_test.reshape([-1, 256, 1, 1]), torch.from_numpy(y_test))
+            train_dataset = VectorDataset(x_train, torch.from_numpy(y_train))
+            test_dataset = VectorDataset(x_test, torch.from_numpy(y_test))
             return (train_dataset, test_dataset)
 
     def get_pretext_transforms(self, config)->transforms.Compose:
         return transforms.Compose([
-                transforms.ToTensor(),
+                VectorToTensor(),
                 GaussianNoise(config["transforms"]["gauss_scale"])
             ])
 
     def get_pretext_validation_transforms(self, config)->transforms.Compose:
         return transforms.Compose([
-                transforms.ToTensor(),
+                VectorToTensor(),
             ])
 
     def get_pretext_encoder(self, config:dict, seed=1) -> nn.Module:
@@ -86,10 +91,13 @@ class USPS(BaseDataset):
         return model
 
     def get_classifier(self, model_rng, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
-        model = DenseModel(model_rng,
-                           input_size=self.x_shape[-1],
-                           num_classes=self.n_classes,
-                           hidden_sizes=hidden_dims)
+        if self.encoded:
+            model = nn.Sequential(nn.Linear(self.x_shape[-1], self.n_classes))
+        else:
+            model = DenseModel(model_rng,
+                               input_size=self.x_shape[-1],
+                               num_classes=self.n_classes,
+                               hidden_sizes=hidden_dims)
         return model
 
 

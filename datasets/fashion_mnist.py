@@ -9,11 +9,17 @@ from sim_clr.encoder import ContrastiveModel
 from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel_first, subsample_data
 
 class FashionMnist(BaseDataset):
-    def __init__(self, pool_rng, budget=1000, initial_points_per_class=100, classifier_batch_size=64,
+    def __init__(self, pool_rng, encoded,
                  data_file="fashion_mnist_al.pt",
+                 pretext_config_file="configs/fashion_mnist.yaml",
+                 encoder_model_checkpoint="",
+                 budget=1000, initial_points_per_class=100, classifier_batch_size=64,
                  cache_folder:str="~/.al_benchmark/datasets"):
         # TODO: decide on a budget
-        super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, pool_rng, cache_folder)
+        fitting_mode = "from_scratch" if encoded else "finetuning"
+        super().__init__(budget, initial_points_per_class, classifier_batch_size,
+                         data_file, pretext_config_file, encoder_model_checkpoint,
+                         pool_rng, encoded, cache_folder, fitting_mode)
 
 
     def _download_data(self, test_data_fraction=0.1):
@@ -39,9 +45,9 @@ class FashionMnist(BaseDataset):
         val_dataset.targets = torch.Tensor(val_dataset.targets).int()
         return (train_dataset, val_dataset)
 
-    def get_pretext_transforms(self)->transforms.Compose:
+    def get_pretext_transforms(self, config:dict)->transforms.Compose:
         return transforms.Compose([
-                transforms.RandomResizedCrop(size=32),
+                transforms.RandomResizedCrop(size=28),
                 transforms.RandomHorizontalFlip(),
                 # transforms.RandomApply([
                 #     transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4,
@@ -52,9 +58,9 @@ class FashionMnist(BaseDataset):
                 # transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010])
             ])
 
-    def get_pretext_validation_transforms(self)->transforms.Compose:
+    def get_pretext_validation_transforms(self, config:dict)->transforms.Compose:
         return transforms.Compose([
-                transforms.CenterCrop(32),
+                transforms.CenterCrop(28),
                 transforms.ToTensor(),
                 # transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010])
             ])

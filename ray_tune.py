@@ -1,5 +1,6 @@
 import argparse
 import os
+import math
 from datetime import datetime
 from os.path import *
 from functools import partial
@@ -14,7 +15,7 @@ from ray import tune
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument('--dataset', type=str, default="splice")
+parser.add_argument('--dataset', type=str, default="fashion_mnist")
 
 def evaluate_classification_config(config, train_data_file=None, dataset_class=None, cache_folder=None):
     pool_rng = np.random.default_rng(1)
@@ -108,7 +109,7 @@ def evaluate_pretext_config(raytune_config, cache_folder, benchmark_folder, data
             self.seed = seed
     args = FakeNameSpace()
     # load and modify the config
-    with open(join(benchmark_folder, f"sim_clr/configs/{args.dataset}.yaml"), 'r') as f:
+    with open(join(benchmark_folder, f"configs/{args.dataset}.yaml"), 'r') as f:
         config = yaml.load(f, yaml.Loader)
     hidden_dims = [raytune_config["h1"]]
     if raytune_config["h2"] > 0:
@@ -124,15 +125,17 @@ def evaluate_pretext_config(raytune_config, cache_folder, benchmark_folder, data
     config["optimizer"]["lr_scheduler_decay"] = raytune_config["lr_scheduler_decay"]
     config["clr_loss"]["temperature"] = raytune_config["temperature"]
     config["transforms"]["gauss_scale"] = raytune_config["gauss_scale"]
-    final_acc = main(args, config, store_output=False)
+    RESTARTS = 3
+    runs = [main(args, config, store_output=False, verbose=False) for _ in range(RESTARTS)]
+    final_acc = sum(runs) / float(RESTARTS)
     tune.report(acc=final_acc)
 
 
 def tune_pretext(num_samples, cache_folder, benchmark_folder, log_folder, dataset):
     log_folder = join(log_folder, "pretext")
     ray_config = {
-        "h1": tune.choice([16, 32, 64]),
-        "h2": tune.choice([0, 16, 32, 64]),
+        "h1": tune.choice([32, 64, 128]),
+        "h2": tune.choice([0, 32, 64]),
         "h3": tune.choice([0, 32, 64, 128]),
         "feature_dim": tune.choice([24, 48]),
         "batch_size": tune.randint(12, 500),
@@ -169,7 +172,7 @@ if __name__ == '__main__':
     cache_folder = join(base_path, "datasets")
     # check the dataset
     DatasetClass = get_dataset_by_name(args.dataset)
-    dataset = DatasetClass(np.random.default_rng(1), cache_folder=cache_folder)
+    dataset = DatasetClass(np.random.default_rng(1), encoded=False, cache_folder=cache_folder)
     # output
     benchmark_folder = "al-benchmark"
     output_folder = join(base_path, benchmark_folder, "raytune_output")

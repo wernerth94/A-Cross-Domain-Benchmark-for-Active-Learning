@@ -1,13 +1,15 @@
 from abc import ABC, abstractmethod
 from typing import Tuple, Literal, Union, Any, Optional
 import os
+from os.path import join, exists
 import numpy as np
+import yaml
 import torch
 import torchvision.transforms
 from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, TensorDataset, DataLoader
 from torchvision.datasets import VisionDataset
 from sklearn.preprocessing import MinMaxScaler
 
@@ -17,23 +19,32 @@ class BaseDataset(ABC):
                  initial_points_per_class:int,
                  classifier_batch_size:int,
                  data_file:str,
+                 pretext_config_file:str,
+                 encoder_model_checkpoint:str,
                  pool_rng:np.random.Generator,
+                 encoded:bool,
                  cache_folder:str="~/.al_benchmark/datasets",
                  device=None,
                  class_fitting_mode:Literal["from_scratch", "finetuning"]="finetuning"):
+
         assert isinstance(budget, int) and budget > 0, f"The budget {budget} is invalid"
         if device is None:
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         else:
             self.device = device
+        self.encoded = encoded
         self.pool_rng = pool_rng
         self.budget = budget
         self.classifier_batch_size = classifier_batch_size
         self.class_fitting_mode = class_fitting_mode
         self.data_file = data_file
+        self.pretext_config_file = pretext_config_file
+        self.encoder_model_checkpoint = encoder_model_checkpoint
         self.cache_folder = cache_folder
         self.initial_points_per_class = initial_points_per_class
         self.name = str(self.__class__).split('.')[-1][:-2]
+        if encoded:
+            self.name += "Encoded"
 
         self._load_or_download_data() # Main call to load the data
         self.reset() # resets the seed set
@@ -74,13 +85,59 @@ class BaseDataset(ABC):
         pass
 
 
-    def _load_data(self)->Union[None, Tuple]:
+    def _load_or_download_data(self):
+        # make sure the base files are there
+        if not exists(join(self.cache_folder, self.data_file)):
+            print(f"No local copy of {self.name} found in {self.cache_folder}. \nDownloading Data...")
+            self._download_data()
+            assert hasattr(self, "x_train")
+            assert hasattr(self, "y_train")
+            assert hasattr(self, "x_test")
+            assert hasattr(self, "y_test")
+            self._convert_data_to_tensors()
+            self._save_data()
+
+        # encode if neccessary
+        if self.encoded and not exists(join(self.cache_folder, f"encoded_{self.data_file}")):
+            print("Encoding the dataset...")
+            x_train, y_train, x_test, y_test = self._load_data(encoded=False)
+            self._encode(x_train, y_train, x_test, y_test)
+            self._save_data()
+
+        data = self._load_data(self.encoded)
+        if data is None:
+            raise ValueError(f"Dataset was not found in {self.cache_folder} and could not be downloaded")
+        self.x_train, self.y_train, self.x_test, self.y_test = data
+        return True
+
+    def _encode(self, x_train, y_train, x_test, y_test):
+        with torch.no_grad():
+            with open(self.pretext_config_file, 'r') as f:
+                config = yaml.load(f, yaml.Loader)
+            model = self.get_pretext_encoder(config)
+            model.load_state_dict(torch.load(self.encoder_model_checkpoint, map_location=torch.device('cpu')))
+            train_loader = DataLoader(TensorDataset(x_train), shuffle=False, batch_size=512, drop_last=False)
+            test_loader = DataLoader(TensorDataset(x_test), shuffle=False, batch_size=512, drop_last=False)
+            enc_train = torch.zeros( (0, config["encoder"]["feature_dim"]) )
+            enc_test = torch.zeros( (0, config["encoder"]["feature_dim"]) )
+            for x in train_loader:
+                x_enc = model(x[0])
+                enc_train = torch.cat([enc_train, x_enc], dim=0)
+            for x in test_loader:
+                x_enc = model(x[0])
+                enc_test = torch.cat([enc_test, x_enc], dim=0)
+            self.x_train, self.y_train, self.x_test, self.y_test = enc_train, y_train, enc_test, y_test
+
+    def _load_data(self, encoded)->Union[None, Tuple]:
         '''
         Loads the data from self.cache_folder
         Returns None on failure
         :return: None or tuple(x_train, y_train, x_test, y_test)
         '''
-        file = os.path.join(self.cache_folder, self.data_file)
+        if encoded:
+            file = os.path.join(self.cache_folder, f"encoded_{self.data_file}")
+        else:
+            file = os.path.join(self.cache_folder, self.data_file)
         if os.path.exists(file):
             dataset = torch.load(file)
             return dataset["x_train"], dataset["y_train"], \
@@ -111,25 +168,11 @@ class BaseDataset(ABC):
         pass
 
 
-    def _load_or_download_data(self):
-        data = self._load_data()
-        if data is None:
-            print(f"No local copy of {self.name} found in {self.cache_folder}. \nDownloading Data...")
-            self._download_data()
-            assert hasattr(self, "x_train")
-            assert hasattr(self, "y_train")
-            assert hasattr(self, "x_test")
-            assert hasattr(self, "y_test")
-            self._convert_data_to_tensors()
-            self._save_data()
-            data = self._load_data()
-            if data is None:
-                raise ValueError(f"Dataset was not found in {self.cache_folder} and could not be downloaded")
-        self.x_train, self.y_train, self.x_test, self.y_test = data
-        return True
-
     def _save_data(self):
-        out_file = os.path.join(self.cache_folder, self.data_file)
+        if self.encoded:
+            out_file = os.path.join(self.cache_folder, f"encoded_{self.data_file}")
+        else:
+            out_file = os.path.join(self.cache_folder, self.data_file)
         torch.save({
             "x_train": self.x_train,
             "y_train": self.y_train,
@@ -335,3 +378,8 @@ class GaussianNoise(Module):
 
     def forward(self, x:Tensor):
         return x + (self.rng.normal(0, self.scale, size=x.size())).astype(np.float32)
+
+
+class VectorToTensor(Module):
+    def forward(self, x:Union[list, np.ndarray]):
+        return torch.Tensor(x).type(torch.float32)

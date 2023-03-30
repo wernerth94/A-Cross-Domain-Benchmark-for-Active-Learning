@@ -12,8 +12,9 @@ parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--agent", type=str, default="margin")
-parser.add_argument("--dataset", type=str, default="usps")
-parser.add_argument("--experiment_postfix", type=str, default="both")
+parser.add_argument("--dataset", type=str, default="cifar10")
+parser.add_argument("--encoded", type=bool, default=True)
+parser.add_argument("--experiment_postfix", type=str, default="scratch")
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=50)
 args = parser.parse_args()
@@ -29,7 +30,7 @@ while run_id < max_run_id:
     AgentClass = get_agent_by_name(args.agent)
     DatasetClass = get_dataset_by_name(args.dataset)
 
-    dataset = DatasetClass(pool_rng=pool_rng, cache_folder=args.data_folder)
+    dataset = DatasetClass(pool_rng=pool_rng, cache_folder=args.data_folder, encoded=args.encoded)
     dataset = dataset.to(util.device)
     env = core.ALGame(dataset,
                       args.sample_size,

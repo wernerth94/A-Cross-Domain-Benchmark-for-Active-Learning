@@ -135,15 +135,16 @@ class ConvolutionalModel(nn.Module):
 
 
 def fit_and_evaluate(dataset:BaseDataset,
+                     model_rng,
                      lr:float=None, weight_decay:float=None, batch_size:int=None,
                      hidden_sizes:tuple=None,
                      disable_progess_bar:bool=False,
                      max_epochs:int=4000):
     loss = nn.CrossEntropyLoss()
     if hidden_sizes is not None:
-        model = dataset.get_classifier(hidden_dims=hidden_sizes)
+        model = dataset.get_classifier(model_rng, hidden_dims=hidden_sizes)
     else:
-        model = dataset.get_classifier()
+        model = dataset.get_classifier(model_rng)
     model = model.to(dataset.device)
 
     if lr is not None and weight_decay is not None:
@@ -160,7 +161,7 @@ def fit_and_evaluate(dataset:BaseDataset,
     test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512,
                                  num_workers=4)
     class EarlyStopping:
-        def __init__(self, patience=5):
+        def __init__(self, patience=7):
             self.patience = patience
             self.best_loss = torch.inf
             self.steps_without_improvement = 0
@@ -175,7 +176,7 @@ def fit_and_evaluate(dataset:BaseDataset,
             return False
 
     all_accs = []
-    early_stop = EarlyStopping(patience=7)
+    early_stop = EarlyStopping()
     iterator = tqdm(range(max_epochs), disable=disable_progess_bar)
     for e in iterator:
         for batch_x, batch_y in train_dataloader:

@@ -29,14 +29,15 @@ parser.add_argument('--dataset', type=str, default="fashion_mnist")
 parser.add_argument('--seed', type=int, default=1)
 
 
-def main(args, config, store_output=True):
+def main(args, config, store_output=True, verbose=True):
     DatasetClass = get_dataset_by_name(args.dataset)
-    dataset = DatasetClass(np.random.default_rng(args.seed), cache_folder=args.data_folder)
+    dataset = DatasetClass(np.random.default_rng(args.seed), encoded=False, cache_folder=args.data_folder)
     # Model
-    print('Retrieve model')
     model = dataset.get_pretext_encoder(config, seed=args.seed)
-    print('Model is {}'.format(model.__class__.__name__))
-    print('Model parameters: {:.2f}M'.format(sum(p.numel() for p in model.parameters()) / 1e6))
+    if verbose:
+        print('Retrieve model')
+        print('Model is {}'.format(model.__class__.__name__))
+        print('Model parameters: {:.2f}M'.format(sum(p.numel() for p in model.parameters()) / 1e6))
     #print(model)
     model = model.to(util.device)
 
@@ -44,7 +45,6 @@ def main(args, config, store_output=True):
     torch.backends.cudnn.benchmark = True
 
     # Dataset
-    print('Retrieve dataset')
     train_dataset, val_dataset = dataset.load_pretext_data()
 
     train_dataset.transform = dataset.get_pretext_transforms(config)
@@ -54,10 +54,10 @@ def main(args, config, store_output=True):
 
     train_dataloader = get_train_dataloader_for_dataset(config, train_dataset)
     val_dataloader = get_validation_dataloader_for_dataset(config, val_dataset)
-    print('Dataset contains {}/{} train/val samples'.format(len(train_dataset), len(val_dataset)))
+    if verbose:
+        print('Dataset contains {}/{} train/val samples'.format(len(train_dataset), len(val_dataset)))
 
     # Memory Bank
-    print('Build MemoryBank')
     base_dataset, _ = dataset.load_pretext_data()
     base_dataset.transform = dataset.get_pretext_validation_transforms(config) # Dataset w/o augs for knn eval
     base_dataset = AugmentedDataset(base_dataset)
@@ -69,13 +69,12 @@ def main(args, config, store_output=True):
     memory_bank_val.to(util.device)
 
     # Criterion
-    print('Retrieve criterion')
     criterion = get_loss_for_dataset(config, util.device)
-    print('Criterion is {}'.format(criterion.__class__.__name__))
+    if verbose:
+        print('Criterion is {}'.format(criterion.__class__.__name__))
     criterion = criterion.to(util.device)
 
     # Optimizer and scheduler
-    print('Retrieve optimizer')
     optimizer = get_optimizer_for_dataset(config, model)
     print(optimizer)
 
@@ -97,17 +96,16 @@ def main(args, config, store_output=True):
     start_epoch = 0
     epochs = config["training"]["epochs"]
     # Training
-    print('Starting main loop')
     for epoch in range(start_epoch, epochs):
-        print('Epoch %d/%d' %(epoch, epochs))
-        print('-'*15)
 
         # Adjust lr
         lr = adjust_learning_rate(config, optimizer, epoch)
-        print('Adjusted learning rate to {:.5f}'.format(lr))
+        if verbose:
+            print('Epoch %d/%d' %(epoch, epochs))
+            print('-'*15)
+            print('Adjusted learning rate to {:.5f}'.format(lr))
 
         # Train
-        print('Train ...')
         simclr_train(train_dataloader, model, criterion, optimizer, epoch, util.device)
 
         # Fill memory bank
@@ -118,7 +116,8 @@ def main(args, config, store_output=True):
         moving_avrg = 0.9 * moving_avrg + 0.1 * top1
         if store_output:
             writer.add_scalar("kNN Eval", top1, epoch)
-        print('Result of kNN evaluation is %.2f' %(top1))
+        if verbose:
+            print('Result of kNN evaluation is %.2f' %(top1))
 
         # Checkpoint
         # torch.save({'optimizer': optimizer.state_dict(), 'model': model.state_dict(),
@@ -165,6 +164,6 @@ def main(args, config, store_output=True):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    with open(f"sim_clr/configs/{args.dataset}.yaml", 'r') as f:
+    with open(f"configs/{args.dataset}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
     main(args, config)
