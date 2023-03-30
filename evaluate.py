@@ -3,6 +3,7 @@ import argparse
 import numpy
 from tqdm import tqdm
 import core
+import yaml
 from core.helper_functions import *
 
 parser = argparse.ArgumentParser()
@@ -12,9 +13,9 @@ parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--agent", type=str, default="margin")
-parser.add_argument("--dataset", type=str, default="cifar10")
-parser.add_argument("--encoded", type=bool, default=True)
-parser.add_argument("--experiment_postfix", type=str, default="scratch")
+parser.add_argument("--dataset", type=str, default="fashion_mnist")
+parser.add_argument("--encoded", type=bool, default=False)
+parser.add_argument("--experiment_postfix", type=str, default=None)
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=50)
 args = parser.parse_args()
@@ -22,6 +23,9 @@ args = parser.parse_args()
 run_id = args.run_id
 max_run_id = run_id + args.restarts
 while run_id < max_run_id:
+    with open(f"configs/{args.dataset}.yaml", 'r') as f:
+        config = yaml.load(f, yaml.Loader)
+
     pool_rng = np.random.default_rng(args.pool_seed + run_id)
     agent_rng = np.random.default_rng(args.agent_seed)
     model_seed = args.model_seed + run_id
@@ -30,7 +34,8 @@ while run_id < max_run_id:
     AgentClass = get_agent_by_name(args.agent)
     DatasetClass = get_dataset_by_name(args.dataset)
 
-    dataset = DatasetClass(pool_rng=pool_rng, cache_folder=args.data_folder, encoded=args.encoded)
+    dataset = DatasetClass(pool_rng, args.encoded, config,
+                           cache_folder=args.data_folder)
     dataset = dataset.to(util.device)
     env = core.ALGame(dataset,
                       args.sample_size,

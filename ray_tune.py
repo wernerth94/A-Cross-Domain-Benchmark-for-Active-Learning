@@ -107,7 +107,7 @@ def evaluate_pretext_config(raytune_config, cache_folder, benchmark_folder, data
             self.data_folder = df
             self.dataset = ds
             self.seed = seed
-    args = FakeNameSpace()
+
     # load and modify the config
     with open(join(benchmark_folder, f"configs/{args.dataset}.yaml"), 'r') as f:
         config = yaml.load(f, yaml.Loader)
@@ -116,17 +116,16 @@ def evaluate_pretext_config(raytune_config, cache_folder, benchmark_folder, data
         hidden_dims.append(raytune_config["h2"])
     if raytune_config["h3"] > 0:
         hidden_dims.append(raytune_config["h3"])
-    config["encoder"]["encoder_hidden"] = hidden_dims
-    config["encoder"]["encoder_dim"] = hidden_dims[-1]
-    config["encoder"]["feature_dim"] = raytune_config["feature_dim"]
-    config["data"]["batch_size"] = raytune_config["batch_size"]
-    config["optimizer"]["lr"] = raytune_config["lr"]
-    config["optimizer"]["weight_decay"] = raytune_config["weight_decay"]
-    config["optimizer"]["lr_scheduler_decay"] = raytune_config["lr_scheduler_decay"]
-    config["clr_loss"]["temperature"] = raytune_config["temperature"]
-    config["transforms"]["gauss_scale"] = raytune_config["gauss_scale"]
+    config["pretext_encoder"]["hidden"] = hidden_dims
+    config["pretext_encoder"]["feature_dim"] = raytune_config["feature_dim"]
+    config["pretext_training"]["batch_size"] = raytune_config["batch_size"]
+    config["pretext_optimizer"]["lr"] = raytune_config["lr"]
+    config["pretext_optimizer"]["weight_decay"] = raytune_config["weight_decay"]
+    config["pretext_optimizer"]["lr_scheduler_decay"] = raytune_config["lr_scheduler_decay"]
+    config["pretext_clr_loss"]["temperature"] = raytune_config["temperature"]
+    config["pretext_transforms"]["gauss_scale"] = raytune_config["gauss_scale"]
     RESTARTS = 3
-    runs = [main(args, config, store_output=False, verbose=False) for _ in range(RESTARTS)]
+    runs = [main(FakeNameSpace(seed=i), config, store_output=False, verbose=False) for i in range(RESTARTS)]
     final_acc = sum(runs) / float(RESTARTS)
     tune.report(acc=final_acc)
 

@@ -10,14 +10,14 @@ from sim_clr.encoder import ContrastiveModel
 from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel_first, subsample_data
 
 class Cifar10(BaseDataset):
-    def __init__(self, pool_rng, encoded,
+    def __init__(self, pool_rng, encoded, config:dict,
                  data_file="cifar10_al.pt",
                  pretext_config_file="configs/cifar10.yaml",
                  encoder_model_checkpoint="encoder_checkpoints/cifar10_27.03/model_seed1.pth.tar",
                  budget=200, initial_points_per_class=1, classifier_batch_size=32,
                  cache_folder:str="~/.al_benchmark/datasets"):
         fitting_mode = "from_scratch" if encoded else "finetuning"
-        super().__init__(budget, initial_points_per_class, classifier_batch_size,
+        super().__init__(budget, initial_points_per_class, classifier_batch_size, config,
                          data_file, pretext_config_file, encoder_model_checkpoint,
                          pool_rng, encoded, cache_folder, fitting_mode)
 
@@ -60,21 +60,6 @@ class Cifar10(BaseDataset):
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010])
             ])
-
-    def get_pretext_encoder(self, config:dict, seed=None) -> nn.Module:
-        backbone = ResNet18(add_head=False)
-        model = ContrastiveModel({'backbone': backbone, 'dim':config["encoder"]["encoder_dim"]},
-                                 head="mlp", features_dim=config["encoder"]["feature_dim"])
-        return model
-
-
-    def get_classifier(self, model_rng) -> nn.Module:
-        if self.encoded:
-            model = nn.Sequential(nn.Linear(self.x_shape[-1], self.n_classes))
-        else:
-            model = ResNet18(num_classes=self.n_classes)
-        return model
-
 
     def get_optimizer(self, model, lr=0.01, weight_decay=0.0) -> torch.optim.Optimizer:
         return torch.optim.NAdam(model.parameters(), lr=lr, weight_decay=weight_decay)

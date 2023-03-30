@@ -44,13 +44,13 @@ def collate_custom(batch):
 
 def get_train_dataloader_for_dataset(config, data):
     return torch.utils.data.DataLoader(data, num_workers=8,
-            batch_size=config['data']['batch_size'], pin_memory=True, collate_fn=collate_custom,
+            batch_size=config['pretext_training']['batch_size'], pin_memory=True, collate_fn=collate_custom,
             drop_last=True, shuffle=True)
 
 
 def get_validation_dataloader_for_dataset(config, data):
     return torch.utils.data.DataLoader(data, num_workers=8,
-            batch_size=config['data']['batch_size'], pin_memory=True, collate_fn=collate_custom,
+            batch_size=config['pretext_training']['batch_size'], pin_memory=True, collate_fn=collate_custom,
             drop_last=False, shuffle=False)
 
 

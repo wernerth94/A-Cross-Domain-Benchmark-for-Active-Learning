@@ -46,4 +46,4 @@ class SimCLRLoss(nn.Module):
 
 
 def get_loss_for_dataset(config, device):
-    return SimCLRLoss(config["clr_loss"]["temperature"], device)
+    return SimCLRLoss(config["pretext_clr_loss"]["temperature"], device)

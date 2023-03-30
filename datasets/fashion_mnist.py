@@ -9,7 +9,7 @@ from sim_clr.encoder import ContrastiveModel
 from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel_first, subsample_data
 
 class FashionMnist(BaseDataset):
-    def __init__(self, pool_rng, encoded,
+    def __init__(self, pool_rng, encoded:bool, config:dict,
                  data_file="fashion_mnist_al.pt",
                  pretext_config_file="configs/fashion_mnist.yaml",
                  encoder_model_checkpoint="",
@@ -17,7 +17,7 @@ class FashionMnist(BaseDataset):
                  cache_folder:str="~/.al_benchmark/datasets"):
         # TODO: decide on a budget
         fitting_mode = "from_scratch" if encoded else "finetuning"
-        super().__init__(budget, initial_points_per_class, classifier_batch_size,
+        super().__init__(budget, initial_points_per_class, classifier_batch_size, config,
                          data_file, pretext_config_file, encoder_model_checkpoint,
                          pool_rng, encoded, cache_folder, fitting_mode)
 
@@ -65,20 +65,8 @@ class FashionMnist(BaseDataset):
                 # transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010])
             ])
 
-    def get_pretext_encoder(self, config:dict, seed=None) -> nn.Module:
-        backbone = ResNet18(in_channels=1, add_head=False)
-        model = ContrastiveModel({'backbone': backbone, 'dim':config["encoder"]["encoder_dim"]},
-                                 head="mlp", features_dim=config["encoder"]["feature_dim"])
-        return model
-
-    def get_classifier(self, model_rng) -> nn.Module:
-        model = ResNet18(num_classes=self.n_classes, in_channels=1)
-        return model
-
-
     def get_optimizer(self, model, lr=0.01, weight_decay=0.0) -> torch.optim.Optimizer:
         return torch.optim.NAdam(model.parameters(), lr=lr, weight_decay=weight_decay)
-
 
     def get_meta_data(self) ->str:
         s = super().get_meta_data() + '\n'

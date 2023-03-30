@@ -15,7 +15,7 @@ import requests
 
 class DNA(BaseDataset):
 
-    def __init__(self, pool_rng, encoded,
+    def __init__(self, pool_rng, encoded, config:dict,
                  data_file="dna_al.pt",
                  pretext_config_file="configs/dna.yaml",
                  encoder_model_checkpoint="encoder_checkpoints/dna_30.03/model_seed1.pth.tar",
@@ -24,7 +24,7 @@ class DNA(BaseDataset):
         self.train_file = os.path.join(cache_folder, "dna_train.txt")
         self.test_file = os.path.join(cache_folder, "dna_test.txt")
         fitting_mode = "from_scratch" if encoded else "finetuning"
-        super().__init__(budget, initial_points_per_class, classifier_batch_size,
+        super().__init__(budget, initial_points_per_class, classifier_batch_size, config,
                          data_file, pretext_config_file, encoder_model_checkpoint,
                          pool_rng, encoded, cache_folder, fitting_mode)
 
@@ -67,34 +67,13 @@ class DNA(BaseDataset):
     def get_pretext_transforms(self, config)->transforms.Compose:
         return transforms.Compose([
                 VectorToTensor(),
-                GaussianNoise(config["transforms"]["gauss_scale"])
+                GaussianNoise(config["pretext_transforms"]["gauss_scale"])
             ])
 
     def get_pretext_validation_transforms(self, config)->transforms.Compose:
         return transforms.Compose([
                 VectorToTensor(),
             ])
-
-    def get_pretext_encoder(self, config:dict, seed=1) -> nn.Module:
-        model_rng = torch.Generator()
-        model_rng.manual_seed(seed)
-        backbone = DenseModel(model_rng, input_size=180, num_classes=self.n_classes,
-                              hidden_sizes=config["encoder"]["encoder_hidden"], add_head=False)
-        model = ContrastiveModel({'backbone': backbone, 'dim': config["encoder"]["encoder_hidden"][-1]},
-                                 head="linear", features_dim=config["encoder"]["feature_dim"])
-        return model
-
-    def get_classifier(self, model_rng, hidden_dims :Tuple[int] =(24, 12)) -> nn.Module:
-        if self.encoded:
-            model = nn.Sequential(nn.Linear(self.x_shape[-1], self.n_classes))
-        else:
-            model = DenseModel(model_rng,
-                               input_size=self.x_shape[-1],
-                               num_classes=self.n_classes,
-                               hidden_sizes=hidden_dims)
-        return model
-
-
 
     def get_optimizer(self, model, lr=0.001, weight_decay=0.0) -> torch.optim.Optimizer:
         return torch.optim.NAdam(model.parameters(), lr=lr, weight_decay=weight_decay)

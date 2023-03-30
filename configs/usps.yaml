@@ -1,24 +1,28 @@
-data:
-  batch_size: 227
-  n_classes: 10
+classifier:
+  type: MLP
+  hidden: [24, 12]
 
-transforms:
-  gauss_scale: 0.138332470346464
+classifier_embedded:
+  type: Linear
 
-encoder:
-  encoder_hidden: [64, 64, 64]
-  encoder_dim: 64
+pretext_encoder:
+  type: MLP
+  hidden: [64, 64, 64]
   feature_dim: 48
 
-optimizer:
+pretext_optimizer:
   type: NAdam
   lr: 0.000126317776435636
   weight_decay: 4.84494513850282E-05
   lr_scheduler: cosine
   lr_scheduler_decay: 0.0112630748098282
 
-clr_loss:
+pretext_transforms:
+  gauss_scale: 0.138332470346464
+
+pretext_clr_loss:
   temperature: 0.127993566363245
 
-training:
+pretext_training:
+  batch_size: 227
   epochs: 200

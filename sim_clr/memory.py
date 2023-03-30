@@ -96,8 +96,8 @@ class MemoryBank(object):
 
 def create_memory_bank(config, dataset:AugmentedDataset)->MemoryBank:
     return MemoryBank(len(dataset),
-                      dim=config["encoder"]["feature_dim"],
-                      feature_dim=config["encoder"]["encoder_dim"],
-                      num_classes=config["data"]["n_classes"],
-                      temperature=config["clr_loss"]["temperature"])
+                      dim=config["pretext_encoder"]["feature_dim"],
+                      feature_dim=config["pretext_encoder"]["encoder_dim"],
+                      num_classes=config["n_classes"],
+                      temperature=config["pretext_clr_loss"]["temperature"])
 

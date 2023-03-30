@@ -25,13 +25,18 @@ from sim_clr.evaluate import contrastive_evaluate
 # Parser
 parser = argparse.ArgumentParser(description='SimCLR')
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument('--dataset', type=str, default="dna")
+parser.add_argument('--dataset', type=str, default="splice")
 parser.add_argument('--seed', type=int, default=1)
 
 
 def main(args, config, store_output=True, verbose=True):
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+
     DatasetClass = get_dataset_by_name(args.dataset)
-    dataset = DatasetClass(np.random.default_rng(args.seed), encoded=False, cache_folder=args.data_folder)
+    dataset = DatasetClass(np.random.default_rng(args.seed), encoded=False,
+                           config=config, cache_folder=args.data_folder)
+    config["n_classes"] = dataset.n_classes
     # Model
     model = dataset.get_pretext_encoder(config, seed=args.seed)
     if verbose:
@@ -83,18 +88,14 @@ def main(args, config, store_output=True, verbose=True):
         if os.path.exists(chkpt_folder):
             shutil.rmtree(chkpt_folder)
         os.makedirs(chkpt_folder, exist_ok=True)
-    pretext_checkpoint = os.path.join(chkpt_folder, f'checkpoint_seed{args.seed}.pth.tar')
     pretext_model = os.path.join(chkpt_folder, f'model_seed{args.seed}.pth.tar')
-    pretext_features = os.path.join(chkpt_folder, f'features_seed{args.seed}.npy')
-    topk_neighbors_train_path = os.path.join(chkpt_folder, f'topk-train-neighbors_seed{args.seed}.npy')
-    topk_neighbors_val_path = os.path.join(chkpt_folder, f'topk-val-neighbors_seed{args.seed}.npy')
 
     if store_output:
         writer = SummaryWriter(chkpt_folder)
 
     moving_avrg = 0.0
     start_epoch = 0
-    epochs = config["training"]["epochs"]
+    epochs = config["pretext_training"]["epochs"]
     # Training
     for epoch in range(start_epoch, epochs):
 
@@ -119,16 +120,6 @@ def main(args, config, store_output=True, verbose=True):
         if verbose:
             print('Result of kNN evaluation is %.2f' %(top1))
 
-        # Checkpoint
-        # torch.save({'optimizer': optimizer.state_dict(), 'model': model.state_dict(),
-        #             'epoch': epoch + 1}, pretext_checkpoint)
-
-        # topk = 20
-        # print('Mine the nearest neighbors (Top-%d)' % (topk))
-        # indices, acc = memory_bank_base.mine_nearest_neighbors(topk)
-        # np.save(topk_neighbors_train_path, indices)
-        # np.save(pretext_features, memory_bank_base.pre_lasts.cpu().numpy())
-        # np.save(pretext_features.replace('features', 'test_features'), memory_bank_val.pre_lasts.cpu().numpy())
     if store_output:
         # End logging
         writer.close()
@@ -137,29 +128,6 @@ def main(args, config, store_output=True, verbose=True):
         # Save final model
         torch.save(model.state_dict(), pretext_model)
     return moving_avrg
-    # Mine the topk nearest neighbors at the very end (Train)
-    # These will be served as input to the SCAN loss.
-    # print('Fill memory bank for mining the nearest neighbors (train) ...')
-    # fill_memory_bank(base_dataloader, model, memory_bank_base)
-    # topk = 20
-    # print('Mine the nearest neighbors (Top-%d)' %(topk))
-    # indices, acc = memory_bank_base.mine_nearest_neighbors(topk)
-    # print('Accuracy of top-%d nearest neighbors on train set is %.2f' %(topk, 100*acc))
-    # np.save(topk_neighbors_train_path, indices)
-    # # save features
-    # np.save(pretext_features, memory_bank_base.pre_lasts.cpu().numpy())
-    # np.save(pretext_features.replace('features', 'test_features'), memory_bank_val.pre_lasts.cpu().numpy())
-
-
-    # Mine the topk nearest neighbors at the very end (Val)
-    # These will be used for validation.
-    # print('Fill memory bank for mining the nearest neighbors (val) ...')
-    # fill_memory_bank(val_dataloader, model, memory_bank_val)
-    # topk = 5
-    # print('Mine the nearest neighbors (Top-%d)' %(topk))
-    # indices, acc = memory_bank_val.mine_nearest_neighbors(topk)
-    # print('Accuracy of top-%d nearest neighbors on val set is %.2f' %(topk, 100*acc))
-    # np.save(topk_neighbors_val_path, indices)
 
 
 if __name__ == '__main__':

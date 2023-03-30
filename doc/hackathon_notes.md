@@ -37,6 +37,7 @@ A good AL algorithm should be able to distinguish data-noise from model-noise th
 
 # Postprocessing
 - deriving SeededConvLayer
+  - Apply that to Resnet
 - ToyData Surrogate Agent
 - GPU Env for Surrogate Agent
 - Skim other NIPS benchmark papers

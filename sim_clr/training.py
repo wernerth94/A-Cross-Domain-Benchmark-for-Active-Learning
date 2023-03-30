@@ -61,10 +61,10 @@ def adjust_learning_rate(config, optimizer, epoch):
         eta_min = lr * (decay ** 3)
         return eta_min + (lr - eta_min) * (1 + math.cos(math.pi * epoch / max_epochs)) / 2
 
-    if config["optimizer"]["lr_scheduler"] == "cosine":
-        lr = cosine(config["optimizer"]["lr"],
-                    config["optimizer"]["lr_scheduler_decay"],
-                    config["training"]["epochs"])
+    if config["pretext_optimizer"]["lr_scheduler"] == "cosine":
+        lr = cosine(config["pretext_optimizer"]["lr"],
+                    config["pretext_optimizer"]["lr_scheduler_decay"],
+                    config["pretext_training"]["epochs"])
     else:
         raise NotImplementedError
 
