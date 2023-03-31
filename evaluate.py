@@ -15,9 +15,10 @@ parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--agent", type=str, default="bald")
 parser.add_argument("--dataset", type=str, default="splice")
 parser.add_argument("--encoded", type=bool, default=False)
-parser.add_argument("--experiment_postfix", type=str, default=None)
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=50)
+##########################################################
+parser.add_argument("--experiment_postfix", type=str, default=None)
 args = parser.parse_args()
 
 run_id = args.run_id

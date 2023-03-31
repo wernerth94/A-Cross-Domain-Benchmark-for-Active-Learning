@@ -16,6 +16,7 @@ from ray import tune
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument('--dataset', type=str, default="fashion_mnist")
+parser.add_argument('--max_conc_trials', type=int, default=10)
 
 def evaluate_classification_config(config, train_data_file=None, dataset_class=None, cache_folder=None):
     pool_rng = np.random.default_rng(1)
@@ -93,6 +94,7 @@ def tune_classification(num_samples, cache_folder, log_folder, dataset, DatasetC
                         mode="min",
                         #scheduler="HyperBand", # Full search might be better for us
                         local_dir=log_folder,
+                        max_concurrent_trials=args.max_conc_trials,
                         verbose=1)
     df = analysis.dataframe()
     timestamp = str(datetime.now())[:-7]
@@ -135,10 +137,10 @@ def tune_pretext(num_samples, cache_folder, benchmark_folder, log_folder, datase
     log_folder = join(log_folder, "pretext")
     ray_config = {
         "h1": tune.choice([32, 64, 128]),
-        "h2": tune.choice([0, 32, 64]),
+        "h2": tune.choice([0, 32, 64, 128]),
         "h3": tune.choice([0, 32, 64, 128]),
         "feature_dim": tune.choice([24, 48]),
-        "batch_size": tune.randint(12, 500),
+        "batch_size": tune.randint(100, 500),
         "lr": tune.loguniform(1e-5, 1e-3),
         "weight_decay": tune.loguniform(1e-8, 1e-3),
         "lr_scheduler_decay": tune.loguniform(1e-4, 3e-1),
@@ -159,6 +161,7 @@ def tune_pretext(num_samples, cache_folder, benchmark_folder, log_folder, datase
                         mode="max",
                         #scheduler="HyperBand", # Full search might be better for us
                         local_dir=log_folder,
+                        max_concurrent_trials=args.max_conc_trials,
                         verbose=1)
     df = analysis.dataframe()
     timestamp = str(datetime.now())[:-7]
