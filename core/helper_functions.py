@@ -133,6 +133,8 @@ def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
         return agents.MarginScore
     elif name == "coreset":
         return agents.Coreset_Greedy
+    elif name == "bald":
+        return agents.BALD
     elif name == "agent":
         return agents.SAR
     else:

@@ -5,7 +5,6 @@ from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
 from core.agent import BaseAgent
-from core.classifier import DenseModel
 
 class MarginScore(BaseAgent):
 
