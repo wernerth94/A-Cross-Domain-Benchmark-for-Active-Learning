@@ -135,34 +135,22 @@ class ConvolutionalModel(nn.Module):
 
 def fit_and_evaluate(dataset:BaseDataset,
                      model_rng,
-                     lr:float=None, weight_decay:float=None, batch_size:int=None,
-                     hidden_sizes:tuple=None,
                      disable_progess_bar:bool=False,
                      max_epochs:int=4000):
 
     from core.helper_functions import EarlyStopping
     loss = nn.CrossEntropyLoss()
-    if hidden_sizes is not None:
-        model = dataset.get_classifier(model_rng, hidden_dims=hidden_sizes)
-    else:
-        model = dataset.get_classifier(model_rng)
+    model = dataset.get_classifier(model_rng)
     model = model.to(dataset.device)
-
-    if lr is not None and weight_decay is not None:
-        optimizer = dataset.get_optimizer(model, lr=lr, weight_decay=weight_decay)
-    else:
-        optimizer = dataset.get_optimizer(model)
-
-    if batch_size is None:
-        batch_size = dataset.classifier_batch_size
+    optimizer = dataset.get_optimizer(model)
 
     train_dataloader = DataLoader(TensorDataset(dataset.x_train, dataset.y_train),
-                                  batch_size=batch_size,
+                                  batch_size=dataset.classifier_batch_size,
                                   shuffle=True, num_workers=4)
     test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512,
                                  num_workers=4)
     all_accs = []
-    early_stop = EarlyStopping(patience=7)
+    early_stop = EarlyStopping(patience=40)
     iterator = tqdm(range(max_epochs), disable=disable_progess_bar)
     for e in iterator:
         for batch_x, batch_y in train_dataloader:
