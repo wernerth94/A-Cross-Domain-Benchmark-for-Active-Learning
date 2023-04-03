@@ -23,6 +23,10 @@ def evaluate_encoded_classification_config(raytune_config, DatasetClass, config_
     with open(config_file, 'r') as f:
         config = yaml.load(f, yaml.Loader)
 
+    hidden_dims = [raytune_config["h1"]]
+    if raytune_config["h2"] > 0:
+        hidden_dims.append(raytune_config["h2"])
+    config["classifier_embedded"]["hidden"] = hidden_dims
     config["dataset_embedded"]["encoder_checkpoint"] = join(benchmark_folder, config["dataset_embedded"]["encoder_checkpoint"])
     config["optimizer_embedded"]["type"] = raytune_config["type"]
     config["optimizer_embedded"]["lr"] = raytune_config["lr"]
@@ -80,7 +84,9 @@ def tune_encoded_classification(num_samples, log_folder, config_file, cache_fold
     ray_config = {
         "type": tune.choice(["NAdam", "Adam", "SGD"]),
         "lr": tune.loguniform(1e-6, 1e-1),
-        "weight_decay": tune.loguniform(1e-8, 1e-3)
+        "weight_decay": tune.loguniform(1e-8, 1e-3),
+        "h1": tune.choice([12, 24, 48]),
+        "h2": tune.choice([0, 12, 24, 48]),
     }
 
     # fixes some parameters of the function
