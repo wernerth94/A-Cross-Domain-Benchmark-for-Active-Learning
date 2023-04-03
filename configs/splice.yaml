@@ -25,9 +25,9 @@ classifier_embedded:
   hidden: [12, 48]
 
 optimizer_embedded:
-  type: Adam
-  lr: 0.0050188394911793
-  weight_decay: 0.000198172408214806
+  type: NAdam
+  lr: 0.000623159145739371
+  weight_decay: 5.93318060155352E-06
 
 # Pretext Task (SimCLR)
 pretext_encoder:

@@ -20,12 +20,12 @@ dataset_embedded:
 
 classifier_embedded:
   type: MLP
-  hidden: [12]
+  hidden: [24]
 
 optimizer_embedded:
-  type: Adam
-  lr: 0.00676037859020304
-  weight_decay: 2.41778787104278E-06
+  type: NAdam
+  lr: 0.00169614021475768
+  weight_decay: 0.00040818747656179
 
 pretext_encoder:
   type: MLP
