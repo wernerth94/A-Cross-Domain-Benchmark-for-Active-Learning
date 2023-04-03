@@ -9,40 +9,44 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
-from core.helper_functions import get_dataset_by_name
+from core.helper_functions import get_dataset_by_name, EarlyStopping
 from train_encoder import main
 from ray import tune
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument('--dataset', type=str, default="fashion_mnist")
-parser.add_argument('--max_conc_trials', type=int, default=10)
+parser.add_argument('--dataset', type=str, default="dna")
+parser.add_argument('--num_trials', type=int, default=100)
+parser.add_argument('--max_conc_trials', type=int, default=15)
 
-def evaluate_classification_config(config, train_data_file=None, dataset_class=None, cache_folder=None):
+def evaluate_encoded_classification_config(raytune_config, DatasetClass, config_file, cache_folder, benchmark_folder):
+    with open(config_file, 'r') as f:
+        config = yaml.load(f, yaml.Loader)
+
+    config["dataset_embedded"]["encoder_checkpoint"] = join(benchmark_folder, config["dataset_embedded"]["encoder_checkpoint"])
+    config["optimizer_embedded"]["type"] = raytune_config["type"]
+    config["optimizer_embedded"]["lr"] = raytune_config["lr"]
+    config["optimizer_embedded"]["weight_decay"] = raytune_config["weight_decay"]
+
     pool_rng = np.random.default_rng(1)
     model_rng = torch.Generator()
     model_rng.manual_seed(1)
-    dataset = dataset_class(pool_rng=pool_rng, cache_folder=cache_folder)
-    hidden_dims = [config["h1"]]
-    if config["h2"] > 0:
-        hidden_dims.append(config["h2"])
-    if config["h3"] > 0:
-        hidden_dims.append(config["h3"])
-    model = dataset.get_classifier(model_rng, hidden_dims=hidden_dims)
+    dataset = DatasetClass(cache_folder, config, pool_rng, encoded=True)
+    model = dataset.get_classifier(model_rng)
     loss = nn.CrossEntropyLoss()
-    optimizer = dataset.get_optimizer(model, lr=config["lr"], weight_decay=config["weight_decay"])
+    optimizer = dataset.get_optimizer(model)
     batch_size = dataset.classifier_batch_size
 
     data_loader_rng = torch.Generator()
     data_loader_rng.manual_seed(1)
-    train_data = torch.load(train_data_file)
-    train_dataloader = DataLoader(TensorDataset(train_data["x_train"], train_data["y_train"]),
+    train_dataloader = DataLoader(TensorDataset(dataset.x_train, dataset.y_train),
                                   batch_size=batch_size,
                                   generator=data_loader_rng,
                                   shuffle=True, num_workers=2)
     test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512,
                                  num_workers=4)
 
+    early_stop = EarlyStopping(patience=2)
     MAX_EPOCHS = 50
     for e in range(MAX_EPOCHS):
         for batch_x, batch_y in train_dataloader:
@@ -65,30 +69,29 @@ def evaluate_classification_config(config, train_data_file=None, dataset_class=N
                 test_loss += class_loss.detach().cpu().numpy()
             test_acc /= total
             test_loss /= total
-            tune.report(loss=test_loss, accuracy=test_acc)
+            if early_stop.check_stop(test_loss):
+                break
+    tune.report(loss=test_loss, accuracy=test_acc)
 
 
-def tune_classification(num_samples, cache_folder, log_folder, dataset, DatasetClass):
-    log_folder = join(log_folder, "classification")
+def tune_encoded_classification(num_samples, log_folder, config_file, cache_folder, DatasetClass, benchmark_folder):
+    log_folder = join(log_folder, "classification_embedded")
 
-    # data_file = join(base_path, benchmark_folder, "runs/DNA/Oracle/run_1/labeled_data.pt") # oracle data
-    data_file = join(cache_folder, dataset.data_file)
-    config = {
-        "h1": tune.choice([8, 12, 16, 32, 64]),
-        "h2": tune.choice([0, 12, 16, 32, 64]),
-        "h3": tune.choice([0, 16, 32, 64, 128]),
+    ray_config = {
+        "type": tune.choice(["NAdam", "Adam", "SGD"]),
         "lr": tune.loguniform(1e-6, 1e-1),
         "weight_decay": tune.loguniform(1e-8, 1e-3)
     }
 
     # fixes some parameters of the function
-    evaluate_config = partial(evaluate_classification_config,
-                              train_data_file=data_file,
-                              dataset_class=DatasetClass,
-                              cache_folder=cache_folder)
+    evaluate_config = partial(evaluate_encoded_classification_config,
+                              DatasetClass=DatasetClass,
+                              config_file=config_file,
+                              cache_folder=cache_folder,
+                              benchmark_folder=benchmark_folder)
 
     analysis = tune.run(evaluate_config,
-                        config=config,
+                        config=ray_config,
                         num_samples=num_samples,
                         metric="loss",
                         mode="min",
@@ -170,22 +173,21 @@ def tune_pretext(num_samples, cache_folder, benchmark_folder, log_folder, datase
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    NUM_SAMPLES = 100
 
     benchmark_folder = "al-benchmark"
     base_path = os.path.split(os.getcwd())[0]
     cache_folder = join(base_path, "datasets")
 
-    with open(join(base_path, benchmark_folder, f"configs/{args.dataset}.yaml"), 'r') as f:
+    config_file = join(base_path, benchmark_folder, f"configs/{args.dataset}.yaml")
+    with open(config_file, 'r') as f:
         config = yaml.load(f, yaml.Loader)
     # check the dataset
     DatasetClass = get_dataset_by_name(args.dataset)
-    dataset = DatasetClass(np.random.default_rng(1), encoded=False, config=config,
-                           cache_folder=cache_folder)
+    dataset = DatasetClass(cache_folder, config, np.random.default_rng(1), encoded=False)
     # output
     output_folder = join(base_path, benchmark_folder, "raytune_output")
     log_folder = join(output_folder, dataset.name)
     os.makedirs(log_folder, exist_ok=True)
 
-    tune_pretext(NUM_SAMPLES, cache_folder, join(base_path, benchmark_folder), log_folder, args.dataset)
-    # tune_classification(NUM_SAMPLES, cache_folder, log_folder, dataset, DatasetClass)
+    # tune_pretext(args.num_trials, cache_folder, join(base_path, benchmark_folder), log_folder, args.dataset)
+    tune_encoded_classification(args.num_trials, log_folder, config_file, cache_folder, DatasetClass, join(base_path, benchmark_folder))

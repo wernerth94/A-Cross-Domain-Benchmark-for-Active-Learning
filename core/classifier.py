@@ -9,7 +9,6 @@ from core.data import BaseDataset
 from torch.utils.data import TensorDataset, DataLoader
 from tqdm import tqdm
 
-
 def kaiming_uniform_seeded(
     rng, tensor: torch.Tensor, a: float = 0, mode: str = 'fan_in', nonlinearity: str = 'leaky_relu'
 ):
@@ -140,6 +139,8 @@ def fit_and_evaluate(dataset:BaseDataset,
                      hidden_sizes:tuple=None,
                      disable_progess_bar:bool=False,
                      max_epochs:int=4000):
+
+    from core.helper_functions import EarlyStopping
     loss = nn.CrossEntropyLoss()
     if hidden_sizes is not None:
         model = dataset.get_classifier(model_rng, hidden_dims=hidden_sizes)
@@ -160,23 +161,8 @@ def fit_and_evaluate(dataset:BaseDataset,
                                   shuffle=True, num_workers=4)
     test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512,
                                  num_workers=4)
-    class EarlyStopping:
-        def __init__(self, patience=7):
-            self.patience = patience
-            self.best_loss = torch.inf
-            self.steps_without_improvement = 0
-        def check_stop(self, loss_val):
-            if loss_val >= self.best_loss:
-                self.steps_without_improvement += 1
-                if self.steps_without_improvement > self.patience:
-                    return True
-            else:
-                self.steps_without_improvement = 0
-                self.best_loss = loss_val
-            return False
-
     all_accs = []
-    early_stop = EarlyStopping()
+    early_stop = EarlyStopping(patience=7)
     iterator = tqdm(range(max_epochs), disable=disable_progess_bar)
     for e in iterator:
         for batch_x, batch_y in train_dataloader:

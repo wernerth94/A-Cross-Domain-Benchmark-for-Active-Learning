@@ -1,28 +1,49 @@
+dataset:
+  budget: 600
+  initial_points_per_class: 1
+  classifier_batch_size: 64
+
 classifier:
   type: MLP
   hidden: [ 24, 12 ]
 
+optimizer:
+  type: NAdam
+  lr: 0.001
+  weight_decay: 0.0
+
+dataset_embedded:
+  encoder_checkpoint: encoder_checkpoints/dna_31.03/model_seed1.pth.tar
+  budget: 200
+  initial_points_per_class: 1
+  classifier_batch_size: 64
+
 classifier_embedded:
   type: Linear
 
+optimizer_embedded:
+  type: NAdam
+  lr: 0.001
+  weight_decay: 0.0
+
 pretext_encoder:
   type: MLP
-  hidden: [64]
+  hidden: [128, 64, 128]
   feature_dim: 48
 
 pretext_optimizer:
   type: NAdam
-  lr: 0.000460067792960977
-  weight_decay: 1.42285350366666E-05
+  lr: 0.000162802713647628
+  weight_decay: 1.08159693756567E-07
   lr_scheduler: cosine
-  lr_scheduler_decay: 0.000168711268026846
+  lr_scheduler_decay: 0.000750346800353391
 
 pretext_transforms:
-  gauss_scale: 0.168197420127199
+  gauss_scale: 0.262018383720752
 
 pretext_clr_loss:
-  temperature: 0.147012543510125
+  temperature: 0.717529256104704
 
 pretext_training:
-  batch_size: 431
+  batch_size: 457
   epochs: 200

@@ -25,7 +25,7 @@ from sim_clr.evaluate import contrastive_evaluate
 # Parser
 parser = argparse.ArgumentParser(description='SimCLR')
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument('--dataset', type=str, default="dna")
+parser.add_argument('--dataset', type=str, default="usps")
 parser.add_argument('--seed', type=int, default=1)
 
 
@@ -34,8 +34,7 @@ def main(args, config, store_output=True, verbose=True):
     np.random.seed(args.seed)
 
     DatasetClass = get_dataset_by_name(args.dataset)
-    dataset = DatasetClass(np.random.default_rng(args.seed), encoded=False,
-                           config=config, cache_folder=args.data_folder)
+    dataset = DatasetClass(args.data_folder, config, np.random.default_rng(args.seed), encoded=False)
     config["n_classes"] = dataset.n_classes
     # Model
     model = dataset.get_pretext_encoder(config, seed=args.seed)

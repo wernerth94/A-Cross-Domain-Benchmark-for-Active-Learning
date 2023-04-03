@@ -13,6 +13,21 @@ import agents
 from core.data import BaseDataset
 import datasets
 
+class EarlyStopping:
+    def __init__(self, patience=7):
+        self.patience = patience
+        self.best_loss = torch.inf
+        self.steps_without_improvement = 0
+    def check_stop(self, loss_val):
+        if loss_val >= self.best_loss:
+            self.steps_without_improvement += 1
+            if self.steps_without_improvement > self.patience:
+                return True
+        else:
+            self.steps_without_improvement = 0
+            self.best_loss = loss_val
+        return False
+
 def save_meta_data(logpath, agent, env, dataset, additional:dict=None):
     if not os.path.exists(logpath):
         os.makedirs(logpath, exist_ok=True)

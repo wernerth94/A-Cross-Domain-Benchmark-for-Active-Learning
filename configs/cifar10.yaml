@@ -1,8 +1,29 @@
+dataset:
+  budget: 2000
+  initial_points_per_class: 100
+  classifier_batch_size: 64
+
 classifier:
   type: Resnet18
 
+optimizer:
+  type: NAdam
+  lr: 0.001
+  weight_decay: 0.0
+
+dataset_embedded:
+  encoder_checkpoint: encoder_checkpoints/cifar10_27.03/model_seed1.pth.tar
+  budget: 200
+  initial_points_per_class: 1
+  classifier_batch_size: 64
+
 classifier_embedded:
   type: Linear
+
+optimizer_embedded:
+  type: NAdam
+  lr: 0.001
+  weight_decay: 0.0
 
 pretext_encoder:
   type: Resnet18

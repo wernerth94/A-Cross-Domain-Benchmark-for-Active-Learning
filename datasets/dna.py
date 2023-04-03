@@ -15,18 +15,13 @@ import requests
 
 class DNA(BaseDataset):
 
-    def __init__(self, pool_rng, encoded, config:dict,
-                 data_file="dna_al.pt",
-                 pretext_config_file="configs/dna.yaml",
-                 encoder_model_checkpoint="encoder_checkpoints/dna_30.03/model_seed1.pth.tar",
-                 budget=600, initial_points_per_class=1, classifier_batch_size=64,
-                 cache_folder:str="~/.al_benchmark/datasets"):
+    def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
+                 data_file="dna_al.pt"):
         self.train_file = os.path.join(cache_folder, "dna_train.txt")
         self.test_file = os.path.join(cache_folder, "dna_test.txt")
         fitting_mode = "from_scratch" if encoded else "finetuning"
-        super().__init__(budget, initial_points_per_class, classifier_batch_size, config,
-                         data_file, pretext_config_file, encoder_model_checkpoint,
-                         pool_rng, encoded, cache_folder, fitting_mode)
+        super().__init__(cache_folder, config, pool_rng, encoded,
+                         data_file, fitting_mode)
 
 
     def _download_data(self, target_to_one_hot=True):
@@ -74,9 +69,6 @@ class DNA(BaseDataset):
         return transforms.Compose([
                 VectorToTensor(),
             ])
-
-    def get_optimizer(self, model, lr=0.001, weight_decay=0.0) -> torch.optim.Optimizer:
-        return torch.optim.NAdam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     def get_meta_data(self) ->str:
         s = super().get_meta_data() + '\n'

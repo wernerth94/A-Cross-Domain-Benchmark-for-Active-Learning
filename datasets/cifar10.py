@@ -10,16 +10,11 @@ from sim_clr.encoder import ContrastiveModel
 from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel_first, subsample_data
 
 class Cifar10(BaseDataset):
-    def __init__(self, pool_rng, encoded, config:dict,
-                 data_file="cifar10_al.pt",
-                 pretext_config_file="configs/cifar10.yaml",
-                 encoder_model_checkpoint="encoder_checkpoints/cifar10_27.03/model_seed1.pth.tar",
-                 budget=200, initial_points_per_class=1, classifier_batch_size=32,
-                 cache_folder:str="~/.al_benchmark/datasets"):
+    def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
+                 data_file="cifar10_al.pt",):
         fitting_mode = "from_scratch" if encoded else "finetuning"
-        super().__init__(budget, initial_points_per_class, classifier_batch_size, config,
-                         data_file, pretext_config_file, encoder_model_checkpoint,
-                         pool_rng, encoded, cache_folder, fitting_mode)
+        super().__init__(cache_folder, config, pool_rng, encoded,
+                         data_file, fitting_mode)
 
 
     def _download_data(self, target_to_one_hot=True, test_data_fraction=0.1):
@@ -60,10 +55,6 @@ class Cifar10(BaseDataset):
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010])
             ])
-
-    def get_optimizer(self, model, lr=0.01, weight_decay=0.0) -> torch.optim.Optimizer:
-        return torch.optim.NAdam(model.parameters(), lr=lr, weight_decay=weight_decay)
-
 
     def get_meta_data(self) ->str:
         s = super().get_meta_data() + '\n'

@@ -1,28 +1,52 @@
+# Normal Classification
+dataset:
+  budget: 900
+  initial_points_per_class: 1
+  classifier_batch_size: 43
+
 classifier:
   type: MLP
   hidden: [24, 12]
 
+optimizer:
+  type: NAdam
+  lr: 0.001
+  weight_decay: 0.0
+
+# Embedded Classification
+dataset_embedded:
+  encoder_checkpoint: encoder_checkpoints/splice_31.03/model_seed1.pth.tar
+  budget: 200
+  initial_points_per_class: 1
+  classifier_batch_size: 64
+
 classifier_embedded:
   type: Linear
 
+optimizer_embedded:
+  type: NAdam
+  lr: 0.001
+  weight_decay: 0.0
+
+# Pretext Task (SimCLR)
 pretext_encoder:
   type: MLP
-  hidden: [64, 64]
-  feature_dim: 24
+  hidden: [64, 128]
+  feature_dim: 48
 
 pretext_optimizer:
   type: NAdam
-  lr: 0.000241583061943485
-  weight_decay: 6.01796488272691E-06
+  lr: 0.000454846257936763
+  weight_decay: 3.65248014822272E-07
   lr_scheduler: cosine
-  lr_scheduler_decay: 0.000159669730361258
+  lr_scheduler_decay: 0.154156762501498
 
 pretext_transforms:
-  gauss_scale: 0.213351438270739
+  gauss_scale: 0.171781355095294
 
 pretext_clr_loss:
-  temperature: 0.161415045140356
+  temperature: 0.106187809603207
 
 pretext_training:
-  batch_size: 169
+  batch_size: 292
   epochs: 200

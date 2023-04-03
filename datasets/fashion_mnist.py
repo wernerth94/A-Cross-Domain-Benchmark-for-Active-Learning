@@ -9,17 +9,12 @@ from sim_clr.encoder import ContrastiveModel
 from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel_first, subsample_data
 
 class FashionMnist(BaseDataset):
-    def __init__(self, pool_rng, encoded:bool, config:dict,
-                 data_file="fashion_mnist_al.pt",
-                 pretext_config_file="configs/fashion_mnist.yaml",
-                 encoder_model_checkpoint="",
-                 budget=1000, initial_points_per_class=100, classifier_batch_size=64,
-                 cache_folder:str="~/.al_benchmark/datasets"):
+    def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
+                 data_file="fashion_mnist_al.pt",):
         # TODO: decide on a budget
         fitting_mode = "from_scratch" if encoded else "finetuning"
-        super().__init__(budget, initial_points_per_class, classifier_batch_size, config,
-                         data_file, pretext_config_file, encoder_model_checkpoint,
-                         pool_rng, encoded, cache_folder, fitting_mode)
+        super().__init__(cache_folder, config, pool_rng, encoded,
+                         data_file, fitting_mode)
 
 
     def _download_data(self, test_data_fraction=0.1):
@@ -64,9 +59,6 @@ class FashionMnist(BaseDataset):
                 transforms.ToTensor(),
                 # transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010])
             ])
-
-    def get_optimizer(self, model, lr=0.01, weight_decay=0.0) -> torch.optim.Optimizer:
-        return torch.optim.NAdam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     def get_meta_data(self) ->str:
         s = super().get_meta_data() + '\n'

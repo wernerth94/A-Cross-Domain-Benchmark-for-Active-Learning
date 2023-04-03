@@ -11,25 +11,21 @@ from torch.nn import Module
 from torch.optim import Optimizer
 from torch.utils.data import Dataset, TensorDataset, DataLoader
 import torchvision.transforms
-from torchvision.datasets import VisionDataset
 from sklearn.preprocessing import MinMaxScaler
+
 
 class BaseDataset(ABC):
 
-    def __init__(self, budget:int,
-                 initial_points_per_class:int,
-                 classifier_batch_size:int,
-                 config:dict,
-                 data_file:str,
-                 pretext_config_file:str,
-                 encoder_model_checkpoint:str,
-                 pool_rng:np.random.Generator,
-                 encoded:bool,
-                 cache_folder:str="~/.al_benchmark/datasets",
-                 device=None,
-                 class_fitting_mode:Literal["from_scratch", "finetuning"]="finetuning"):
+    def __init__(self,
+                 cache_folder: str,
+                 config: dict,
+                 pool_rng: np.random.Generator,
+                 encoded: bool,
+                 data_file: str,
+                 class_fitting_mode: str = "finetuning",
+                 device=None):
 
-        assert isinstance(budget, int) and budget > 0, f"The budget {budget} is invalid"
+        assert class_fitting_mode in ["from_scratch", "finetuning"], "Unkown fitting mode"
         if device is None:
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         else:
@@ -37,20 +33,25 @@ class BaseDataset(ABC):
         self.config = config
         self.encoded = encoded
         self.pool_rng = pool_rng
-        self.budget = budget
-        self.classifier_batch_size = classifier_batch_size
         self.class_fitting_mode = class_fitting_mode
         self.data_file = data_file
-        self.pretext_config_file = pretext_config_file
-        self.encoder_model_checkpoint = encoder_model_checkpoint
         self.cache_folder = cache_folder
-        self.initial_points_per_class = initial_points_per_class
+        self.encoder_model_checkpoint = config["dataset_embedded"]["encoder_checkpoint"]
+        if encoded:
+            self.budget = config["dataset_embedded"]["budget"]
+            self.initial_points_per_class = config["dataset_embedded"]["initial_points_per_class"]
+            self.classifier_batch_size = config["dataset_embedded"]["classifier_batch_size"]
+        else:
+            self.budget = config["dataset"]["budget"]
+            self.initial_points_per_class = config["dataset"]["initial_points_per_class"]
+            self.classifier_batch_size = config["dataset"]["classifier_batch_size"]
+
         self.name = str(self.__class__).split('.')[-1][:-2]
         if encoded:
             self.name += "Encoded"
 
-        self._load_or_download_data() # Main call to load the data
-        self.reset() # resets the seed set
+        self._load_or_download_data()  # Main call to load the data
+        self.reset()  # resets the seed set
 
         self.n_classes = self.y_test.shape[-1]
         self.x_shape = self.x_unlabeled.shape[1:]
@@ -60,33 +61,30 @@ class BaseDataset(ABC):
         print(f"| Unlabeled Instances: {len(self.x_unlabeled)}")
         print(f"| Test Instances {len(self.x_test)}")
 
-
     def reset(self):
         self._create_seed_set()
 
-
     @abstractmethod
     def _download_data(self, target_to_one_hot=True):
-        '''
+        """
         Downloads the data from web and saves it into self.cache_folder
-        '''
+        """
         pass
 
     @abstractmethod
-    def load_pretext_data(self)->tuple[Dataset, Dataset]:
-        '''
+    def load_pretext_data(self) -> tuple[Dataset, Dataset]:
+        """
         Loads the raw data files for the pretext task (SimCLR)
-        '''
+        """
         pass
 
     @abstractmethod
-    def get_pretext_transforms(self, config:dict)->torchvision.transforms.Compose:
+    def get_pretext_transforms(self, config: dict) -> torchvision.transforms.Compose:
         pass
 
     @abstractmethod
-    def get_pretext_validation_transforms(self, config:dict)->torchvision.transforms.Compose:
+    def get_pretext_validation_transforms(self, config: dict) -> torchvision.transforms.Compose:
         pass
-
 
     def _load_or_download_data(self):
         # make sure the base files are there
@@ -117,14 +115,12 @@ class BaseDataset(ABC):
 
     def _encode(self, x_train, y_train, x_test, y_test):
         with torch.no_grad():
-            with open(self.pretext_config_file, 'r') as f:
-                config = yaml.load(f, yaml.Loader)
-            model = self.get_pretext_encoder(config)
+            model = self.get_pretext_encoder(self.config)
             model.load_state_dict(torch.load(self.encoder_model_checkpoint, map_location=torch.device('cpu')))
             train_loader = DataLoader(TensorDataset(x_train), shuffle=False, batch_size=512, drop_last=False)
             test_loader = DataLoader(TensorDataset(x_test), shuffle=False, batch_size=512, drop_last=False)
-            enc_train = torch.zeros( (0, config["pretext_encoder"]["feature_dim"]) )
-            enc_test = torch.zeros( (0, config["pretext_encoder"]["feature_dim"]) )
+            enc_train = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"]))
+            enc_test = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"]))
             for x in train_loader:
                 x_enc = model(x[0])
                 enc_train = torch.cat([enc_train, x_enc], dim=0)
@@ -133,12 +129,12 @@ class BaseDataset(ABC):
                 enc_test = torch.cat([enc_test, x_enc], dim=0)
             self.x_train, self.y_train, self.x_test, self.y_test = enc_train, y_train, enc_test, y_test
 
-    def _load_data(self, encoded)->Union[None, Tuple]:
-        '''
+    def _load_data(self, encoded) -> Union[None, Tuple]:
+        """
         Loads the data from self.cache_folder
         Returns None on failure
         :return: None or tuple(x_train, y_train, x_test, y_test)
-        '''
+        """
         if encoded:
             file = os.path.join(self.cache_folder, f"encoded_{self.data_file}")
         else:
@@ -149,7 +145,7 @@ class BaseDataset(ABC):
                    dataset["x_test"], dataset["y_test"]
         return None
 
-    def _construct_model(self, model_rng, model_config, add_head=True)->Tuple[Module, int]:
+    def _construct_model(self, model_rng, model_config, add_head=True) -> Tuple[Module, int]:
         '''
         Constructs the model by name and additional parameters
         Returns model and its output dim
@@ -175,27 +171,40 @@ class BaseDataset(ABC):
         else:
             raise NotImplementedError
 
-    def get_classifier(self, model_rng)->Module:
+    def get_classifier(self, model_rng) -> Module:
         if self.encoded:
             model, _ = self._construct_model(model_rng, self.config["classifier_embedded"])
         else:
             model, _ = self._construct_model(model_rng, self.config["classifier"])
         return model
 
-    def get_pretext_encoder(self, config:dict, seed=1) -> nn.Module:
+    def get_pretext_encoder(self, config: dict, seed=1) -> nn.Module:
         from sim_clr.encoder import ContrastiveModel
         model_rng = torch.Generator()
         model_rng.manual_seed(seed)
         backbone, out_dim = self._construct_model(model_rng, config["pretext_encoder"], add_head=False)
         config["pretext_encoder"]["encoder_dim"] = out_dim
-        model = ContrastiveModel({'backbone': backbone, 'dim':config["pretext_encoder"]["encoder_dim"]},
+        model = ContrastiveModel({'backbone': backbone, 'dim': config["pretext_encoder"]["encoder_dim"]},
                                  head="mlp", features_dim=config["pretext_encoder"]["feature_dim"])
         return model
 
-    @abstractmethod
-    def get_optimizer(self, model:Module)->Optimizer:
-        pass
+    def _construct_optimizer(self, model: Module, opt_config) -> Optimizer:
+        opt_type = opt_config["type"].lower()
+        if opt_type == "nadam":
+            return torch.optim.NAdam(model.parameters(), lr=opt_config["lr"],
+                                     weight_decay=opt_config["weight_decay"])
+        if opt_type == "adam":
+            return torch.optim.Adam(model.parameters(), lr=opt_config["lr"],
+                                    weight_decay=opt_config["weight_decay"])
+        if opt_type == "sgd":
+            return torch.optim.SGD(model.parameters(), lr=opt_config["lr"],
+                                   weight_decay=opt_config["weight_decay"])
 
+    def get_optimizer(self, model: Module) -> Optimizer:
+        if self.encoded:
+            return self._construct_optimizer(model, self.config["optimizer_embedded"])
+        else:
+            return self._construct_optimizer(model, self.config["optimizer"])
 
     def _save_data(self):
         if self.encoded:
@@ -209,7 +218,6 @@ class BaseDataset(ABC):
             "y_test": self.y_test,
         }, out_file)
         return True
-
 
     def _create_seed_set(self):
         nClasses = self.y_train.shape[1]
@@ -236,13 +244,11 @@ class BaseDataset(ABC):
         self.y_unlabeled = self.y_train[unusedIds]
         return True
 
-
     def _convert_data_to_tensors(self):
         self.x_train = to_torch(self.x_train, torch.float32, device=self.device)
         self.y_train = to_torch(self.y_train, torch.float32, device=self.device)
         self.x_test = to_torch(self.x_test, torch.float32, device=self.device)
         self.y_test = to_torch(self.y_test, torch.float32, device=self.device)
-
 
     def to(self, device):
         """
@@ -258,12 +264,11 @@ class BaseDataset(ABC):
                     setattr(self, attr, value.to(device))
         return self
 
-    def get_meta_data(self)->str:
+    def get_meta_data(self) -> str:
         return f"{self.name}\n" \
                f"Budget: {self.budget}\n" \
                f"Seeding points per class: {self.initial_points_per_class}\n" \
                f"Classifier Batch Size: {self.classifier_batch_size}"
-
 
 
 class VectorDataset(Dataset[Tuple[torch.Tensor, ...]]):
@@ -294,7 +299,7 @@ def to_torch(x: Any, dtype: Optional[torch.dtype] = None,
     Ref: Tianshou
     """
     if isinstance(x, np.ndarray) and issubclass(
-        x.dtype.type, (np.bool_, np.number)
+            x.dtype.type, (np.bool_, np.number)
     ):  # most often case
         x = torch.from_numpy(x).to(device)
         if dtype is not None:
@@ -307,13 +312,14 @@ def to_torch(x: Any, dtype: Optional[torch.dtype] = None,
     else:  # fallback
         raise TypeError(f"object {x} cannot be converted to torch.")
 
-def normalize(x_train, x_test, mode:Literal["none", "mean", "mean_std", "min_max"]="min_max"):
+
+def normalize(x_train, x_test, mode: Literal["none", "mean", "mean_std", "min_max"] = "min_max"):
     if mode == "mean":
         x_train = (x_train - np.mean(x_train, axis=0))
         x_test = (x_test - np.mean(x_test, axis=0))
     elif mode == "mean_std":
         std_train, std_test = np.std(x_train, axis=0), np.std(x_test, axis=0)
-        std_train[std_train == 0.0] = 1.0 # replace 0 to avoid division by 0
+        std_train[std_train == 0.0] = 1.0  # replace 0 to avoid division by 0
         std_test[std_test == 0.0] = 1.0
         x_train = (x_train - np.mean(x_train, axis=0)) / std_train
         x_test = (x_test - np.mean(x_test, axis=0)) / std_test
@@ -327,7 +333,7 @@ def normalize(x_train, x_test, mode:Literal["none", "mean", "mean_std", "min_max
     return x_train, x_test
 
 
-def subsample_data(x, y, fraction:float, pool_rng:np.random.Generator):
+def subsample_data(x, y, fraction: float, pool_rng: np.random.Generator):
     all_ids = np.arange(len(x))
     pool_rng.shuffle(all_ids)
     # np.random.shuffle(all_ids)
@@ -338,7 +344,7 @@ def subsample_data(x, y, fraction:float, pool_rng:np.random.Generator):
     return new_x, new_y
 
 
-def convert_to_channel_first(train:Union[Tensor, np.ndarray], test:Union[Tensor, np.ndarray]):
+def convert_to_channel_first(train: Union[Tensor, np.ndarray], test: Union[Tensor, np.ndarray]):
     if isinstance(train, np.ndarray):
         train = np.moveaxis(train, -1, 1)
         test = np.moveaxis(test, -1, 1)
@@ -347,7 +353,8 @@ def convert_to_channel_first(train:Union[Tensor, np.ndarray], test:Union[Tensor,
         test = test.permute(0, 3, 1, 2)
     return train, test
 
-def postprocess_torch_dataset(train:VisionDataset, test:VisionDataset)->Tuple:
+
+def postprocess_torch_dataset(train, test) -> Tuple:
     x_train, y_train = train.data, np.array(train.targets)
     x_test, y_test = test.data, np.array(test.targets)
     one_hot_train = np.zeros((len(y_train), y_train.max() + 1))
@@ -356,7 +363,8 @@ def postprocess_torch_dataset(train:VisionDataset, test:VisionDataset)->Tuple:
     one_hot_test[np.arange(len(y_test)), y_test] = 1
     return x_train, one_hot_train, x_test, one_hot_test
 
-def postprocess_svm_data(train:tuple, test:tuple, target_to_one_hot=True)->Tuple:
+
+def postprocess_svm_data(train: tuple, test: tuple, target_to_one_hot=True) -> Tuple:
     # convert labels to int
     x_train, y_train = train[0], train[1].astype(int)
     x_test, y_test = test[0], test[1].astype(int)
@@ -372,7 +380,7 @@ def postprocess_svm_data(train:tuple, test:tuple, target_to_one_hot=True)->Tuple
         y_test[mask] += 1
     elif 0 not in y_train:
         # multi label, but starts at 1
-        assert len(np.unique(y_train)) == y_train.max() # sanity check
+        assert len(np.unique(y_train)) == y_train.max()  # sanity check
         y_train = y_train - 1
         y_test = y_test - 1
     if target_to_one_hot:
@@ -384,7 +392,7 @@ def postprocess_svm_data(train:tuple, test:tuple, target_to_one_hot=True)->Tuple
     return x_train, y_train, x_test, y_test
 
 
-def load_numpy_dataset(file_name:str)->Union[None, Tuple]:
+def load_numpy_dataset(file_name: str) -> Union[None, Tuple]:
     if os.path.exists(file_name):
         try:
             with np.load(os.path.join(file_name, file_name), allow_pickle=True) as f:
@@ -400,15 +408,16 @@ class GaussianNoise(Module):
     '''
     Custom transform for augmenting vector datasets
     '''
+
     def __init__(self, scale=0.1, seed=1):
         super().__init__()
         self.scale = scale
         self.rng = np.random.default_rng(seed)
 
-    def forward(self, x:Tensor):
+    def forward(self, x: Tensor):
         return x + (self.rng.normal(0, self.scale, size=x.size())).astype(np.float32)
 
 
 class VectorToTensor(Module):
-    def forward(self, x:Union[list, np.ndarray]):
+    def forward(self, x: Union[list, np.ndarray]):
         return torch.Tensor(x).type(torch.float32)
