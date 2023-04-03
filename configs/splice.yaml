@@ -22,12 +22,12 @@ dataset_embedded:
 
 classifier_embedded:
   type: MLP
-  hidden: [24, 12]
+  hidden: [12, 48]
 
 optimizer_embedded:
-  type: NAdam
-  lr: 0.001
-  weight_decay: 0.0
+  type: Adam
+  lr: 0.0050188394911793
+  weight_decay: 0.000198172408214806
 
 # Pretext Task (SimCLR)
 pretext_encoder:

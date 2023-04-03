@@ -1,3 +1,4 @@
+# Normal Classification
 dataset:
   budget: 900
   initial_points_per_class: 1
@@ -12,6 +13,7 @@ optimizer:
   lr: 0.001
   weight_decay: 0.0
 
+# Embedded Classification
 dataset_embedded:
   encoder_checkpoint: encoder_checkpoints/usps_31.03/model_seed1.pth.tar
   budget: 200
@@ -20,12 +22,12 @@ dataset_embedded:
 
 classifier_embedded:
   type: MLP
-  hidden: [24, 12]
+  hidden: [48]
 
 optimizer_embedded:
-  type: NAdam
-  lr: 0.001
-  weight_decay: 0.0
+  type: Adam
+  lr: 0.00598186412371846
+  weight_decay: 5.4369039633796E-07
 
 # Pretext Task (SimCRL)
 pretext_encoder:

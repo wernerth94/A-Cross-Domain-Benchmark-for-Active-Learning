@@ -32,50 +32,56 @@ def evaluate_encoded_classification_config(raytune_config, DatasetClass, config_
     config["optimizer_embedded"]["lr"] = raytune_config["lr"]
     config["optimizer_embedded"]["weight_decay"] = raytune_config["weight_decay"]
 
-    pool_rng = np.random.default_rng(1)
-    model_rng = torch.Generator()
-    model_rng.manual_seed(1)
-    dataset = DatasetClass(cache_folder, config, pool_rng, encoded=True)
-    model = dataset.get_classifier(model_rng)
-    loss = nn.CrossEntropyLoss()
-    optimizer = dataset.get_optimizer(model)
-    batch_size = dataset.classifier_batch_size
+    loss_sum = 0.0
+    acc_sum = 0.0
+    restarts = 3
+    for i in range(restarts):
+        pool_rng = np.random.default_rng(1)
+        model_rng = torch.Generator()
+        model_rng.manual_seed(1)
+        dataset = DatasetClass(cache_folder, config, pool_rng, encoded=True)
+        model = dataset.get_classifier(model_rng)
+        loss = nn.CrossEntropyLoss()
+        optimizer = dataset.get_optimizer(model)
+        batch_size = dataset.classifier_batch_size
 
-    data_loader_rng = torch.Generator()
-    data_loader_rng.manual_seed(1)
-    train_dataloader = DataLoader(TensorDataset(dataset.x_train, dataset.y_train),
-                                  batch_size=batch_size,
-                                  generator=data_loader_rng,
-                                  shuffle=True, num_workers=2)
-    test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512,
-                                 num_workers=4)
+        data_loader_rng = torch.Generator()
+        data_loader_rng.manual_seed(1)
+        train_dataloader = DataLoader(TensorDataset(dataset.x_train, dataset.y_train),
+                                      batch_size=batch_size,
+                                      generator=data_loader_rng,
+                                      shuffle=True, num_workers=2)
+        test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512,
+                                     num_workers=4)
 
-    early_stop = EarlyStopping(patience=2)
-    MAX_EPOCHS = 50
-    for e in range(MAX_EPOCHS):
-        for batch_x, batch_y in train_dataloader:
-            yHat = model(batch_x)
-            loss_value = loss(yHat, batch_y)
-            optimizer.zero_grad()
-            loss_value.backward()
-            optimizer.step()
-        # early stopping on test
-        with torch.no_grad():
-            test_loss = 0.0
-            test_acc = 0.0
-            total = 0.0
-            for batch_x, batch_y in test_dataloader:
+        early_stop = EarlyStopping(patience=2)
+        MAX_EPOCHS = 50
+        for e in range(MAX_EPOCHS):
+            for batch_x, batch_y in train_dataloader:
                 yHat = model(batch_x)
-                predicted = torch.argmax(yHat, dim=1)
-                total += batch_y.size(0)
-                test_acc += (predicted == torch.argmax(batch_y, dim=1)).sum().item()
-                class_loss = loss(yHat, torch.argmax(batch_y.long(), dim=1))
-                test_loss += class_loss.detach().cpu().numpy()
-            test_acc /= total
-            test_loss /= total
-            if early_stop.check_stop(test_loss):
-                break
-    tune.report(loss=test_loss, accuracy=test_acc)
+                loss_value = loss(yHat, batch_y)
+                optimizer.zero_grad()
+                loss_value.backward()
+                optimizer.step()
+            # early stopping on test
+            with torch.no_grad():
+                test_loss = 0.0
+                test_acc = 0.0
+                total = 0.0
+                for batch_x, batch_y in test_dataloader:
+                    yHat = model(batch_x)
+                    predicted = torch.argmax(yHat, dim=1)
+                    total += batch_y.size(0)
+                    test_acc += (predicted == torch.argmax(batch_y, dim=1)).sum().item()
+                    class_loss = loss(yHat, torch.argmax(batch_y.long(), dim=1))
+                    test_loss += class_loss.detach().cpu().numpy()
+                test_acc /= total
+                test_loss /= total
+                if early_stop.check_stop(test_loss):
+                    break
+        loss_sum += test_loss
+        acc_sum += test_acc
+    tune.report(loss=loss_sum/restarts, accuracy=acc_sum/restarts)
 
 
 def tune_encoded_classification(num_samples, log_folder, config_file, cache_folder, DatasetClass, benchmark_folder):
