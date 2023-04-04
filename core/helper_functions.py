@@ -150,7 +150,7 @@ def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
         return agents.Coreset_Greedy
     elif name == "bald":
         return agents.BALD
-    elif name == "agent":
-        return agents.SAR
+    elif name == "sal":
+        return agents.SAL
     else:
         raise ValueError(f"Agent name '{name}' not recognized")

@@ -8,7 +8,8 @@ Normalization: Linear between [0..1]
 Classifier: DenseNet 
 
 # Agent: 
-Coreset_Greedy 
+SAL_23_01_16
+Checkpoint: sar_23_01_16.pth 
 
 # Environment: 
 <ALGame<RlAl-v0>> 
