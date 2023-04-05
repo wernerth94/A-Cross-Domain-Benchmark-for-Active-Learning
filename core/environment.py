@@ -62,7 +62,8 @@ class ALGame(gym.Env):
         return self.create_state()
 
     def create_state(self):
-        self.state_ids = self.pool_rng.choice(len(self.x_unlabeled), self.sample_size)
+        replacement_needed = len(self.x_unlabeled) < self.sample_size
+        self.state_ids = self.pool_rng.choice(len(self.x_unlabeled), self.sample_size, replace=replacement_needed)
         state = [self.state_ids,
                  self.x_unlabeled,
                  self.x_labeled, self.y_labeled,
