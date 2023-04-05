@@ -180,6 +180,7 @@ class OracleALGame(ALGame):
                  device=None):
         super().__init__(dataset, labeled_sample_size, pool_rng, model_seed, data_loader_seed, device)
         self.starting_state_rng = np.random.default_rng(self.data_loader_seed)
+        self.oracle_counter = 0
 
     def _get_internal_state(self):
         initial_weights = copy.deepcopy(self.classifier.state_dict())
@@ -221,21 +222,25 @@ class OracleALGame(ALGame):
                 self.y_labeled = self.y_labeled[:-1]
         # restore initial states on last time
         self._set_internal_state(self.initial_state)
-        if max_reward > 0.0:
-            # Best point was found
-            # add the oracle point and retrain one more time
-            with torch.no_grad():
-                self.per_class_instances[int(torch.argmax(self.y_unlabeled[best_i]).cpu())] += 1
-                # add the point to the labeled set
-                self.x_labeled = torch.cat([self.x_labeled, self.x_unlabeled[best_i:best_i + 1]], dim=0)
-                self.y_labeled = torch.cat([self.y_labeled, self.y_unlabeled[best_i:best_i + 1]], dim=0)
-                # remove the point from the unlabeled set
-                self.x_unlabeled = torch.cat([self.x_unlabeled[:best_i], self.x_unlabeled[best_i + 1:]], dim=0)
-                self.y_unlabeled = torch.cat([self.y_unlabeled[:best_i], self.y_unlabeled[best_i + 1:]], dim=0)
-            reward = self.fit_classifier()
-        else:
-            # No point with positive impact was found. Skipping one iteration
-            reward = 0.0
+        if max_reward == 0.0:
+            # No point with positive impact was found. Defaulting to Margin sampling
+            x_sample = self.x_unlabeled[self.state_ids]
+            pred = self.classifier(x_sample).detach()
+            pred = torch.softmax(pred, dim=1)
+            two_highest, _ = pred.topk(2, dim=1)
+            bVsSB = 1 - (two_highest[:, -2] - two_highest[:, -1])
+            torch.unsqueeze(bVsSB, dim=-1)
+            action = torch.argmax(bVsSB, dim=0)
+            best_i = self.state_ids[action]
+        with torch.no_grad():
+            self.per_class_instances[int(torch.argmax(self.y_unlabeled[best_i]).cpu())] += 1
+            # add the point to the labeled set
+            self.x_labeled = torch.cat([self.x_labeled, self.x_unlabeled[best_i:best_i + 1]], dim=0)
+            self.y_labeled = torch.cat([self.y_labeled, self.y_unlabeled[best_i:best_i + 1]], dim=0)
+            # remove the point from the unlabeled set
+            self.x_unlabeled = torch.cat([self.x_unlabeled[:best_i], self.x_unlabeled[best_i + 1:]], dim=0)
+            self.y_unlabeled = torch.cat([self.y_unlabeled[:best_i], self.y_unlabeled[best_i + 1:]], dim=0)
+        reward = self.fit_classifier()
         self.added_images += 1
         done = self.added_images >= self.budget
         truncated, info = False, {"action": best_action}
