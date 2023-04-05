@@ -1,6 +1,6 @@
 # Dataset: 
 DNAEncoded
-Budget: 200
+Budget: 300
 Seeding points per class: 1
 Classifier Batch Size: 64
 Source: LibSVMTools
