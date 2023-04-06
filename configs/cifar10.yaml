@@ -13,7 +13,7 @@ optimizer:
 
 dataset_embedded:
   encoder_checkpoint: encoder_checkpoints/cifar10_27.03/model_seed1.pth.tar
-  budget: 200
+  budget: 500
   initial_points_per_class: 1
   classifier_batch_size: 64
 

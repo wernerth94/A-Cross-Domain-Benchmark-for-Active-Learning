@@ -6,7 +6,6 @@
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{algorithm}
-%\usepackage{algorithmic}
 \usepackage{algpseudocode}
 
 \title{Towards Comparable Active Learning}
@@ -21,6 +20,14 @@
 \subsection{Contribution}
 
 \section{Related Work}
+Many different algorithms have been proposed for active learning. 
+In this work we focus on those approaches that have shown consistent results over the years as well as newer approaches that have demonstrated significant lifts in their initial experiments.
+AL algorithms can be categorized into two classes: Geometric approaches and uncertainty-based approaches.
+Geometric approaches include CoreSet \cite{sener2017active} and TypiClust \cite{hacohen2022active}, which use clustering techniques to partition the data and then sample their unlabeled points based on the clusters.
+Uncertainty-based approaches include classic uncertainty sampling (based on Shannon-Entropy and the margin-score), BALD \cite{kirsch2019batchbald} and BADGE \cite{ashdeep}, which use metrics to measure the classifiers state. \\ [1mm]
+%
+Some previous work also aimed to provide a benchmark suite
+
 
 \section{Overview}
 
@@ -170,7 +177,6 @@ The state can include the following information:
 
 \section{Ablation Studies}
 \begin{itemize}
-	\item Weird drop of performance for multiples of batch size (drop\_last in DataLoader)
 	\item Reduction of the test set for speed
 \end{itemize}
 
