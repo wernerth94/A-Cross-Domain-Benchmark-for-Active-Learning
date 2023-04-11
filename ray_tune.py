@@ -15,8 +15,8 @@ from ray import tune
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument('--dataset', type=str, default="dna")
-parser.add_argument('--num_trials', type=int, default=100)
+parser.add_argument('--dataset', type=str, default="cifar10")
+parser.add_argument('--num_trials', type=int, default=200)
 parser.add_argument('--max_conc_trials', type=int, default=15)
 
 def evaluate_encoded_classification_config(raytune_config, DatasetClass, config_file, cache_folder, benchmark_folder):
