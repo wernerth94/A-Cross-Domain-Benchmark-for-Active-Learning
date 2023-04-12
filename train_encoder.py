@@ -20,12 +20,12 @@ from sim_clr.memory import create_memory_bank
 from sim_clr.loss import get_loss_for_dataset
 from sim_clr.optim import get_optimizer_for_dataset
 from sim_clr.training import adjust_learning_rate, simclr_train, fill_memory_bank
-from sim_clr.evaluate import contrastive_evaluate
+from sim_clr.evaluate import contrastive_evaluate, linear_evaluate
 
 # Parser
 parser = argparse.ArgumentParser(description='SimCLR')
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument('--dataset', type=str, default="usps")
+parser.add_argument('--dataset', type=str, default="splice")
 parser.add_argument('--seed', type=int, default=1)
 
 
@@ -108,11 +108,16 @@ def main(args, config, store_output=True, verbose=True):
         # Train
         simclr_train(train_dataloader, model, criterion, optimizer, epoch, util.device)
 
-        # Fill memory bank
-        fill_memory_bank(base_dataloader, model, memory_bank_base, util.device)
+        # # Fill memory bank
+        # fill_memory_bank(base_dataloader, model, memory_bank_base, util.device)
+        # # Evaluate (To monitor progress - Not for validation)
+        # top1 = contrastive_evaluate(val_dataloader, model, memory_bank_base, util.device)
 
-        # Evaluate (To monitor progress - Not for validation)
-        top1 = contrastive_evaluate(val_dataloader, model, memory_bank_base, util.device)
+        top1 = linear_evaluate(base_dataloader, val_dataloader, model,
+                               config["pretext_encoder"]["feature_dim"], dataset.n_classes, util.device)
+
+
+        model.train()
         moving_avrg = 0.9 * moving_avrg + 0.1 * top1
         if store_output:
             writer.add_scalar("kNN Eval", top1, epoch)

@@ -14,12 +14,14 @@ from core.data import BaseDataset
 import datasets
 
 class EarlyStopping:
-    def __init__(self, patience=7):
+    def __init__(self, patience=7, lower_is_better=True):
         self.patience = patience
-        self.best_loss = torch.inf
+        self.lower_is_better = lower_is_better
+        self.best_loss = torch.inf if lower_is_better else -torch.inf
         self.steps_without_improvement = 0
     def check_stop(self, loss_val):
-        if loss_val >= self.best_loss:
+        if (self.lower_is_better     and loss_val >= self.best_loss) or \
+           (not self.lower_is_better and loss_val <= self.best_loss):
             self.steps_without_improvement += 1
             if self.steps_without_improvement > self.patience:
                 return True
