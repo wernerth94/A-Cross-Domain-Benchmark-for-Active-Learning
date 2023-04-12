@@ -39,15 +39,15 @@ def evaluate_pretext_config(raytune_config, cache_folder, benchmark_folder, data
 def tune_pretext(num_samples, max_conc_trials, cache_folder, benchmark_folder, log_folder, dataset_name):
     log_folder = join(log_folder, "pretext")
     ray_config = {
-        "h1": tune.choice([32, 64, 128]),
-        "h2": tune.choice([0, 32, 64, 128]),
-        "h3": tune.choice([0, 32, 64, 128]),
+        "h1": tune.choice([32, 64, 128, 256]),
+        "h2": tune.choice([0, 32, 64, 128, 256]),
+        "h3": tune.choice([0, 32, 64, 128, 256]),
         "feature_dim": tune.choice([24, 48]),
         "batch_size": tune.randint(100, 500),
         "lr": tune.loguniform(1e-5, 1e-3),
         "weight_decay": tune.loguniform(1e-8, 1e-3),
         "lr_scheduler_decay": tune.loguniform(1e-4, 3e-1),
-        "temperature": tune.uniform(0.1, 1.0),
+        "temperature": tune.uniform(0.05, 1.0),
         "gauss_scale": tune.uniform(0.01, 0.3)
     }
 
