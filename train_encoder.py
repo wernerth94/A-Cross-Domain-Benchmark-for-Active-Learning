@@ -25,7 +25,7 @@ from sim_clr.evaluate import contrastive_evaluate, linear_evaluate
 # Parser
 parser = argparse.ArgumentParser(description='SimCLR')
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument('--dataset', type=str, default="splice")
+parser.add_argument('--dataset', type=str, default="fashion_mnist")
 parser.add_argument('--seed', type=int, default=1)
 
 
