@@ -31,8 +31,8 @@ def linear_evaluate(train_loader, val_loader, model, embedding_dim, n_classes, d
     early_stop = EarlyStopping(patience=5, lower_is_better=False)
     for epoch in range(30):
         for batch in train_loader:
-            x = batch['image']
-            y = batch['target']
+            x = batch['image'].to(device)
+            y = batch['target'].to(device)
             with torch.no_grad():
                 x_enc = model(x).detach()
             y_hat = class_head(x_enc)
@@ -45,7 +45,7 @@ def linear_evaluate(train_loader, val_loader, model, embedding_dim, n_classes, d
             total = 0.0
             correct = 0.0
             for batch in val_loader:
-                batch_x, batch_y = batch["image"], batch["target"]
+                batch_x, batch_y = batch["image"].to(device), batch["target"].to(device)
                 x_enc = model(batch_x)
                 y_hat = class_head(x_enc)
                 predicted = torch.argmax(y_hat, dim=1)
