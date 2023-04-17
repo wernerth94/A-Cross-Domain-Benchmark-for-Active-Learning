@@ -145,44 +145,20 @@ class BaseDataset(ABC):
                    dataset["x_test"], dataset["y_test"]
         return None
 
-    def _construct_model(self, model_rng, model_config, add_head=True) -> Tuple[Module, int]:
-        '''
-        Constructs the model by name and additional parameters
-        Returns model and its output dim
-        '''
-        model_type = model_config["type"].lower()
-        if model_type == "linear":
-            from core.classifier import SeededLinear
-            return nn.Sequential(SeededLinear(model_rng, self.x_shape[-1], self.n_classes)), \
-                   self.n_classes
-        elif model_type == "resnet18":
-            from core.resnet import ResNet18
-            return ResNet18(num_classes=self.n_classes, in_channels=self.x_shape[0],
-                            add_head=add_head), \
-                   self.n_classes if add_head else 512
-        elif model_type == "mlp":
-            from core.classifier import DenseModel
-            return DenseModel(model_rng,
-                              input_size=self.x_shape[-1],
-                              num_classes=self.n_classes,
-                              hidden_sizes=model_config["hidden"],
-                              add_head=add_head), \
-                   self.n_classes if add_head else model_config["hidden"][-1]
-        else:
-            raise NotImplementedError
-
     def get_classifier(self, model_rng) -> Module:
+        from core.classifier import construct_model
         if self.encoded:
-            model, _ = self._construct_model(model_rng, self.config["classifier_embedded"])
+            model, _ = construct_model(model_rng, self.x_shape, self.n_classes, self.config["classifier_embedded"])
         else:
-            model, _ = self._construct_model(model_rng, self.config["classifier"])
+            model, _ = construct_model(model_rng, self.x_shape, self.n_classes, self.config["classifier"])
         return model
 
     def get_pretext_encoder(self, config: dict, seed=1) -> nn.Module:
         from sim_clr.encoder import ContrastiveModel
+        from core.classifier import construct_model
         model_rng = torch.Generator()
         model_rng.manual_seed(seed)
-        backbone, out_dim = self._construct_model(model_rng, config["pretext_encoder"], add_head=False)
+        backbone, out_dim = construct_model(model_rng, self.x_shape, self.n_classes, config["pretext_encoder"], add_head=False)
         config["pretext_encoder"]["encoder_dim"] = out_dim
         model = ContrastiveModel({'backbone': backbone, 'dim': config["pretext_encoder"]["encoder_dim"]},
                                  head="mlp", features_dim=config["pretext_encoder"]["feature_dim"])

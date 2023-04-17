@@ -26,6 +26,8 @@ max_run_id = run_id + args.restarts
 while run_id < max_run_id:
     with open(f"configs/{args.dataset}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
+    config["current_run_info"] = dict()
+    config["current_run_info"]["embedded"] = args.encoded
 
     pool_rng = np.random.default_rng(args.pool_seed + run_id)
     agent_rng = np.random.default_rng(args.agent_seed)
@@ -43,7 +45,7 @@ while run_id < max_run_id:
                       model_seed=model_seed,
                       data_loader_seed=data_loader_seed,
                       device=util.device)
-    agent = AgentClass(agent_rng)
+    agent = AgentClass(agent_rng, config)
 
     if args.experiment_postfix is not None:
         base_path = os.path.join("runs", dataset.name, f"{agent.name}_{args.experiment_postfix}")

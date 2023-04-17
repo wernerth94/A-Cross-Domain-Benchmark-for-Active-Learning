@@ -130,6 +130,29 @@ class ConvolutionalModel(nn.Module):
     #     return self
 
 
+def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) -> Tuple[nn.Module, int]:
+        '''
+        Constructs the model by name and additional parameters
+        Returns model and its output dim
+        '''
+        model_type = model_config["type"].lower()
+        if model_type == "linear":
+            return nn.Sequential(SeededLinear(model_rng, x_shape[-1], n_classes)), \
+                   n_classes
+        elif model_type == "resnet18":
+            from core.resnet import ResNet18
+            return ResNet18(num_classes=n_classes, in_channels=x_shape[0],
+                            add_head=add_head), \
+                   n_classes if add_head else 512
+        elif model_type == "mlp":
+            return DenseModel(model_rng,
+                              input_size=x_shape[-1],
+                              num_classes=n_classes,
+                              hidden_sizes=model_config["hidden"],
+                              add_head=add_head), \
+                   n_classes if add_head else model_config["hidden"][-1]
+        else:
+            raise NotImplementedError
 
 
 

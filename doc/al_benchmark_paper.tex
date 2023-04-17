@@ -40,7 +40,8 @@ They test for several different properties of the models including robustness, r
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Overview}
 Table \ref{tab:benchmark_comparison} shows a feature comparison between our proposed benchmark and several existing benchmarks in the literature, as well as methodological AL papers with an extensive experiments section. \\
-{\color{red} TODO} We include in this table any methodological paper that experiments on at least two domains.
+{\color{red} TODO} We include in this table any methodological paper that experiments on at least two domains. \\
+{\color{red} TODO} Define AL scenarios (really hard)
 \begin{table}[h]
 	\centering
 	\begin{tabular}{l | c c c c c}
@@ -58,6 +59,52 @@ Table \ref{tab:benchmark_comparison} shows a feature comparison between our prop
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Problem Description / Delineation}
+\textbf{Lars' Version} \\
+Given
+\begin{itemize}
+	\item a number $B\in\mathcal{N}$ (called budget),
+	\item two spaces $\mathcal{X}$ and $\mathcal{Y}$,  {\tiny e.g., $\mathcal{X}:=\mathcal{R}^M, \mathcal{Y}:=\mathcal{R}^T$},
+	\item a sample $\mathcal{D}_1,\ldots,\mathcal{D}_N \subseteq (\mathcal{X}\times \mathcal{Y})^*$ of
+	sequences of pairs $(x,y)$  from an unknown distribution $p$
+	(called datasets),
+	%  {\tiny with $|\mathcal{D}_n|\geq B$ for all $n\in 1{:}N$,}
+	{\tiny with $p(\mathcal{D})=0$ for $|\mathcal{D}|<B$,}
+	\item a function $\ell:\mathcal{Y}\times \mathcal{Y}\rightarrow \mathcal{R}$ (called loss), and
+	\item a function $A:  (\mathcal{X} \times \mathcal{Y})^* \times \mathcal{X}^* \rightarrow \mathcal{Y}^{\mathcal{X}}$
+	(called learning algorithm),
+\end{itemize}
+find a function
+\begin{align*}
+	a: (\mathcal{X}\times \mathcal{Y})^* \times \mathcal{X}^* \rightarrow \{0,1\}^*
+	\quad\quad \text{\tiny (equivariant in the second argument)}
+\end{align*}
+% which is equivariant in the second argument, 
+called acquisition function,
+s.t. the expected loss of a model learned on
+all predictors 
+plus $B$ sequentially acquired
+targets is minimal:
+\begin{align*}
+	\mathbb{E}_{\mathcal{D}\text{train},\mathcal{D}\text{test}\sim p}   &
+	% \frac{1}{|\mathcal{D}\text{test}|} \sum_{(x,y)\in\mathcal{D}\text{test}}
+	% \operatorname{avg} \{
+	%  \ell(y, \hat y(x)) \mid (x,y)\in\mathcal{D}\text{test} \}
+	\operatorname{avg}\limits_{(x,y)\in\mathcal{D}\text{test}}
+	\ell(y, \hat y(x)) 
+	\\
+	\text{with }
+	\hat y:= & A( (\mathcal{D}\text{train}_{n_1},\ldots,\mathcal{D}\text{train}_{n_B}), \mathcal{D}\text{train}|_{\mathcal{X}})
+	\\ 
+	n_b := & \text{index}( a( (\mathcal{D}\text{train}_{n_1},\ldots,\mathcal{D}\text{train}_{n_{b-1}}), \mathcal{D}\text{train}|_{\mathcal{X}}) ),
+	\quad b\in 1{:}B
+\end{align*}
+\textbf{Notes:}
+\begin{itemize}
+	\item We would need to switch from lowest expected loss to highest AUC
+	\item 
+\end{itemize}
+\vspace{5mm}
+\textbf{Thorben's Version}\\
 \textbf{Basic Classification}\\
 We assume a dataset $\mathcal{D} := (x_i, y_i) \hspace{0.5mm}; \hspace{1mm} i := 1 \ldots N$ consisting of instances $x_i \in \mathbb{R}^M$ and corresponding $y_i \in \mathbb{R}^C$.
 For evaluation purposes we assume a held-out test set $\mathcal{D}^{\text{test}}$ with the same characteristics.
@@ -217,6 +264,7 @@ A good AL algorithm should be able to perform well in both scenarios. \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Reproducibility}\label{sec:reproducibility}
+{\color{red} Version: 1.0}\\
 A big focus in this work is to provide an experimental setup that is fully reproducible independent from the dataset, classification model or AL algorithm used.
 In our opinion, an evaluation on one dataset with a given seed should always be done on the same sequence of batches $x_0, \ldots, x_B$.
 Even though different AL algorithms will pick different samples from these batches, making them unavailable for sampling in later batches, the theoretical decision tree for every possible choice in every iteration $i$ should stay the same.
@@ -226,6 +274,14 @@ This problem also applies to the initialization of the classification models $\t
 The desired control over all these processes can be archived by assigning a separate seeded random number generator to all these processes.
 To the best of our knowledge, we are the first work that discusses this issue and proposes a solution for it.
 We hypothesize that the insufficient setup with global seeds contributes to the on-going problem of inconsistent results of AL algorithms in different papers.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Comparibility}\label{sec:comparibility}
+{\color{red} Version: braindump}\\
+We split the evaluation model that generates accuracy scores and the model that generates features for the AL agent. \\
+This allows for dropout / ensemble approaches to invest more compute to generate features \\
+The normal evaluation model is available as a fallback of course \\
+This way, the comparison is always fair
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
