@@ -32,20 +32,27 @@ Uncertainty-based approaches include classic uncertainty sampling (based on Shan
 Some previous work also aimed to provide a benchmark suite for active learning:
 The authors of \cite{beck2021effective} and \cite{li2022empirical} both focus on active learning in the image domain.
 While \cite{beck2021effective} discuss a new metric to measure AL performance, which they call "Label Efficiency" and provide experiments on many common configurations for data preparation, model training and other hyperparameters, \cite{li2022empirical} focuses on combined approaches of AL and semi-supervised learning to aid model training.
+The authors of \cite{hu2021towards} study models that are learned with AL techniques in the image and text domain.
+They test for several different properties of the models including robustness, response to compression techniques and final performance.
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Overview}
-\begin{table}
+Table \ref{tab:benchmark_comparison} shows a feature comparison between our proposed benchmark and several existing benchmarks in the literature, as well as methodological AL papers with an extensive experiments section. \\
+{\color{red} TODO} We include in this table any methodological paper that experiments on at least two domains.
+\begin{table}[h]
 	\centering
 	\begin{tabular}{l | c c c c c}
 		Paper & \# Datasets & Domains & Scenarios & Oracle & RL Alg. \\
 		\hline
-		Beck et al. \cite{beck2021effective} & 5 & 2 & 2 & \checkmark & - \\
-		Li et al. \cite{li2022empirical} & 5 & 2 & 2 & \checkmark & - \\
+		Beck et al. \cite{beck2021effective} & 4 & 1 & 3 & - & - \\
+		Hu et al. \cite{hu2021towards} & 5 & 2 & 1 & - & - \\
+		Li et al. \cite{li2022empirical} & 5 & 1 & 1 & - & - \\
 		\textbf{Ours} & 5 & 2 & 2 & \checkmark & -
 	\end{tabular}
+	\caption{Comparison of our benchmark with the existing literature}
+	\label{tab:benchmark_comparison}
 \end{table}
 
 
@@ -208,6 +215,17 @@ This score does incorporate performance in early stages (low budget) as well as 
 A good AL algorithm should be able to perform well in both scenarios. \\
 {\color{red} TODO}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Reproducibility}\label{sec:reproducibility}
+A big focus in this work is to provide an experimental setup that is fully reproducible independent from the dataset, classification model or AL algorithm used.
+In our opinion, an evaluation on one dataset with a given seed should always be done on the same sequence of batches $x_0, \ldots, x_B$.
+Even though different AL algorithms will pick different samples from these batches, making them unavailable for sampling in later batches, the theoretical decision tree for every possible choice in every iteration $i$ should stay the same.
+This behavior is not possible with the default choice of setting a global seed at the start of the experiment, since a single additional random draw from the random number generator completely changes the decision tree for the batches.
+This additional random number might be drawn during the initialization of the classification model, or the AL algorithm, or even during every AL iteration if $\Omega$ is stochastic.
+This problem also applies to the initialization of the classification models $\theta$, the initialization and querying of $Omega$ and the drawn mini batches during the training of $\theta$.
+The desired control over all these processes can be archived by assigning a separate seeded random number generator to all these processes.
+To the best of our knowledge, we are the first work that discusses this issue and proposes a solution for it.
+We hypothesize that the insufficient setup with global seeds contributes to the on-going problem of inconsistent results of AL algorithms in different papers.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

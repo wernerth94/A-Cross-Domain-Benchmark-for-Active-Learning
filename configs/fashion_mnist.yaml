@@ -44,4 +44,4 @@ pretext_clr_loss:
 
 pretext_training:
   batch_size: 512
-  epochs: 500
+  epochs: 800
