@@ -1,16 +1,20 @@
 from typing import Tuple
 import torch
 import torch.nn as nn
+from torch.utils.data import Dataset
 import torchvision
+from torchvision import transforms
+from core.resnet import ResNet18
+from sim_clr.encoder import ContrastiveModel
 from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel_first, subsample_data
-from core.classifier import ConvolutionalModel
 
 class FashionMnist(BaseDataset):
-    def __init__(self, budget=1000, initial_points_per_class=100, classifier_batch_size=64,
-                 data_file="fashion_mnist_al.pt",
-                 cache_folder:str="~/.al_benchmark/datasets"):
+    def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
+                 data_file="fashion_mnist_al.pt",):
         # TODO: decide on a budget
-        super().__init__(budget, initial_points_per_class, classifier_batch_size, data_file, cache_folder)
+        fitting_mode = "from_scratch" if encoded else "finetuning"
+        super().__init__(cache_folder, config, pool_rng, encoded,
+                         data_file, fitting_mode)
 
 
     def _download_data(self, test_data_fraction=0.1):
@@ -29,22 +33,37 @@ class FashionMnist(BaseDataset):
         print("Download successful")
 
 
-    def get_classifier(self, hidden_dims:Tuple[int]=(12, 24, 48)) -> nn.Module:
-        from core.classifier import ConvolutionalModel
-        model = ConvolutionalModel(input_size=self.x_shape,
-                                   num_classes=self.n_classes,
-                                   hidden_sizes=hidden_dims)
-        return model
+    def load_pretext_data(self)->tuple[Dataset, Dataset]:
+        train_dataset = torchvision.datasets.FashionMNIST(root=self.cache_folder, train=True, download=True)
+        val_dataset = torchvision.datasets.FashionMNIST(root=self.cache_folder, train=False, download=True)
+        train_dataset.targets = torch.Tensor(train_dataset.targets).int()
+        val_dataset.targets = torch.Tensor(val_dataset.targets).int()
+        return (train_dataset, val_dataset)
 
+    def get_pretext_transforms(self, config:dict)->transforms.Compose:
+        return transforms.Compose([
+                transforms.RandomResizedCrop(size=28),
+                transforms.RandomHorizontalFlip(),
+                # transforms.RandomApply([
+                #     transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4,
+                #                            hue=0.1)
+                # ], p=0.8),
+                # transforms.RandomGrayscale(p=0.2),
+                transforms.ToTensor(),
+                # transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010])
+            ])
 
-    def get_optimizer(self, model, lr=0.01, weight_decay=0.0) -> torch.optim.Optimizer:
-        return torch.optim.NAdam(model.parameters(), lr=lr, weight_decay=weight_decay)
-
+    def get_pretext_validation_transforms(self, config:dict)->transforms.Compose:
+        return transforms.Compose([
+                transforms.CenterCrop(28),
+                transforms.ToTensor(),
+                # transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010])
+            ])
 
     def get_meta_data(self) ->str:
         s = super().get_meta_data() + '\n'
         s += "Source: TorchVision\n" \
              "Normalization: Linear between [-1..1]\n" \
-             "Classifier: Vanilla ConvNet"
+             "Classifier: ResNet18"
         return s
 

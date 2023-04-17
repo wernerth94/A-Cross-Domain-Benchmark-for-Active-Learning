@@ -15,4 +15,5 @@ class RandomAgent(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier: Module, optimizer: Optimizer) -> Union[Tensor, dict]:
-        return torch.randint(len(state_ids), size=(1,1))
+        idx = int(self.agent_rng.random()*len(state_ids))
+        return torch.Tensor([[idx]]).int()

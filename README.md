@@ -7,6 +7,7 @@
 - matplotlib
 - Pandas
 - sklearn
+- faiss-cpu
 - ray\[tune\] (Optional)
 
 ## Quick Start
@@ -43,6 +44,7 @@ Here is an example how to run 6 seeded runs in three different levels of paralle
   - Margin
 - Coreset
 - AL by Surrogate (Thorben) 
+- BADGE (Gradient Length for Uncertainty) ([Link](https://arxiv.org/pdf/1906.03671.pdf))
 - *MC Dropout for Uncertainty ([Link](https://openaccess.thecvf.com/content_cvpr_2018/papers/Beluch_The_Power_of_CVPR_2018_paper.pdf))
 - *Learning Loss for Active Learning ([Link](https://openaccess.thecvf.com/content_CVPR_2019/papers/Yoo_Learning_Loss_for_Active_Learning_CVPR_2019_paper.pdf))
 - *Learning to Sample ([Link](https://arxiv.org/pdf/1909.03585.pdf))

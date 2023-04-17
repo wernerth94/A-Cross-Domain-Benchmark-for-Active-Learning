@@ -3,6 +3,8 @@
 __pycache__
 venv
 
+raytune_output
+
 # Cluster run files
 *.sh
 *.err

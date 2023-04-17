@@ -1,7 +1,9 @@
 from typing import Union, Callable
 import os
+import math
 from os.path import join, exists
 import torch
+from torch.nn.init import calculate_gain, _calculate_correct_fan
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,6 +12,23 @@ from core.agent import BaseAgent
 import agents
 from core.data import BaseDataset
 import datasets
+
+class EarlyStopping:
+    def __init__(self, patience=7, lower_is_better=True):
+        self.patience = patience
+        self.lower_is_better = lower_is_better
+        self.best_loss = torch.inf if lower_is_better else -torch.inf
+        self.steps_without_improvement = 0
+    def check_stop(self, loss_val):
+        if (self.lower_is_better     and loss_val >= self.best_loss) or \
+           (not self.lower_is_better and loss_val <= self.best_loss):
+            self.steps_without_improvement += 1
+            if self.steps_without_improvement > self.patience:
+                return True
+        else:
+            self.steps_without_improvement = 0
+            self.best_loss = loss_val
+        return False
 
 def save_meta_data(logpath, agent, env, dataset, additional:dict=None):
     if not os.path.exists(logpath):
@@ -32,8 +51,6 @@ def save_meta_data(logpath, agent, env, dataset, additional:dict=None):
             f.write("# Other: \n")
             for key, value in additional.items():
                 f.write(f"{key}: {value} \n")
-
-
 
 
 def plot_mean_std_development(inpt:list, title:str, out_file:str=None):
@@ -138,7 +155,9 @@ def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
         return agents.MarginScore
     elif name == "coreset":
         return agents.Coreset_Greedy
-    elif name == "agent":
-        return agents.SAR
+    elif name == "bald":
+        return agents.BALD
+    elif name == "sal":
+        return agents.SAL
     else:
         raise ValueError(f"Agent name '{name}' not recognized")

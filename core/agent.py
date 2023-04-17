@@ -1,14 +1,14 @@
-from typing import Union, Callable
+from typing import Union
 from abc import ABC, abstractmethod
-
-import torch.nn
 from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
 
 class BaseAgent(ABC):
 
-    def __init__(self):
+    def __init__(self, agent_rng, config:dict):
+        self.agent_rng = agent_rng
+        self.config = config
         self.name = str(self.__class__).split('.')[-1][:-2]
         print(f"Loaded Agent: {self.name}")
 

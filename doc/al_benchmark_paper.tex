@@ -6,8 +6,8 @@
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{algorithm}
-%\usepackage{algorithmic}
 \usepackage{algpseudocode}
+\usepackage{color}
 
 \title{Towards Comparable Active Learning}
 
@@ -20,12 +20,91 @@
 
 \subsection{Contribution}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Related Work}
+{\color{red} Version: Braindump}\\
+Many different algorithms have been proposed for active learning. 
+In this work we focus on those approaches that have shown consistent results over the years as well as newer approaches that have demonstrated significant lifts in their initial experiments.
+AL algorithms can be categorized into two classes: Geometric approaches and uncertainty-based approaches.
+Geometric approaches include CoreSet \cite{sener2017active} and TypiClust \cite{hacohen2022active}, which use clustering techniques to partition the data and then sample their unlabeled points based on the clusters.
+Uncertainty-based approaches include classic uncertainty sampling (based on Shannon-Entropy and the margin-score), BALD \cite{kirsch2019batchbald} and BADGE \cite{ashdeep}, which use metrics to measure the classifiers state. \\ [1mm]
+%
+Some previous work also aimed to provide a benchmark suite for active learning:
+The authors of \cite{beck2021effective} and \cite{li2022empirical} both focus on active learning in the image domain.
+While \cite{beck2021effective} discuss a new metric to measure AL performance, which they call "Label Efficiency" and provide experiments on many common configurations for data preparation, model training and other hyperparameters, \cite{li2022empirical} focuses on combined approaches of AL and semi-supervised learning to aid model training.
+The authors of \cite{hu2021towards} study models that are learned with AL techniques in the image and text domain.
+They test for several different properties of the models including robustness, response to compression techniques and final performance.
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Overview}
+Table \ref{tab:benchmark_comparison} shows a feature comparison between our proposed benchmark and several existing benchmarks in the literature, as well as methodological AL papers with an extensive experiments section. \\
+{\color{red} TODO} We include in this table any methodological paper that experiments on at least two domains. \\
+{\color{red} TODO} Define AL scenarios (really hard)
+\begin{table}[h]
+	\centering
+	\begin{tabular}{l | c c c c c}
+		Paper & \# Datasets & Domains & Scenarios & Oracle & RL Alg. \\
+		\hline
+		Beck et al. \cite{beck2021effective} & 4 & 1 & 3 & - & - \\
+		Hu et al. \cite{hu2021towards} & 5 & 2 & 1 & - & - \\
+		Li et al. \cite{li2022empirical} & 5 & 1 & 1 & - & - \\
+		\textbf{Ours} & 5 & 2 & 2 & \checkmark & -
+	\end{tabular}
+	\caption{Comparison of our benchmark with the existing literature}
+	\label{tab:benchmark_comparison}
+\end{table}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Problem Description / Delineation}
+\textbf{Lars' Version} \\
+Given
+\begin{itemize}
+	\item a number $B\in\mathcal{N}$ (called budget),
+	\item two spaces $\mathcal{X}$ and $\mathcal{Y}$,  {\tiny e.g., $\mathcal{X}:=\mathcal{R}^M, \mathcal{Y}:=\mathcal{R}^T$},
+	\item a sample $\mathcal{D}_1,\ldots,\mathcal{D}_N \subseteq (\mathcal{X}\times \mathcal{Y})^*$ of
+	sequences of pairs $(x,y)$  from an unknown distribution $p$
+	(called datasets),
+	%  {\tiny with $|\mathcal{D}_n|\geq B$ for all $n\in 1{:}N$,}
+	{\tiny with $p(\mathcal{D})=0$ for $|\mathcal{D}|<B$,}
+	\item a function $\ell:\mathcal{Y}\times \mathcal{Y}\rightarrow \mathcal{R}$ (called loss), and
+	\item a function $A:  (\mathcal{X} \times \mathcal{Y})^* \times \mathcal{X}^* \rightarrow \mathcal{Y}^{\mathcal{X}}$
+	(called learning algorithm),
+\end{itemize}
+find a function
+\begin{align*}
+	a: (\mathcal{X}\times \mathcal{Y})^* \times \mathcal{X}^* \rightarrow \{0,1\}^*
+	\quad\quad \text{\tiny (equivariant in the second argument)}
+\end{align*}
+% which is equivariant in the second argument, 
+called acquisition function,
+s.t. the expected loss of a model learned on
+all predictors 
+plus $B$ sequentially acquired
+targets is minimal:
+\begin{align*}
+	\mathbb{E}_{\mathcal{D}\text{train},\mathcal{D}\text{test}\sim p}   &
+	% \frac{1}{|\mathcal{D}\text{test}|} \sum_{(x,y)\in\mathcal{D}\text{test}}
+	% \operatorname{avg} \{
+	%  \ell(y, \hat y(x)) \mid (x,y)\in\mathcal{D}\text{test} \}
+	\operatorname{avg}\limits_{(x,y)\in\mathcal{D}\text{test}}
+	\ell(y, \hat y(x)) 
+	\\
+	\text{with }
+	\hat y:= & A( (\mathcal{D}\text{train}_{n_1},\ldots,\mathcal{D}\text{train}_{n_B}), \mathcal{D}\text{train}|_{\mathcal{X}})
+	\\ 
+	n_b := & \text{index}( a( (\mathcal{D}\text{train}_{n_1},\ldots,\mathcal{D}\text{train}_{n_{b-1}}), \mathcal{D}\text{train}|_{\mathcal{X}}) ),
+	\quad b\in 1{:}B
+\end{align*}
+\textbf{Notes:}
+\begin{itemize}
+	\item We would need to switch from lowest expected loss to highest AUC
+	\item 
+\end{itemize}
+\vspace{5mm}
+\textbf{Thorben's Version}\\
 \textbf{Basic Classification}\\
 We assume a dataset $\mathcal{D} := (x_i, y_i) \hspace{0.5mm}; \hspace{1mm} i := 1 \ldots N$ consisting of instances $x_i \in \mathbb{R}^M$ and corresponding $y_i \in \mathbb{R}^C$.
 For evaluation purposes we assume a held-out test set $\mathcal{D}^{\text{test}}$ with the same characteristics.
@@ -40,7 +119,7 @@ Active learning is defined as sequentially removing single instances $u^{(i)} \i
 After each added instance the classification model is retrained according to section \ref{sec:training_the_classifier} and its performance is measured on the held-out test set $\mathcal{D}^{\text{test}}$.
 The quality of an active learning algorithm is evaluated by an "anytime" protocol that incorporates classification performance at every iteration, not just the final performance after the budget is exhausted.
 We employ the normalized area under the accuracy curve (AUC):
-\begin{equation}
+\begin{equation}\label{eq:auc}
 	\operatorname{auc}(\mathcal{U}, \mathcal{L}, \hat y, B) := \frac{1}{B} \sum_{i=1}^{B} \operatorname{Acc}(y_{test}, \hat y_i(x_{test}))
 \end{equation}
 Where $\hat y_i$ is the retrained classification model after the i-\textit{th} instance was selected. \\ [1mm]
@@ -53,7 +132,7 @@ This process is repeated $B$ times $i := [1 \ldots B]$.
 
 \begin{minipage}{0.59\linewidth}
 	\begin{algorithm}[H]
-		\caption{Active Learning}\label{alg:active_learning}
+		\caption{Active Learning {\color{red} OLD}}\label{alg:active_learning}
 		\begin{algorithmic}[1]
 			\Require $\mathcal{U}$ \Comment{Unlabeled Pool}
 			\Require $\tau$ \Comment{Unlabeled Sample Size}
@@ -102,7 +181,7 @@ This process is repeated $B$ times $i := [1 \ldots B]$.
 
 
 \begin{algorithm}
-	\caption{Oracle}\label{alg:oracle}
+	\caption{Oracle {\color{red} OLD}}\label{alg:oracle}
 	\begin{algorithmic}[1]
 		\Require $\mathcal{U}$ \Comment{Unlabeled Pool}
 		\Require $\tau$ \Comment{Unlabeled Sample Size}
@@ -134,43 +213,105 @@ This process is repeated $B$ times $i := [1 \ldots B]$.
 	\end{algorithmic}
 \end{algorithm}
 
-\begin{figure}
-	\centering
-	\includegraphics[width=0.8\linewidth]{img/oracle_performance.png}
-	\caption{Performance drop for Oracle in late stages of Active Learning.}
-\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Datasets}
+{\color{red} Version: 1.0}\\
+In this work we use 4 different datasets from two domains.
+For vector data, we use DNA and Splice (Source: \cite{libsvmtools}) and for image data we use FashionMNIST \cite{xiao2017fashion} and Cifar10 \cite{krizhevsky2009learning}. \\
+We would like to point out that these datasets can be considered "toy-datasets" and therefore not relevant for practical purposes.
+This might be true if we aimed to develop novel classification models on these dataset, however we are solely focused on comparing different AL algorithms in this paper.
+Our core assumption is that a well-performing algorithm in our benchmark will transfer well into more practical use-cases. \\ [1mm]
+Adapting the experimental setting from \cite{hacohen2022active} we offer all our datasets in the raw setting as well as pre-encoded by a fixed embedding model that was trained in an unsupervised manner. 
+The pre-encoded datasets offer multiple advantages in that they require smaller classification models (i.e. small MLPs) and in general much less sampled datapoints to archive close to upper bound performance (measured with the full dataset).
+They unify experimental setups for different datasets and therefore make them much more comparable.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Methodology}
 
-\subsection{Classification Model}
-The classifier is constructed according to two kinds of information.
-The general class of model (Dense, Convolutional, Attention, ...), and the configuration of the model (number of layers, size of each layer, ...). \\
-The model class and exact configuration is determined by the dataset, i.e. tabular datasets will prescribe a dense model.
-If special capabilities of the model are needed (i.e. Monte-Carlo Dropout), an extension of the given model class can be provided to the framework. \\ [1mm]
-To ensure comparability between models, the model's configuration should not be changed or an additional evaluation of the new configuration should be conducted to compare the baseline expressivity.
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{State Space}
+{\color{red} Version: 0.1}\\
 Since every AL agent needs a different state space our environment exposes a full state to the agent, so that the agent has full control of what information will be used. \\ [1mm]
 The state can include the following information:
 \begin{itemize}
-	\item The entire labeled dataset $\mathcal{L}$
-	\item The entire unlabeled dataset $\mathcal{U}$
+	\item The entire labeled dataset $\mathcal{L}^{(i)}$
+	\item The entire unlabeled dataset $\mathcal{U}^{(i)}$
 	\item A histogram of labeled points per class (count)
-	\item The available budget
+	\item The available budget $B$
 	\item Number of added datapoints $|\mathcal{L}| - |\mathcal{S}|$
-	\item The initial validation accuracy and current validation accuracy
-	\item The current classification model including all model weights
+	\item The initial validation accuracy $\operatorname{acc}^{(0)}$ and current validation accuracy $\operatorname{acc}^{(i)}$
+	\item The current classification model including all model weights $\theta^{(i)}$
 	\item The current optimizer including it's full state
-	\item The current sample of unlabeled points 
+	\item The current sample of unlabeled points $u^{(i)}$
 \end{itemize}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Training the Classifier}\label{sec:training_the_classifier}
+Generally, the classification model can be trained in two ways. Either you reset the parameters after each AL iteration and train the classifier from scratch with the updated labeled set $\mathcal{L}^{(i)}$, or you retain the previous state and only fine-tune the classifier on $\mathcal{L}^{(i)}$ for a reduced number of epochs.
+In this work we use the fine-tuning method for raw datasets to save computation, while we use the from-scratch training for embedded dataset, since they have very small classifiers and this method generally produces better results.
+Our fine-tuning scheme always trains for at least one epoch and employs an aggressive early stopping after that.
+The early stopping has patience 0, so it will stop as soon as the validation loss does no longer decrease.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Evaluation}\label{sec:evaluation}
+{\color{red} Version: 0.1}\\
+We compare different AL algorithms based on their archived AUC score (Eq. \ref{eq:auc}).
+This score does incorporate performance in early stages (low budget) as well as capabilities to push the classifier in later stages (high budget).
+A good AL algorithm should be able to perform well in both scenarios. \\
+{\color{red} TODO}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Reproducibility}\label{sec:reproducibility}
+{\color{red} Version: 1.0}\\
+A big focus in this work is to provide an experimental setup that is fully reproducible independent from the dataset, classification model or AL algorithm used.
+In our opinion, an evaluation on one dataset with a given seed should always be done on the same sequence of batches $x_0, \ldots, x_B$.
+Even though different AL algorithms will pick different samples from these batches, making them unavailable for sampling in later batches, the theoretical decision tree for every possible choice in every iteration $i$ should stay the same.
+This behavior is not possible with the default choice of setting a global seed at the start of the experiment, since a single additional random draw from the random number generator completely changes the decision tree for the batches.
+This additional random number might be drawn during the initialization of the classification model, or the AL algorithm, or even during every AL iteration if $\Omega$ is stochastic.
+This problem also applies to the initialization of the classification models $\theta$, the initialization and querying of $Omega$ and the drawn mini batches during the training of $\theta$.
+The desired control over all these processes can be archived by assigning a separate seeded random number generator to all these processes.
+To the best of our knowledge, we are the first work that discusses this issue and proposes a solution for it.
+We hypothesize that the insufficient setup with global seeds contributes to the on-going problem of inconsistent results of AL algorithms in different papers.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Comparibility}\label{sec:comparibility}
+{\color{red} Version: braindump}\\
+We split the evaluation model that generates accuracy scores and the model that generates features for the AL agent. \\
+This allows for dropout / ensemble approaches to invest more compute to generate features \\
+The normal evaluation model is available as a fallback of course \\
+This way, the comparison is always fair
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Experiments}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Splice Embedded}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{img/eval_splice_embedded}
+	\caption{Results for all algorithms on the pre-encoded Splice dataset}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\linewidth]{img/eval_splice_embedded_cd}
+\caption{Critical Difference Diagram for Splice where every restart of the algorithm is one sample for the Wilcoxon-Holm method}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\linewidth]{img/eval_macro}
+\caption{Critical Difference Diagram for Splice, DNA, USPS and Cifar10}
+\end{figure}
 
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Ablation Studies}
 \begin{itemize}
-	\item Weird drop of performance for multiples of batch size (drop\_last in DataLoader)
+	\item Setting $\tau$ to $|\mathcal{U}|$
 	\item Reduction of the test set for speed
 \end{itemize}
 

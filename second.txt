@@ -1,6 +1,5 @@
 tianshou
 gym
-torchvision
 matplotlib
 Pandas
 sklearn
