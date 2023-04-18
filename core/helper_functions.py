@@ -138,8 +138,13 @@ def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
         return datasets.Cifar10
     elif name == "fashion_mnist":
         return datasets.FashionMnist
+    # Toy
+    elif name == 'toydata':
+        return datasets.ToyData
+
     else:
         raise ValueError(f"Dataset name '{name}' not recognized")
+
 
 def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
     if name == "random":

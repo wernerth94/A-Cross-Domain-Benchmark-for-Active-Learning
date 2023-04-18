@@ -25,7 +25,7 @@ from sim_clr.evaluate import contrastive_evaluate, linear_evaluate
 # Parser
 parser = argparse.ArgumentParser(description='SimCLR')
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument('--dataset', type=str, default="fashion_mnist")
+parser.add_argument('--dataset', type=str, default="splice")
 parser.add_argument('--seed', type=int, default=1)
 
 
@@ -100,13 +100,17 @@ def main(args, config, store_output=True, verbose=True):
 
         # Adjust lr
         lr = adjust_learning_rate(config, optimizer, epoch)
+        if store_output:
+            writer.add_scalar("LR", lr, epoch)
         if verbose:
             print('Epoch %d/%d' %(epoch, epochs))
             print('-'*15)
             print('Adjusted learning rate to {:.5f}'.format(lr))
 
         # Train
-        simclr_train(train_dataloader, model, criterion, optimizer, epoch, util.device)
+        loss = simclr_train(train_dataloader, model, criterion, optimizer, epoch, util.device)
+        if store_output:
+            writer.add_scalar("Loss", loss, epoch)
 
         # # Fill memory bank
         # fill_memory_bank(base_dataloader, model, memory_bank_base, util.device)
@@ -120,9 +124,9 @@ def main(args, config, store_output=True, verbose=True):
         model.train()
         moving_avrg = 0.9 * moving_avrg + 0.1 * top1
         if store_output:
-            writer.add_scalar("kNN Eval", top1, epoch)
+            writer.add_scalar("Acc Eval", top1, epoch)
         if verbose:
-            print('Result of kNN evaluation is %.2f' %(top1))
+            print('Result of Acc evaluation is %.2f' %(top1))
 
     if store_output:
         # End logging

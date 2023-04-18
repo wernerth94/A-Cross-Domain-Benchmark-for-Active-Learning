@@ -5,12 +5,24 @@ from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
 from core.agent import BaseAgent
+from core.classifier import construct_model
 
 class BALD(BaseAgent):
 
-    def __init__(self, agent_rng, dropout_trials=5):
-        super().__init__(agent_rng)
+    def __init__(self, agent_rng, config, dropout_trials=5):
+        super().__init__(agent_rng, config)
+        assert "current_run_info" in config and "embedded" in config["current_run_info"]
         self.dropout_trials = dropout_trials
+        self.dropout_model = None
+
+    @classmethod
+    def inject_config(cls, config:dict):
+        """
+        Add dropout to classification model
+        """
+        class_key = "classifier_embedded" if config["current_run_info"]["embedded"] else "classifier"
+        if "dropout" not in config[class_key]:
+            config[class_key]["dropout"] = 0.2
 
 
     def predict(self, state_ids: list[int],
@@ -35,7 +47,7 @@ class BALD(BaseAgent):
                 y_hat = torch.nn.functional.softmax(y_hat, dim=-1)
                 y_hat_sum += y_hat
 
-                y_hat_log = torch.log2(y_hat + 1e-6)#Add 1e-6 to avoid log(0)
+                y_hat_log = torch.log2(y_hat + 1e-6)  # Add 1e-6 to avoid log(0)
                 entropy_matrix = -torch.multiply(y_hat, y_hat_log)
                 entropy_per_instance = torch.sum(entropy_matrix, dim=1)
                 entropy_sum += entropy_per_instance

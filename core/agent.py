@@ -6,10 +6,19 @@ from torch.optim import Optimizer
 
 class BaseAgent(ABC):
 
-    def __init__(self, agent_rng):
+    def __init__(self, agent_rng, config:dict):
         self.agent_rng = agent_rng
+        self.config = config
         self.name = str(self.__class__).split('.')[-1][:-2]
         print(f"Loaded Agent: {self.name}")
+
+    @classmethod
+    def inject_config(cls, config:dict):
+        """
+        This method can be used to change the dataset config.
+        I.e. add dropout to the classification model
+        """
+        pass
 
 
     @abstractmethod

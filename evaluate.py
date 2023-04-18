@@ -13,7 +13,7 @@ parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--agent", type=str, default="margin")
-parser.add_argument("--dataset", type=str, default="cifar10")
+parser.add_argument("--dataset", type=str, default="splice")
 parser.add_argument("--encoded", type=bool, default=True)
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=50)
@@ -26,6 +26,8 @@ max_run_id = run_id + args.restarts
 while run_id < max_run_id:
     with open(f"configs/{args.dataset}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
+    config["current_run_info"] = dict()
+    config["current_run_info"]["embedded"] = args.encoded
 
     pool_rng = np.random.default_rng(args.pool_seed + run_id)
     agent_rng = np.random.default_rng(args.agent_seed)
@@ -35,6 +37,9 @@ while run_id < max_run_id:
     AgentClass = get_agent_by_name(args.agent)
     DatasetClass = get_dataset_by_name(args.dataset)
 
+    # Inject additional configuration into the dataset config (See BALD agent)
+    AgentClass.inject_config(config)
+
     dataset = DatasetClass(args.data_folder, config, pool_rng, args.encoded)
     dataset = dataset.to(util.device)
     env = core.ALGame(dataset,
@@ -43,7 +48,7 @@ while run_id < max_run_id:
                       model_seed=model_seed,
                       data_loader_seed=data_loader_seed,
                       device=util.device)
-    agent = AgentClass(agent_rng)
+    agent = AgentClass(agent_rng, config)
 
     if args.experiment_postfix is not None:
         base_path = os.path.join("runs", dataset.name, f"{agent.name}_{args.experiment_postfix}")

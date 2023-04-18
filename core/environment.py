@@ -34,7 +34,7 @@ class ALGame(gym.Env):
         self.loss = nn.CrossEntropyLoss().to(self.device)
 
         # set gym observation space and action space
-        self.current_test_accuracy = 0.0
+        self.current_val_accuracy = 0.0
         state = self.reset()
 
         if isinstance(state, dict):
@@ -58,7 +58,7 @@ class ALGame(gym.Env):
             self.reset_al_pool()
         # first training of the model should be done from scratch
         self._fit_classifier(from_scratch=True)
-        self.initial_test_accuracy = self.current_test_accuracy
+        self.initial_test_accuracy = self.current_val_accuracy
         return self.create_state()
 
     def create_state(self):
@@ -69,7 +69,7 @@ class ALGame(gym.Env):
                  self.x_labeled, self.y_labeled,
                  self.per_class_instances,
                  self.budget, self.added_images,
-                 self.initial_test_accuracy, self.current_test_accuracy,
+                 self.initial_test_accuracy, self.current_val_accuracy,
                  self.classifier, self.optimizer]
         return state
 
@@ -106,39 +106,45 @@ class ALGame(gym.Env):
                                       generator=self.data_loader_rng,
                                       # num_workers=4, # dropped for CUDA compat
                                       shuffle=True)
+        val_dataloader = DataLoader(TensorDataset(self.dataset.x_val, self.dataset.y_val), batch_size=512,
+                                     # num_workers=4 # dropped for CUDA compat
+                                     )
         test_dataloader = DataLoader(TensorDataset(self.dataset.x_test, self.dataset.y_test), batch_size=512,
                                      # num_workers=4 # dropped for CUDA compat
                                      )
-
         lastLoss = torch.inf
         for e in range(epochs):
+            self.classifier.train()
             for batch_x, batch_y in train_dataloader:
                 yHat = self.classifier(batch_x)
                 loss_value = self.loss(yHat, batch_y)
                 self.optimizer.zero_grad()
                 loss_value.backward()
                 self.optimizer.step()
-            # early stopping on test
+            # early stopping on validation
             with torch.no_grad():
+                self.classifier.eval()
                 loss_sum = 0.0
-                total = 0.0
-                correct = 0.0
-                for batch_x, batch_y in test_dataloader:
+                for batch_x, batch_y in val_dataloader:
                     yHat = self.classifier(batch_x)
-                    predicted = torch.argmax(yHat, dim=1)
-                    total += batch_y.size(0)
-                    correct += (predicted == torch.argmax(batch_y, dim=1)).sum().item()
                     class_loss = self.loss(yHat, torch.argmax(batch_y.long(), dim=1))
                     loss_sum += class_loss.detach().cpu().numpy()
                 # early stop on test with patience of 0
                 if loss_sum >= lastLoss:
                     break
                 lastLoss = loss_sum
-        accuracy = correct / total
-        self.current_test_loss = loss_sum
+        self.current_val_loss = loss_sum
 
-        reward = accuracy - self.current_test_accuracy
-        self.current_test_accuracy = accuracy
+        with torch.no_grad():
+            self.classifier.eval()
+            correct = 0.0
+            for batch_x, batch_y in test_dataloader:
+                yHat = self.classifier(batch_x)
+                predicted = torch.argmax(yHat, dim=1)
+                correct += (predicted == torch.argmax(batch_y, dim=1)).sum().item()
+            accuracy = correct / len(self.dataset.x_test)
+            reward = accuracy - self.current_val_accuracy
+            self.current_val_accuracy = accuracy
         return reward
 
     def fit_classifier(self, epochs=100):

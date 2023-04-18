@@ -86,6 +86,7 @@ def simclr_train(train_loader, model, criterion, optimizer, epoch, device):
 
     model.train()
 
+    total_loss = 0.0
     for i, batch in enumerate(train_loader):
         images = batch['image']
         images_augmented = batch['image_augmented']
@@ -103,6 +104,7 @@ def simclr_train(train_loader, model, criterion, optimizer, epoch, device):
 
         output = model(input_).view(images.size(0), 2, -1)
         loss = criterion(output)
+        total_loss += loss.detach().item()
         losses.update(loss.item())
 
         optimizer.zero_grad()
@@ -111,7 +113,7 @@ def simclr_train(train_loader, model, criterion, optimizer, epoch, device):
 
         if i % 25 == 0:
             progress.display(i)
-
+    return total_loss
 
 @torch.no_grad()
 def fill_memory_bank(loader, model, memory_bank, device):

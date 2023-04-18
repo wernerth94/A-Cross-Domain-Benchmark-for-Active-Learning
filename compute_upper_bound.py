@@ -8,8 +8,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--dataset", type=str, default="cifar10")
-parser.add_argument("--encoded", type=bool, default=True)
+parser.add_argument("--dataset", type=str, default="splice")
+parser.add_argument("--encoded", type=bool, default=False)
 parser.add_argument("--restarts", type=int, default=3)
 args = parser.parse_args()
 
@@ -18,6 +18,10 @@ max_run_id = run_id + args.restarts
 while run_id < max_run_id:
     with open(f"configs/{args.dataset.lower()}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
+    # TODO remove again
+    # class_name = "classifier_embedded" if args.encoded else "classifier"
+    # config[class_name]["dropout"] = 0.2
+
     pool_rng = np.random.default_rng(run_id)
     DatasetClass = get_dataset_by_name(args.dataset)
     dataset = DatasetClass(args.data_folder, config, pool_rng=pool_rng, encoded=args.encoded)

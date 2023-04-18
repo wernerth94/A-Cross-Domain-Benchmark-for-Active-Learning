@@ -113,8 +113,8 @@ class SAL(BaseAgent):
     Top-Level Shell for the framework
     """
 
-    def __init__(self, agent_rng, file="sar_23_01_16.pth", device=None):
-        super().__init__(agent_rng)
+    def __init__(self, agent_rng, config, file="sar_23_01_16.pth", device=None):
+        super().__init__(agent_rng, config)
         self.name += '_23_01_16'
 
         if device == None:
