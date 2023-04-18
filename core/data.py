@@ -3,6 +3,7 @@ from typing import Tuple, Literal, Union, Any, Optional
 import os
 from os.path import join, exists
 import numpy as np
+from tqdm import tqdm
 import yaml
 import torch
 import torch.nn as nn
@@ -123,10 +124,10 @@ class BaseDataset(ABC):
             test_loader = DataLoader(TensorDataset(x_test), shuffle=False, batch_size=512, drop_last=False)
             enc_train = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"]))
             enc_test = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"]))
-            for x in train_loader:
+            for x in tqdm(train_loader):
                 x_enc = model(x[0])
                 enc_train = torch.cat([enc_train, x_enc], dim=0)
-            for x in test_loader:
+            for x in tqdm(test_loader):
                 x_enc = model(x[0])
                 enc_test = torch.cat([enc_test, x_enc], dim=0)
             self.x_train, self.y_train, self.x_test, self.y_test = enc_train, y_train, enc_test, y_test

@@ -13,8 +13,8 @@ optimizer:
   weight_decay: 0.0
 
 dataset_embedded:
-  encoder_checkpoint: encoder_checkpoints/cifar10_27.03/model_seed1.pth.tar
-  budget: 200
+  encoder_checkpoint: encoder_checkpoints/fashion_mnist_17.04/model_seed1.pth.tar
+  budget: 500
   initial_points_per_class: 1
   classifier_batch_size: 64
 
@@ -45,4 +45,4 @@ pretext_clr_loss:
 
 pretext_training:
   batch_size: 512
-  epochs: 800
+  epochs: 500
