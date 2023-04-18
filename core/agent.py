@@ -12,6 +12,14 @@ class BaseAgent(ABC):
         self.name = str(self.__class__).split('.')[-1][:-2]
         print(f"Loaded Agent: {self.name}")
 
+    @classmethod
+    def inject_config(cls, config:dict):
+        """
+        This method can be used to change the dataset config.
+        I.e. add dropout to the classification model
+        """
+        pass
+
 
     @abstractmethod
     def predict(self, state_ids:list[int],

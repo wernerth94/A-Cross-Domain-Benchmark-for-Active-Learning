@@ -45,12 +45,12 @@ class EnvironmentLogger:
     def reset(self, *args, **kwargs)->list:
         return_values = self.env.reset(*args, **kwargs)
         self.current_run += 1
-        self.accuracies[self.current_run] = [ self.env.current_test_accuracy ]
-        self.losses[self.current_run] = [ self.env.current_test_loss ]
+        self.accuracies[self.current_run] = [self.env.current_val_accuracy]
+        self.losses[self.current_run] = [self.env.current_val_loss]
         return return_values
 
     def step(self, *args, **kwargs):
         return_values = self.env.step(*args, **kwargs)
-        self.accuracies[self.current_run].append(self.env.current_test_accuracy)
-        self.losses[self.current_run].append(self.env.current_test_loss)
+        self.accuracies[self.current_run].append(self.env.current_val_accuracy)
+        self.losses[self.current_run].append(self.env.current_val_loss)
         return return_values

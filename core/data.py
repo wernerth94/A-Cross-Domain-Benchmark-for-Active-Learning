@@ -51,7 +51,7 @@ class BaseDataset(ABC):
             self.name += "Encoded"
 
         self._load_or_download_data()  # Main call to load the data
-        self.reset()  # resets the seed set
+        self.reset()  # resets the validation and seed set
 
         self.n_classes = self.y_test.shape[-1]
         self.x_shape = self.x_unlabeled.shape[1:]
@@ -59,9 +59,11 @@ class BaseDataset(ABC):
         print(f"| Number of classes: {self.n_classes}")
         print(f"| Labeled Instances: {len(self.x_labeled)}")
         print(f"| Unlabeled Instances: {len(self.x_unlabeled)}")
+        print(f"| Val Instances {len(self.x_val)}")
         print(f"| Test Instances {len(self.x_test)}")
 
     def reset(self):
+        self._create_validation_split()
         self._create_seed_set()
 
     @abstractmethod
@@ -219,6 +221,19 @@ class BaseDataset(ABC):
         self.x_unlabeled = self.x_train[unusedIds]
         self.y_unlabeled = self.y_train[unusedIds]
         return True
+
+
+    def _create_validation_split(self):
+        ids = np.arange(self.x_train.shape[0], dtype=int)
+        self.pool_rng.shuffle(ids)
+        cut = int(len(ids) * self.config["dataset"]["validation_split"])
+        train_ids = ids[cut:]
+        val_ids = ids[:cut]
+        self.x_val = self.x_train[val_ids]
+        self.y_val = self.y_train[val_ids]
+        self.x_train = self.x_train[train_ids]
+        self.y_train = self.y_train[train_ids]
+
 
     def _convert_data_to_tensors(self):
         self.x_train = to_torch(self.x_train, torch.float32, device=self.device)

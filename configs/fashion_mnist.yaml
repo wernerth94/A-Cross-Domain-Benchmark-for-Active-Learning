@@ -2,6 +2,7 @@ dataset:
   budget: 1000
   initial_points_per_class: 100
   classifier_batch_size: 64
+  validation_split: 0.01
 
 classifier:
   type: Resnet18

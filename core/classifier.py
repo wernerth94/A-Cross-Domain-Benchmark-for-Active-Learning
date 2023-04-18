@@ -52,9 +52,10 @@ class SeededLinear(nn.Linear):
 
 
 class DenseModel(nn.Module):
-    def __init__(self, model_rng, input_size:int, num_classes:int, hidden_sizes:tuple, add_head=True):
+    def __init__(self, model_rng, input_size:int, num_classes:int, hidden_sizes:tuple, dropout=None, add_head=True):
         assert len(hidden_sizes) > 0
         super().__init__()
+        self.dropout = dropout
 
         self.inpt = SeededLinear(model_rng, input_size, hidden_sizes[0])
         self.hidden = nn.ModuleList()
@@ -69,13 +70,17 @@ class DenseModel(nn.Module):
         classifier like Coreset
         """
         if len(x.size()) == 4:
-            # SimCLR workaround
+            # Pretext SimCLR workaround
             x = x.squeeze()
         x = self.inpt(x)
         x = F.relu(x)
+        if self.dropout is not None:
+            x = F.dropout(x, self.dropout, training=self.training)
         for h_layer in self.hidden:
             x = h_layer(x)
             x = F.relu(x)
+            if self.dropout is not None:
+                x = F.dropout(x, self.dropout, training=self.training)
         return x
 
     def forward(self, x:Tensor)->Tensor:
@@ -137,20 +142,41 @@ def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) 
         '''
         model_type = model_config["type"].lower()
         if model_type == "linear":
-            return nn.Sequential(SeededLinear(model_rng, x_shape[-1], n_classes)), \
-                   n_classes
+            if "dropout" in model_config:
+                print("Warning - Your are using dropout with a linear classifier")
+                return nn.Sequential(nn.Dropout(0.2),
+                                     SeededLinear(model_rng, x_shape[-1], n_classes)), \
+                       n_classes
+            else:
+                return nn.Sequential(SeededLinear(model_rng, x_shape[-1], n_classes)), \
+                       n_classes
         elif model_type == "resnet18":
             from core.resnet import ResNet18
-            return ResNet18(num_classes=n_classes, in_channels=x_shape[0],
-                            add_head=add_head), \
-                   n_classes if add_head else 512
+            if "dropout" in model_config:
+                # TODO
+                return ResNet18(num_classes=n_classes, in_channels=x_shape[0],
+                                add_head=add_head), \
+                       n_classes if add_head else 512
+            else:
+                return ResNet18(num_classes=n_classes, in_channels=x_shape[0],
+                                add_head=add_head), \
+                       n_classes if add_head else 512
         elif model_type == "mlp":
-            return DenseModel(model_rng,
-                              input_size=x_shape[-1],
-                              num_classes=n_classes,
-                              hidden_sizes=model_config["hidden"],
-                              add_head=add_head), \
-                   n_classes if add_head else model_config["hidden"][-1]
+            if "dropout" in model_config:
+                return DenseModel(model_rng,
+                                  input_size=x_shape[-1],
+                                  num_classes=n_classes,
+                                  hidden_sizes=model_config["hidden"],
+                                  dropout=model_config["dropout"],
+                                  add_head=add_head), \
+                       n_classes if add_head else model_config["hidden"][-1]
+            else:
+                return DenseModel(model_rng,
+                                  input_size=x_shape[-1],
+                                  num_classes=n_classes,
+                                  hidden_sizes=model_config["hidden"],
+                                  add_head=add_head), \
+                       n_classes if add_head else model_config["hidden"][-1]
         else:
             raise NotImplementedError
 
@@ -170,12 +196,13 @@ def fit_and_evaluate(dataset:BaseDataset,
     train_dataloader = DataLoader(TensorDataset(dataset.x_train, dataset.y_train),
                                   batch_size=dataset.classifier_batch_size,
                                   shuffle=True, num_workers=4)
-    test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512,
-                                 num_workers=4)
+    val_dataloader = DataLoader(TensorDataset(dataset.x_val, dataset.y_val), batch_size=512)
+    test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512)
     all_accs = []
     early_stop = EarlyStopping(patience=40)
     iterator = tqdm(range(max_epochs), disable=disable_progess_bar)
     for e in iterator:
+        model.train()
         for batch_x, batch_y in train_dataloader:
             yHat = model(batch_x)
             loss_value = loss(yHat, batch_y)
@@ -184,20 +211,25 @@ def fit_and_evaluate(dataset:BaseDataset,
             optimizer.step()
         # early stopping on test
         with torch.no_grad():
+            model.eval()
             loss_sum = 0.0
-            total = 0.0
-            correct = 0.0
-            for batch_x, batch_y in test_dataloader:
+            for batch_x, batch_y in val_dataloader:
                 yHat = model(batch_x)
-                predicted = torch.argmax(yHat, dim=1)
-                total += batch_y.size(0)
-                correct += (predicted == torch.argmax(batch_y, dim=1)).sum().item()
                 class_loss = loss(yHat, torch.argmax(batch_y.long(), dim=1))
                 loss_sum += class_loss.detach().cpu().numpy()
             if early_stop.check_stop(loss_sum):
                 print(f"Early stop after {e} epochs")
                 break
-            current_acc = correct / total
-            all_accs.append(current_acc)
-            iterator.set_postfix({"val loss": "%1.4f"%loss_sum, "val acc": "%1.4f"%current_acc})
+
+        correct = 0.0
+        test_loss = 0.0
+        for batch_x, batch_y in test_dataloader:
+            yHat = model(batch_x)
+            predicted = torch.argmax(yHat, dim=1)
+            correct += (predicted == torch.argmax(batch_y, dim=1)).sum().item()
+            class_loss = loss(yHat, torch.argmax(batch_y.long(), dim=1))
+            test_loss += class_loss.detach().cpu().numpy()
+        test_acc = correct / len(dataset.x_test)
+        all_accs.append(test_acc)
+        iterator.set_postfix({"test loss": "%1.4f"%test_loss, "test acc": "%1.4f"%test_acc})
     return all_accs
