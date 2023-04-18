@@ -19,8 +19,8 @@ while run_id < max_run_id:
     with open(f"configs/{args.dataset.lower()}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
     # TODO remove again
-    class_name = "classifier_embedded" if args.encoded else "classifier"
-    config[class_name]["dropout"] = 0.2
+    # class_name = "classifier_embedded" if args.encoded else "classifier"
+    # config[class_name]["dropout"] = 0.2
 
     pool_rng = np.random.default_rng(run_id)
     DatasetClass = get_dataset_by_name(args.dataset)
