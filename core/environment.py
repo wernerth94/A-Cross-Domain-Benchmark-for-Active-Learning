@@ -191,16 +191,16 @@ class OracleALGame(ALGame):
     def _get_internal_state(self):
         initial_weights = copy.deepcopy(self.classifier.state_dict())
         initial_optimizer_state = copy.deepcopy(self.optimizer.state_dict())
-        initial_test_loss = self.current_test_loss
-        initial_test_acc = self.current_test_accuracy
+        initial_val_loss = self.current_val_loss
+        initial_val_acc = self.current_val_accuracy
         return (initial_weights, initial_optimizer_state,
-                initial_test_loss, initial_test_acc)
+                initial_val_loss, initial_val_acc)
 
     def _set_internal_state(self, state_tuple):
         self.classifier.load_state_dict(state_tuple[0])
         self.optimizer.load_state_dict(state_tuple[1])
-        self.current_test_loss = state_tuple[2]
-        self.current_test_accuracy = state_tuple[3]
+        self.current_val_loss = state_tuple[2]
+        self.current_val_accuracy = state_tuple[3]
         self.data_loader_rng.manual_seed(self.data_loader_seed_i)
 
     def step(self, *args, **kwargs):
@@ -226,7 +226,7 @@ class OracleALGame(ALGame):
                 # remove the testing point
                 self.x_labeled = self.x_labeled[:-1]
                 self.y_labeled = self.y_labeled[:-1]
-        # restore initial states on last time
+        # restore initial states one last time
         self._set_internal_state(self.initial_state)
         if max_reward == 0.0:
             # No point with positive impact was found. Defaulting to Margin sampling
