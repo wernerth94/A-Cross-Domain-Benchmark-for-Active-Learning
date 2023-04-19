@@ -9,9 +9,10 @@ parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--dataset", type=str, default="splice")
-parser.add_argument("--encoded", type=bool, default=False)
-parser.add_argument("--restarts", type=int, default=3)
+parser.add_argument("--encoded", type=int, default=0)
+parser.add_argument("--restarts", type=int, default=15)
 args = parser.parse_args()
+args.encoded = bool(args.encoded)
 
 run_id = args.run_id
 max_run_id = run_id + args.restarts

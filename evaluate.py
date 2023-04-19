@@ -14,12 +14,13 @@ parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--agent", type=str, default="margin")
 parser.add_argument("--dataset", type=str, default="fashion_mnist")
-parser.add_argument("--encoded", type=bool, default=True)
+parser.add_argument("--encoded", type=int, default=1)
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=50)
 ##########################################################
 parser.add_argument("--experiment_postfix", type=str, default=None)
 args = parser.parse_args()
+args.encoded = bool(args.encoded)
 
 run_id = args.run_id
 max_run_id = run_id + args.restarts
