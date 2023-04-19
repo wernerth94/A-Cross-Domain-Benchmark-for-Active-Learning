@@ -140,7 +140,7 @@ def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
         return datasets.FashionMnist
     # Toy
     elif name == 'toydata':
-        return datasets.ToyData
+        return datasets.ToyData1
 
     else:
         raise ValueError(f"Dataset name '{name}' not recognized")
