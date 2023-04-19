@@ -225,6 +225,11 @@ class BaseDataset(ABC):
 
 
     def _create_validation_split(self):
+        if hasattr(self, "x_val"):
+            # concat previous validation split and re-split
+            self.x_train = torch.cat([self.x_train, self.x_val], dim=0)
+            self.y_train = torch.cat([self.y_train, self.y_val], dim=0)
+
         ids = np.arange(self.x_train.shape[0], dtype=int)
         self.pool_rng.shuffle(ids)
         cut = int(len(ids) * self.config["dataset"]["validation_split"])
