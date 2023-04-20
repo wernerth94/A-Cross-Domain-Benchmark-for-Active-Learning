@@ -1,0 +1,16 @@
+# Dataset: 
+Cifar10Encoded
+Budget: 500
+Seeding points per class: 1
+Classifier Batch Size: 64
+Source: TorchVision
+Normalization: Linear between [-1..1]
+Classifier: ResNet18 
+
+# Agent: 
+RandomAgent 
+
+# Environment: 
+<ALGame<RlAl-v0>> 
+Sample Size: 20 
+
