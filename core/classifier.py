@@ -203,7 +203,7 @@ def fit_and_evaluate(dataset:BaseDataset,
     test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512)
     all_accs = []
     early_stop = EarlyStopping(patience=40)
-    iterator = tqdm(range(max_epochs), disable=disable_progess_bar)
+    iterator = tqdm(range(max_epochs), disable=disable_progess_bar, dynamic_ncols=False)
     for e in iterator:
         model.train()
         for batch_x, batch_y in train_dataloader:
@@ -213,8 +213,8 @@ def fit_and_evaluate(dataset:BaseDataset,
             loss_value.backward()
             optimizer.step()
         # early stopping on test
+        model.eval()
         with torch.no_grad():
-            model.eval()
             loss_sum = 0.0
             for batch_x, batch_y in val_dataloader:
                 yHat = model(batch_x)
@@ -226,6 +226,7 @@ def fit_and_evaluate(dataset:BaseDataset,
 
         correct = 0.0
         test_loss = 0.0
+        model.eval()
         for batch_x, batch_y in test_dataloader:
             yHat = model(batch_x)
             predicted = torch.argmax(yHat, dim=1)

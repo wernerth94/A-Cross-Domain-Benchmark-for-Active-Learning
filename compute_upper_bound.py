@@ -10,7 +10,7 @@ parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--dataset", type=str, default="splice")
 parser.add_argument("--encoded", type=int, default=0)
-parser.add_argument("--restarts", type=int, default=15)
+parser.add_argument("--restarts", type=int, default=10)
 args = parser.parse_args()
 args.encoded = bool(args.encoded)
 
@@ -19,9 +19,9 @@ max_run_id = run_id + args.restarts
 while run_id < max_run_id:
     with open(f"configs/{args.dataset.lower()}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
-    # TODO remove again
-    # class_name = "classifier_embedded" if args.encoded else "classifier"
-    # config[class_name]["dropout"] = 0.2
+    # TODO remove again!
+    class_name = "classifier_embedded" if args.encoded else "classifier"
+    config[class_name]["dropout"] = 0.2
 
     pool_rng = np.random.default_rng(run_id)
     DatasetClass = get_dataset_by_name(args.dataset)

@@ -4,12 +4,12 @@ from os.path import *
 import yaml
 import numpy as np
 from core.helper_functions import get_dataset_by_name
-from raytune import pretext_encoder, embedded_classification
+from raytune import pretext_encoder, embedded_classification, classification
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument('--dataset', type=str, default="splice")
-parser.add_argument('--num_trials', type=int, default=200)
+parser.add_argument('--num_trials', type=int, default=20)
 parser.add_argument('--max_conc_trials', type=int, default=15)
 
 
@@ -31,5 +31,6 @@ if __name__ == '__main__':
     log_folder = join(output_folder, dataset.name)
     os.makedirs(log_folder, exist_ok=True)
 
-    pretext_encoder.tune_pretext(args.num_trials, args.max_conc_trials, cache_folder, join(base_path, benchmark_folder), log_folder, args.dataset)
+    # pretext_encoder.tune_pretext(args.num_trials, args.max_conc_trials, cache_folder, join(base_path, benchmark_folder), log_folder, args.dataset)
     # embedded_classification.tune_encoded_classification(args.num_trials, args.max_conc_trials, log_folder, config_file, cache_folder, DatasetClass, join(base_path, benchmark_folder))
+    classification.tune_classification(args.num_trials, args.max_conc_trials, log_folder, config_file, cache_folder, DatasetClass, join(base_path, benchmark_folder))
