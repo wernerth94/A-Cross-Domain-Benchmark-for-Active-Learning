@@ -1,5 +1,6 @@
 import experiment_util as util
 import argparse
+from pprint import pprint
 import yaml
 from tqdm import tqdm
 import core
@@ -18,13 +19,17 @@ parser.add_argument("--store_dataset", type=bool, default=False)
 args = parser.parse_args()
 args.encoded = bool(args.encoded)
 
+
 run_id = args.run_id
 max_run_id = run_id + args.restarts
 while run_id < max_run_id:
     with open(f"configs/{args.dataset}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
-    config["current_run_info"] = dict()
-    config["current_run_info"]["embedded"] = args.encoded
+    config["current_run_info"] = args.__dict__
+    print("Config:")
+    pprint(config)
+    print("Config End \n")
+
     pool_rng = np.random.default_rng(args.pool_seed + run_id)
     model_seed = args.model_seed + run_id
     data_loader_seed = 1
