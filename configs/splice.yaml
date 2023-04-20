@@ -11,8 +11,8 @@ classifier:
 
 optimizer:
   type: NAdam
-  lr: 0.001
-  weight_decay: 0.0
+  lr: 0.00121352609529121
+  weight_decay: 0.0000595501370565999
 
 # Embedded Classification
 dataset_embedded:

@@ -10,8 +10,8 @@ classifier:
 
 optimizer:
   type: NAdam
-  lr: 0.001
-  weight_decay: 0.0
+  lr: 0.0398469742424903
+  weight_decay: 3.69510328758125E-05
 
 dataset_embedded:
   encoder_checkpoint: encoder_checkpoints/dna_31.03/model_seed1.pth.tar
