@@ -10,9 +10,9 @@ classifier:
   hidden: [24, 12]
 
 optimizer:
-  type: NAdam
-  lr: 0.001
-  weight_decay: 0.0
+  type: Adam
+  lr: 0.00809920010816152
+  weight_decay: 1.51465578557073E-06
 
 # Embedded Classification
 dataset_embedded:

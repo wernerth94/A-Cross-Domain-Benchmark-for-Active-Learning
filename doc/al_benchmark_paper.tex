@@ -239,38 +239,6 @@ They unify experimental setups for different datasets and therefore make them mu
 \section{Methodology}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{State Space}
-{\color{red} Version: 0.1}\\
-Since every AL agent needs a different state space our environment exposes a full state to the agent, so that the agent has full control of what information will be used. \\ [1mm]
-The state can include the following information:
-\begin{itemize}
-	\item The entire labeled dataset $\mathcal{L}^{(i)}$
-	\item The entire unlabeled dataset $\mathcal{U}^{(i)}$
-	\item A histogram of labeled points per class (count)
-	\item The available budget $B$
-	\item Number of added datapoints $|\mathcal{L}| - |\mathcal{S}|$
-	\item The initial validation accuracy $\operatorname{acc}^{(0)}$ and current validation accuracy $\operatorname{acc}^{(i)}$
-	\item The current classification model including all model weights $\theta^{(i)}$
-	\item The current optimizer including it's full state
-	\item The current sample of unlabeled points $u^{(i)}$
-\end{itemize}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Training the Classifier}\label{sec:training_the_classifier}
-Generally, the classification model can be trained in two ways. Either you reset the parameters after each AL iteration and train the classifier from scratch with the updated labeled set $\mathcal{L}^{(i)}$, or you retain the previous state and only fine-tune the classifier on $\mathcal{L}^{(i)}$ for a reduced number of epochs.
-In this work we use the fine-tuning method for raw datasets to save computation, while we use the from-scratch training for embedded dataset, since they have very small classifiers and this method generally produces better results.
-Our fine-tuning scheme always trains for at least one epoch and employs an aggressive early stopping after that.
-The early stopping has patience 0, so it will stop as soon as the validation loss does no longer decrease.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Evaluation}\label{sec:evaluation}
-{\color{red} Version: 0.1}\\
-We compare different AL algorithms based on their archived AUC score (Eq. \ref{eq:auc}).
-This score does incorporate performance in early stages (low budget) as well as capabilities to push the classifier in later stages (high budget).
-A good AL algorithm should be able to perform well in both scenarios. \\
-{\color{red} TODO}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Reproducibility}\label{sec:reproducibility}
 {\color{red} Version: 1.0}\\
 A big focus in this work is to provide an experimental setup that is fully reproducible independent from the dataset, classification model or AL algorithm used.
@@ -290,6 +258,53 @@ We split the evaluation model that generates accuracy scores and the model that 
 This allows for dropout / ensemble approaches to invest more compute to generate features \\
 The normal evaluation model is available as a fallback of course \\
 This way, the comparison is always fair
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Evaluation}\label{sec:evaluation}
+{\color{red} Version: 0.1}\\
+We compare different AL algorithms based on their archived AUC score (Eq. \ref{eq:auc}).
+This score does incorporate performance in early stages (low budget) as well as capabilities to push the classifier in later stages (high budget).
+A good AL algorithm should be able to perform well in both scenarios. \\
+{\color{red} TODO}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Implementation Details}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{State Space}
+{\color{red} Version: 0.1 Remove analogies to RL}\\
+Since every AL agent needs a different state space our environment exposes a full state to the agent, so that the agent has full control of what information will be used. \\ [1mm]
+The state can include the following information:
+\begin{itemize}
+	\item The entire labeled dataset $\mathcal{L}^{(i)}$
+	\item The entire unlabeled dataset $\mathcal{U}^{(i)}$
+	\item A histogram of labeled points per class (count)
+	\item The available budget $B$
+	\item Number of added datapoints $|\mathcal{L}| - |\mathcal{S}|$
+	\item The initial validation accuracy $\operatorname{acc}^{(0)}$ and current validation accuracy $\operatorname{acc}^{(i)}$
+	\item The current classification model including all model weights $\theta^{(i)}$
+	\item The current optimizer including it's full state
+	\item The current sample of unlabeled points $u^{(i)}$
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Choosing the Classifier}\label{sec:choosing_the_classifier}
+Traditionally, the classifier is chosen per dataset so that it is capable of solving the dataset close to the SOTA performance reported in the literature.
+Similar to our hypothesis in section \ref{sec:evaluation} we hypothesize that AL algorithms will perform similarly on small classifiers and more complex ones, so that the overall ranking of algorithms stays the same.
+{\color{red} TODO: Transform this into full hypothesis incl. formatting?}\\
+On the basis of this hypothesis we opt to use smaller classifiers that still solve the dataset to a reasonable degree.
+Smaller classifiers also require fewer labeled datapoints to acquire performance close to the upper bound.
+This behavior can be observed in Figure {\color{red} TODO}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Training the Classifier}\label{sec:training_the_classifier}
+{\color{red} Version: 0.1 Full rework needed}\\
+Generally, the classification model can be trained in two ways. Either you reset the parameters after each AL iteration and train the classifier from scratch with the updated labeled set $\mathcal{L}^{(i)}$, or you retain the previous state and only fine-tune the classifier on $\mathcal{L}^{(i)}$ for a reduced number of epochs.
+In this work we use the fine-tuning method for raw datasets to save computation, while we use the from-scratch training for embedded dataset, since they have very small classifiers and this method generally produces better results.
+Our fine-tuning scheme always trains for at least one epoch and employs an aggressive early stopping after that.
+The early stopping has patience 0, so it will stop as soon as the validation loss does no longer decrease.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
