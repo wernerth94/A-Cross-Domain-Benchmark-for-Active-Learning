@@ -51,6 +51,22 @@ class SeededLinear(nn.Linear):
                 self.bias.uniform_(-bound, bound, generator=self.model_rng)
 
 
+class LinearModel(nn.Module):
+    def __init__(self, model_rng, input_size:int, num_classes:int, dropout=None):
+        super().__init__()
+        self.dropout = dropout
+        self.out = SeededLinear(model_rng, input_size, num_classes)
+
+    def _encode(self, x:Tensor)->Tensor:
+        return x
+
+    def forward(self, x:Tensor)->Tensor:
+        if self.dropout is not None:
+            x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.out(x)
+        return x
+
+
 class DenseModel(nn.Module):
     def __init__(self, model_rng, input_size:int, num_classes:int, hidden_sizes:tuple, dropout=None, add_head=True):
         assert len(hidden_sizes) > 0
@@ -141,15 +157,10 @@ def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) 
         Returns model and its output dim
         '''
         model_type = model_config["type"].lower()
+        dropout = model_config["dropout"] if "dropout" in model_config else None
         if model_type == "linear":
-            if "dropout" in model_config:
-                print("Warning - Your are using dropout with a linear classifier")
-                return nn.Sequential(nn.Dropout(0.2),
-                                     SeededLinear(model_rng, x_shape[-1], n_classes)), \
-                       n_classes
-            else:
-                return nn.Sequential(SeededLinear(model_rng, x_shape[-1], n_classes)), \
-                       n_classes
+            return LinearModel(model_rng, x_shape[-1], n_classes, dropout), \
+                   n_classes
         elif model_type == "resnet18":
             from core.resnet import ResNet18
             if "dropout" in model_config:
@@ -162,21 +173,13 @@ def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) 
                                 add_head=add_head), \
                        n_classes if add_head else 512
         elif model_type == "mlp":
-            if "dropout" in model_config:
-                return DenseModel(model_rng,
-                                  input_size=x_shape[-1],
-                                  num_classes=n_classes,
-                                  hidden_sizes=model_config["hidden"],
-                                  dropout=model_config["dropout"],
-                                  add_head=add_head), \
-                       n_classes if add_head else model_config["hidden"][-1]
-            else:
-                return DenseModel(model_rng,
-                                  input_size=x_shape[-1],
-                                  num_classes=n_classes,
-                                  hidden_sizes=model_config["hidden"],
-                                  add_head=add_head), \
-                       n_classes if add_head else model_config["hidden"][-1]
+            return DenseModel(model_rng,
+                              input_size=x_shape[-1],
+                              num_classes=n_classes,
+                              hidden_sizes=model_config["hidden"],
+                              dropout=dropout,
+                              add_head=add_head), \
+                   n_classes if add_head else model_config["hidden"][-1]
         else:
             raise NotImplementedError
 
