@@ -144,12 +144,6 @@ class ConvolutionalModel(nn.Module):
         x = self.out(x)
         return x
 
-    # def to(self, *args, **kwargs):
-    #     self = super().to(*args, **kwargs)
-    #     for i in range(len(self.hidden)):
-    #         self.hidden[i] = self.hidden[i].to(*args, **kwargs)
-    #     return self
-
 
 def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) -> Tuple[nn.Module, int]:
         '''
@@ -163,15 +157,10 @@ def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) 
                    n_classes
         elif model_type == "resnet18":
             from core.resnet import ResNet18
-            if "dropout" in model_config:
-                # TODO
-                return ResNet18(num_classes=n_classes, in_channels=x_shape[0],
-                                add_head=add_head), \
-                       n_classes if add_head else 512
-            else:
-                return ResNet18(num_classes=n_classes, in_channels=x_shape[0],
-                                add_head=add_head), \
-                       n_classes if add_head else 512
+            return ResNet18(num_classes=n_classes, in_channels=x_shape[0],
+                            dropout=dropout,
+                            add_head=add_head), \
+                   n_classes if add_head else 512
         elif model_type == "mlp":
             return DenseModel(model_rng,
                               input_size=x_shape[-1],

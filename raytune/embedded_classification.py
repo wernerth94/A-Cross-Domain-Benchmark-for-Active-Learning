@@ -13,14 +13,15 @@ def evaluate_encoded_classification_config(raytune_config, DatasetClass, config_
     with open(config_file, 'r') as f:
         config = yaml.load(f, yaml.Loader)
 
-    hidden_dims = [raytune_config["h1"]]
-    if raytune_config["h2"] > 0:
-        hidden_dims.append(raytune_config["h2"])
-    config["classifier_embedded"]["hidden"] = hidden_dims
+    # hidden_dims = [raytune_config["h1"]]
+    # if raytune_config["h2"] > 0:
+    #     hidden_dims.append(raytune_config["h2"])
+    # config["classifier_embedded"]["hidden"] = hidden_dims
     config["dataset_embedded"]["encoder_checkpoint"] = join(benchmark_folder, config["dataset_embedded"]["encoder_checkpoint"])
     config["optimizer_embedded"]["type"] = raytune_config["type"]
     config["optimizer_embedded"]["lr"] = raytune_config["lr"]
     config["optimizer_embedded"]["weight_decay"] = raytune_config["weight_decay"]
+    config["classifier"]["dropout"] = raytune_config["dropout"]
 
     loss_sum = 0.0
     acc_sum = 0.0
@@ -81,8 +82,9 @@ def tune_encoded_classification(num_samples, max_conc_trials, log_folder, config
         "type": tune.choice(["NAdam", "Adam", "SGD"]),
         "lr": tune.loguniform(1e-6, 1e-1),
         "weight_decay": tune.loguniform(1e-8, 1e-3),
-        "h1": tune.choice([12, 24, 48]),
-        "h2": tune.choice([0, 12, 24, 48]),
+        "dropout": tune.choice([0.0, 0.05, 0.1, 0.2, 0.3]),
+        # "h1": tune.choice([12, 24, 48]),
+        # "h2": tune.choice([0, 12, 24, 48]),
     }
 
     # fixes some parameters of the function

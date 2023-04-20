@@ -253,7 +253,7 @@ We hypothesize that the insufficient setup with global seeds contributes to the 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Comparibility}\label{sec:comparibility}
-{\color{red} Version: braindump}\\
+{\color{red} Version: brain dump}\\
 We split the evaluation model that generates accuracy scores and the model that generates features for the AL agent. \\
 This allows for dropout / ensemble approaches to invest more compute to generate features \\
 The normal evaluation model is available as a fallback of course \\
@@ -296,7 +296,23 @@ Similar to our hypothesis in section \ref{sec:evaluation} we hypothesize that AL
 {\color{red} TODO: Transform this into full hypothesis incl. formatting?}\\
 On the basis of this hypothesis we opt to use smaller classifiers that still solve the dataset to a reasonable degree.
 Smaller classifiers also require fewer labeled datapoints to acquire performance close to the upper bound.
-This behavior can be observed in Figure {\color{red} TODO}
+This behavior can be observed in Figure {\color{red} TODO} \\ [1mm]
+For every dataset the chosen architecture's hyperparameters are optimized by to archive maximum upper bound performance.
+For an overview of architectures and hyperparameters please refer to Table \ref{tab:architectures}.
+\begin{table}
+	\centering
+	\begin{tabular}{l || l | l l l l}
+		Dataset & Architecture & Optimizer & LR & Weight Decay & Dropout \\
+		\hline
+		Splice & [24, 12] & NAdam & 0.0012 & 5.9e-5 & 0 \\
+		DNA & [24, 12] & NAdam & 0.0398 & 3.6e-5 & 0 \\
+		USPS & [24, 12] & Adam & 0.0081 & 1.5e-6 & 0 \\
+		FashionMnist & linear & - & - & - & - \\
+		Cifar10 & linear & - & - & - & - \\
+	\end{tabular}
+	\caption{Classifier architectures and optimized hyperparameters per dataset. Numbers in brackets signify a MLP with corresponding hidden layers.}
+	\label{tab:architectures}
+\end{table}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Training the Classifier}\label{sec:training_the_classifier}

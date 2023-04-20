@@ -24,9 +24,14 @@ classifier_embedded:
   type: Linear
 
 optimizer_embedded:
+  # Linear
   type: Adam
   lr: 0.00422210204014432
   weight_decay: 1.62121435184421E-08
+  # MLP
+#  type: Adam
+#  lr: 0.00422210204014432
+#  weight_decay: 1.62121435184421E-08
 
 # Pretext Task (SimCLR)
 pretext_encoder:

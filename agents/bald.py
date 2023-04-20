@@ -11,7 +11,7 @@ class BALD(BaseAgent):
 
     def __init__(self, agent_rng, config, dropout_trials=5):
         super().__init__(agent_rng, config)
-        assert "current_run_info" in config and "embedded" in config["current_run_info"]
+        assert "current_run_info" in config and "encoded" in config["current_run_info"]
         self.dropout_trials = dropout_trials
         self.dropout_model = None
 
@@ -20,7 +20,7 @@ class BALD(BaseAgent):
         """
         Add dropout to classification model
         """
-        class_key = "classifier_embedded" if config["current_run_info"]["embedded"] else "classifier"
+        class_key = "classifier_embedded" if config["current_run_info"]["encoded"] else "classifier"
         if "dropout" not in config[class_key]:
             config[class_key]["dropout"] = 0.2
 

@@ -8,9 +8,10 @@ from raytune import pretext_encoder, embedded_classification, classification
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument('--dataset', type=str, default="splice")
+parser.add_argument('--dataset', type=str, default="cifar10")
+parser.add_argument('--task', type=str, default="embedded_classification")
 parser.add_argument('--num_trials', type=int, default=20)
-parser.add_argument('--max_conc_trials', type=int, default=15)
+parser.add_argument('--max_conc_trials', type=int, default=12)
 
 
 if __name__ == '__main__':
@@ -31,6 +32,11 @@ if __name__ == '__main__':
     log_folder = join(output_folder, dataset.name)
     os.makedirs(log_folder, exist_ok=True)
 
-    # pretext_encoder.tune_pretext(args.num_trials, args.max_conc_trials, cache_folder, join(base_path, benchmark_folder), log_folder, args.dataset)
-    # embedded_classification.tune_encoded_classification(args.num_trials, args.max_conc_trials, log_folder, config_file, cache_folder, DatasetClass, join(base_path, benchmark_folder))
-    classification.tune_classification(args.num_trials, args.max_conc_trials, log_folder, config_file, cache_folder, DatasetClass, join(base_path, benchmark_folder))
+    if args.task == "pretext":
+        pretext_encoder.tune_pretext(args.num_trials, args.max_conc_trials, cache_folder, join(base_path, benchmark_folder), log_folder, args.dataset)
+    elif args.task == "embedded_classification":
+        embedded_classification.tune_encoded_classification(args.num_trials, args.max_conc_trials, log_folder, config_file, cache_folder, DatasetClass, join(base_path, benchmark_folder))
+    elif args.task == "classification":
+        classification.tune_classification(args.num_trials, args.max_conc_trials, log_folder, config_file, cache_folder, DatasetClass, join(base_path, benchmark_folder))
+    else:
+        raise NotImplementedError
