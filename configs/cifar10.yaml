@@ -25,9 +25,9 @@ classifier_embedded:
 
 optimizer_embedded:
   # Linear
-  type: Adam
-  lr: 0.00422210204014432
-  weight_decay: 1.62121435184421E-08
+  type: NAdam
+  lr: 0.00171578341563099
+  weight_decay: 2.38432342659786E-05
   # MLP
 #  type: Adam
 #  lr: 0.00422210204014432

@@ -3,6 +3,7 @@ import argparse
 from pprint import pprint
 import yaml
 from tqdm import tqdm
+import torch
 import core
 from core.helper_functions import *
 
@@ -32,6 +33,8 @@ while run_id < max_run_id:
 
     pool_rng = np.random.default_rng(args.pool_seed + run_id)
     model_seed = args.model_seed + run_id
+    # This is currently the only way to seed dropout layers in Python
+    torch.random.manual_seed(args.model_seed + run_id)
     data_loader_seed = 1
 
     DatasetClass = get_dataset_by_name(args.dataset)

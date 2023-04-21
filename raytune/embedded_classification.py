@@ -45,7 +45,6 @@ def evaluate_encoded_classification_config(raytune_config, DatasetClass, config_
         test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512,
                                      num_workers=4)
 
-        # early_stop = EarlyStopping(patience=40)
         MAX_EPOCHS = 50
         for e in range(MAX_EPOCHS):
             for batch_x, batch_y in train_dataloader:
@@ -54,7 +53,7 @@ def evaluate_encoded_classification_config(raytune_config, DatasetClass, config_
                 optimizer.zero_grad()
                 loss_value.backward()
                 optimizer.step()
-            # early stopping on test
+
         with torch.no_grad():
             test_loss = 0.0
             test_acc = 0.0
@@ -68,8 +67,6 @@ def evaluate_encoded_classification_config(raytune_config, DatasetClass, config_
                 test_loss += class_loss.detach().cpu().numpy()
             test_acc /= total
             test_loss /= total
-                # if early_stop.check_stop(test_loss):
-                #     break
         loss_sum += test_loss
         acc_sum += test_acc
     tune.report(loss=loss_sum/restarts, accuracy=acc_sum/restarts)

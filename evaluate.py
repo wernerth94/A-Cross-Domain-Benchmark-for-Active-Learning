@@ -1,10 +1,10 @@
 import experiment_util as util
 import argparse
 from pprint import pprint
-import numpy
 from tqdm import tqdm
 import core
 import yaml
+import torch
 from core.helper_functions import *
 
 parser = argparse.ArgumentParser()
@@ -13,11 +13,11 @@ parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--agent", type=str, default="bald")
-parser.add_argument("--dataset", type=str, default="splice")
-parser.add_argument("--encoded", type=int, default=11)
+parser.add_argument("--agent", type=str, default="entropy")
+parser.add_argument("--dataset", type=str, default="dna")
+parser.add_argument("--encoded", type=int, default=0)
 parser.add_argument("--sample_size", type=int, default=20)
-parser.add_argument("--restarts", type=int, default=20)
+parser.add_argument("--restarts", type=int, default=10)
 ##########################################################
 parser.add_argument("--experiment_postfix", type=str, default=None)
 args = parser.parse_args()
@@ -36,6 +36,8 @@ while run_id < max_run_id:
     pool_rng = np.random.default_rng(args.pool_seed + run_id)
     agent_rng = np.random.default_rng(args.agent_seed)
     model_seed = args.model_seed + run_id
+    # This is currently the only way to seed dropout layers in Python
+    torch.random.manual_seed(args.model_seed + run_id)
     data_loader_seed = 1
 
     AgentClass = get_agent_by_name(args.agent)
@@ -66,7 +68,7 @@ while run_id < max_run_id:
         done = False
         dataset.reset()
         state = env.reset()
-        for i in tqdm(range(env.env.budget)):
+        for i in tqdm(range(env.env.budget), miniters=2):
             action = agent.predict(*state)
             state, reward, done, truncated, info = env.step(action.item())
             if done or truncated:

@@ -35,6 +35,10 @@ def kaiming_uniform_seeded(
 
 
 class SeededLinear(nn.Linear):
+    """
+    Replaces the default kaiming initialization with a seeded version of itself
+    """
+
     def __init__(self, model_rng, *args, **kwargs):
         self.model_rng = model_rng
         super().__init__(*args, **kwargs)
@@ -157,7 +161,8 @@ def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) 
                    n_classes
         elif model_type == "resnet18":
             from core.resnet import ResNet18
-            return ResNet18(num_classes=n_classes, in_channels=x_shape[0],
+            return ResNet18(model_rng=model_rng,
+                            num_classes=n_classes, in_channels=x_shape[0],
                             dropout=dropout,
                             add_head=add_head), \
                    n_classes if add_head else 512
@@ -192,7 +197,7 @@ def fit_and_evaluate(dataset:BaseDataset,
     test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512)
     all_accs = []
     early_stop = EarlyStopping(patience=40)
-    iterator = tqdm(range(max_epochs), disable=disable_progess_bar, dynamic_ncols=False)
+    iterator = tqdm(range(max_epochs), disable=disable_progess_bar, miniters=2)
     for e in iterator:
         model.train()
         for batch_x, batch_y in train_dataloader:
