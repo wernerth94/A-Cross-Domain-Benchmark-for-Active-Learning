@@ -20,11 +20,12 @@ dataset_embedded:
 
 classifier_embedded:
   type: Linear
+  dropout: 0.05
 
 optimizer_embedded:
-  type: NAdam
-  lr: 0.001
-  weight_decay: 0.0
+  type: Adam
+  lr: 0.00167934377193017
+  weight_decay: 1.0272188756302E-05
 
 # Pretext Task (SimCLR)
 pretext_encoder:
