@@ -13,7 +13,8 @@ all_names = [
     "dna",
     "usps",
     "fashion_mnist",
-    "cifar10"
+    "cifar10",
+    "TopV2"
 ]
 
 for name in all_names:
