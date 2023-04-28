@@ -20,6 +20,7 @@ all_names = [
 for name in all_names:
     print("##########################################")
     print(f"downloading {name}...")
+    name = name.lower()
     with open(f"configs/{name}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
     pool_rng = np.random.default_rng(1)
