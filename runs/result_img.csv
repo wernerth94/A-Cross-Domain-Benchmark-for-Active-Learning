@@ -1,0 +1,7 @@
+,Cifar10Encoded,FashionMnistEncoded
+Oracle,0.718 +- 0.01,0.721 +- 0.01
+SAL_23_01_16,0.660 +- 0.01,0.667 +- 0.01
+Coreset_Greedy,0.668 +- 0.01,0.674 +- 0.01
+MarginScore,0.674 +- 0.01,0.677 +- 0.01
+ShannonEntropy,0.671 +- 0.01,0.680 +- 0.01
+RandomAgent,0.632 +- 0.02,0.633 +- 0.01

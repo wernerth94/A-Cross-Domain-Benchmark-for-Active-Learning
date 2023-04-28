@@ -1,58 +1,13 @@
 from typing import Tuple
-import math
 import torch
 import torch.nn as nn
-from torch.nn.init import _calculate_fan_in_and_fan_out, calculate_gain, _calculate_correct_fan
 import torch.nn.functional as F
 from torch import Tensor
 from core.data import BaseDataset
 from torch.utils.data import TensorDataset, DataLoader
 from tqdm import tqdm
-
-def kaiming_uniform_seeded(
-    rng, tensor: torch.Tensor, a: float = 0, mode: str = 'fan_in', nonlinearity: str = 'leaky_relu'
-):
-
-    if torch.overrides.has_torch_function_variadic(tensor):
-        return torch.overrides.handle_torch_function(
-            kaiming_uniform_seeded,
-            (tensor,),
-            tensor=tensor,
-            a=a,
-            mode=mode,
-            nonlinearity=nonlinearity)
-
-    if 0 in tensor.shape:
-        print("Initializing zero-element tensors is a no-op")
-        return tensor
-    fan = _calculate_correct_fan(tensor, mode)
-    gain = calculate_gain(nonlinearity, a)
-    std = gain / math.sqrt(fan)
-    bound = math.sqrt(3.0) * std  # Calculate uniform bounds from standard deviation
-    with torch.no_grad():
-        return tensor.uniform_(-bound, bound, generator=rng)
-
-
-
-class SeededLinear(nn.Linear):
-    """
-    Replaces the default kaiming initialization with a seeded version of itself
-    """
-
-    def __init__(self, model_rng, *args, **kwargs):
-        self.model_rng = model_rng
-        super().__init__(*args, **kwargs)
-
-    def reset_parameters(self) -> None:
-        # Setting a=sqrt(5) in kaiming_uniform is the same as initializing with
-        # uniform(-1/sqrt(in_features), 1/sqrt(in_features)). For details, see
-        # https://github.com/pytorch/pytorch/issues/57109
-        kaiming_uniform_seeded(self.model_rng, self.weight, a=math.sqrt(5))
-        if self.bias is not None:
-            fan_in, _ = _calculate_fan_in_and_fan_out(self.weight)
-            bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
-            with torch.no_grad():
-                self.bias.uniform_(-bound, bound, generator=self.model_rng)
+from classifiers.seeded_layers import SeededLinear
+from classifiers.lstm import BiLSTMModel
 
 
 class LinearModel(nn.Module):
@@ -149,23 +104,26 @@ class ConvolutionalModel(nn.Module):
         return x
 
 
-def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) -> Tuple[nn.Module, int]:
+def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) -> Tuple[nn.Module, int, bool]:
         '''
         Constructs the model by name and additional parameters
         Returns model and its output dim
         '''
         model_type = model_config["type"].lower()
         dropout = model_config["dropout"] if "dropout" in model_config else None
+        retain_graph = False
         if model_type == "linear":
             return LinearModel(model_rng, x_shape[-1], n_classes, dropout), \
-                   n_classes
+                   n_classes, \
+                   retain_graph
         elif model_type == "resnet18":
-            from core.resnet import ResNet18
+            from classifiers.resnet import ResNet18
             return ResNet18(model_rng=model_rng,
                             num_classes=n_classes, in_channels=x_shape[0],
                             dropout=dropout,
                             add_head=add_head), \
-                   n_classes if add_head else 512
+                   n_classes if add_head else 512, \
+                   retain_graph
         elif model_type == "mlp":
             return DenseModel(model_rng,
                               input_size=x_shape[-1],
@@ -173,7 +131,17 @@ def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) 
                               hidden_sizes=model_config["hidden"],
                               dropout=dropout,
                               add_head=add_head), \
-                   n_classes if add_head else model_config["hidden"][-1]
+                   n_classes if add_head else model_config["hidden"][-1], \
+                   retain_graph
+        elif model_type == "bilstm":
+            model_config["retain_graph"] = True
+            retain_graph = True
+            return BiLSTMModel(model_rng,
+                               emb_dim=x_shape[-1],
+                               num_classes=n_classes,
+                               dropout=dropout), \
+                   n_classes if add_head else model_config["hidden"][-1], \
+                   retain_graph
         else:
             raise NotImplementedError
 
@@ -186,7 +154,7 @@ def fit_and_evaluate(dataset:BaseDataset,
 
     from core.helper_functions import EarlyStopping
     loss = nn.CrossEntropyLoss()
-    model = dataset.get_classifier(model_rng)
+    model, retain_graph = dataset.get_classifier(model_rng)
     model = model.to(dataset.device)
     optimizer = dataset.get_optimizer(model)
 
@@ -204,7 +172,7 @@ def fit_and_evaluate(dataset:BaseDataset,
             yHat = model(batch_x)
             loss_value = loss(yHat, batch_y)
             optimizer.zero_grad()
-            loss_value.backward()
+            loss_value.backward(retain_graph=retain_graph)
             optimizer.step()
         # early stopping on test
         model.eval()

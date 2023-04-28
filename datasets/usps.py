@@ -1,16 +1,11 @@
-from typing import Tuple, Union, Callable
 import os
 from os.path import exists
 import torch
-import torch.nn as nn
 from torch.utils.data import Dataset
 from torchvision import transforms
 from core.data import GaussianNoise, VectorToTensor
-import numpy as np
 from sklearn.datasets import load_svmlight_file
 from core.data import BaseDataset, VectorDataset, normalize, postprocess_svm_data
-from core.classifier import DenseModel
-from sim_clr.encoder import ContrastiveModel
 import requests
 import bz2
 
@@ -49,6 +44,7 @@ class USPS(BaseDataset):
             self.x_train, self.y_train, self.x_test, self.y_test = postprocess_svm_data(train, test,
                                                                                         target_to_one_hot=target_to_one_hot)
             self.x_train, self.x_test = normalize(self.x_train, self.x_test, mode="min_max")
+            self._convert_data_to_tensors()
             print("Download successful")
 
 

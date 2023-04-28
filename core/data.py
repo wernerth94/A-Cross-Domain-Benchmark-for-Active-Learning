@@ -4,7 +4,6 @@ import os
 from os.path import join, exists
 import numpy as np
 from tqdm import tqdm
-import yaml
 import torch
 import torch.nn as nn
 from torch import Tensor
@@ -67,6 +66,15 @@ class BaseDataset(ABC):
         self._create_validation_split()
         self._create_seed_set()
 
+
+    @classmethod
+    def inject_config(cls, config:dict):
+        """
+        This method can be used to change the dataset config.
+        I.e. add dropout to the classification model
+        """
+        pass
+
     @abstractmethod
     def _download_data(self, target_to_one_hot=True):
         """
@@ -98,7 +106,6 @@ class BaseDataset(ABC):
             assert hasattr(self, "y_train")
             assert hasattr(self, "x_test")
             assert hasattr(self, "y_test")
-            self._convert_data_to_tensors()
             self._save_data()
 
         # encode if neccessary
@@ -148,20 +155,20 @@ class BaseDataset(ABC):
                    dataset["x_test"], dataset["y_test"]
         return None
 
-    def get_classifier(self, model_rng) -> Module:
-        from core.classifier import construct_model
+    def get_classifier(self, model_rng) -> Tuple[Module, bool]:
+        from classifiers.classifier import construct_model
         if self.encoded:
-            model, _ = construct_model(model_rng, self.x_shape, self.n_classes, self.config["classifier_embedded"])
+            model, _, retain_graph = construct_model(model_rng, self.x_shape, self.n_classes, self.config["classifier_embedded"])
         else:
-            model, _ = construct_model(model_rng, self.x_shape, self.n_classes, self.config["classifier"])
-        return model
+            model, _, retain_graph = construct_model(model_rng, self.x_shape, self.n_classes, self.config["classifier"])
+        return model, retain_graph
 
     def get_pretext_encoder(self, config: dict, seed=1) -> nn.Module:
         from sim_clr.encoder import ContrastiveModel
-        from core.classifier import construct_model
+        from classifiers.classifier import construct_model
         model_rng = torch.Generator()
         model_rng.manual_seed(seed)
-        backbone, out_dim = construct_model(model_rng, self.x_shape, self.n_classes, config["pretext_encoder"], add_head=False)
+        backbone, out_dim, retain_graph = construct_model(model_rng, self.x_shape, self.n_classes, config["pretext_encoder"], add_head=False)
         config["pretext_encoder"]["encoder_dim"] = out_dim
         model = ContrastiveModel({'backbone': backbone, 'dim': config["pretext_encoder"]["encoder_dim"]},
                                  head="mlp", features_dim=config["pretext_encoder"]["feature_dim"])

@@ -138,6 +138,9 @@ def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
         return datasets.Cifar10
     elif name == "fashion_mnist":
         return datasets.FashionMnist
+    # Text
+    elif name == "topv2":
+        return datasets.TopV2
     # Toy
     elif name == 'toydata':
         return datasets.ToyData1

@@ -13,8 +13,8 @@ parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--agent", type=str, default="entropy")
-parser.add_argument("--dataset", type=str, default="dna")
+parser.add_argument("--agent", type=str, default="margin")
+parser.add_argument("--dataset", type=str, default="topv2")
 parser.add_argument("--encoded", type=int, default=0)
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=10)
@@ -45,6 +45,7 @@ while run_id < max_run_id:
 
     # Inject additional configuration into the dataset config (See BALD agent)
     AgentClass.inject_config(config)
+    DatasetClass.inject_config(config)
 
     dataset = DatasetClass(args.data_folder, config, pool_rng, args.encoded)
     dataset = dataset.to(util.device)

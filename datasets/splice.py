@@ -38,6 +38,7 @@ class Splice(BaseDataset):
             self.x_train, self.y_train, self.x_test, self.y_test = postprocess_svm_data(train, test,
                                                                                         target_to_one_hot=target_to_one_hot)
             self.x_train, self.x_test = normalize(self.x_train, self.x_test, mode="min_max")
+            self._convert_data_to_tensors()
             print("Download successful")
 
     def load_pretext_data(self)->tuple[Dataset, Dataset]:

@@ -1,7 +1,7 @@
 import yaml
 import experiment_util as util
 import argparse
-from core.classifier import fit_and_evaluate
+from classifiers.classifier import fit_and_evaluate
 from core.helper_functions import *
 
 parser = argparse.ArgumentParser()

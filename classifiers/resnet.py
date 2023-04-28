@@ -4,34 +4,9 @@ Reference:
 [1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
     Deep Residual Learning for Image Recognition. arXiv:1512.03385
 '''
-import math
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.init import _calculate_fan_in_and_fan_out
-from core.classifier import kaiming_uniform_seeded, SeededLinear
-
-class SeededConv2d(nn.Conv2d):
-    """
-    Replaces the default kaiming initialization with a seeded version of itself
-    """
-
-    def __init__(self, model_rng, *args, **kwargs):
-        self.model_rng = model_rng
-        super().__init__(*args, **kwargs)
-
-    def reset_parameters(self) -> None:
-        # Setting a=sqrt(5) in kaiming_uniform is the same as initializing with
-        # uniform(-1/sqrt(k), 1/sqrt(k)), where k = weight.size(1) * prod(*kernel_size)
-        # For more details see: https://github.com/pytorch/pytorch/issues/15314#issuecomment-477448573
-        kaiming_uniform_seeded(self.model_rng, self.weight, a=math.sqrt(5))
-        if self.bias is not None:
-            fan_in, _ = _calculate_fan_in_and_fan_out(self.weight)
-            if fan_in != 0:
-                bound = 1 / math.sqrt(fan_in)
-                self.bias.uniform_(-bound, bound, generator=self.model_rng)
-                # init.uniform_(self.bias, -bound, bound)
-
+from classifiers.seeded_layers import SeededLinear, SeededConv2d
 
 class BasicBlock(nn.Module):
     expansion = 1

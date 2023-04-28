@@ -7,5 +7,8 @@ from datasets.usps import USPS
 from datasets.cifar10 import Cifar10
 from datasets.fashion_mnist import FashionMnist
 
+# Text Datasets
+from datasets.topv2 import TopV2
+
 # Toy Datasets
 from datasets.toydata1 import ToyData1

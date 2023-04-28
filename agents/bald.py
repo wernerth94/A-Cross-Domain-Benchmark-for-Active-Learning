@@ -1,11 +1,10 @@
 from typing import Union
-import numpy as np
 import torch
 from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
 from core.agent import BaseAgent
-from core.classifier import construct_model
+
 
 class BALD(BaseAgent):
 

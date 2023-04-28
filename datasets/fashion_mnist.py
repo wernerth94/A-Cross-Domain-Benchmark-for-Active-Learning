@@ -1,11 +1,7 @@
-from typing import Tuple
 import torch
-import torch.nn as nn
 from torch.utils.data import Dataset
 import torchvision
 from torchvision import transforms
-from core.resnet import ResNet18
-from sim_clr.encoder import ContrastiveModel
 from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel_first, subsample_data
 
 class FashionMnist(BaseDataset):
@@ -30,6 +26,7 @@ class FashionMnist(BaseDataset):
         high = 255.0
         self.x_train = self.x_train / (high / 2.0) - 1.0
         self.x_test = self.x_test / (high / 2.0) - 1.0
+        self._convert_data_to_tensors()
         print("Download successful")
 
 

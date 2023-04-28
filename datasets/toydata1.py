@@ -1,15 +1,7 @@
-from typing import Tuple, Union, Callable
-import os
-from os.path import exists
-import torch
-import torch.nn as nn
+from typing import Tuple, Union
 import numpy as np
-import pandas as pd
-from sklearn.datasets import load_svmlight_file
-from sklearn.model_selection import train_test_split
-from core.data import BaseDataset, normalize, postprocess_svm_data
-from core.classifier import DenseModel
-import requests
+from core.data import BaseDataset
+
 
 class ToyData1(BaseDataset):
 
