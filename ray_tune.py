@@ -8,8 +8,8 @@ from raytune import pretext_encoder, embedded_classification, classification
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument('--dataset', type=str, default="cifar10")
-parser.add_argument('--task', type=str, default="embedded_classification")
+parser.add_argument('--dataset', type=str, default="topv2")
+parser.add_argument('--task', type=str, default="classification")
 parser.add_argument('--num_trials', type=int, default=20)
 parser.add_argument('--max_conc_trials', type=int, default=12)
 

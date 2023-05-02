@@ -104,26 +104,23 @@ class ConvolutionalModel(nn.Module):
         return x
 
 
-def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) -> Tuple[nn.Module, int, bool]:
+def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) -> Tuple[nn.Module, int]:
         '''
         Constructs the model by name and additional parameters
         Returns model and its output dim
         '''
         model_type = model_config["type"].lower()
         dropout = model_config["dropout"] if "dropout" in model_config else None
-        retain_graph = False
         if model_type == "linear":
             return LinearModel(model_rng, x_shape[-1], n_classes, dropout), \
-                   n_classes, \
-                   retain_graph
+                   n_classes
         elif model_type == "resnet18":
             from classifiers.resnet import ResNet18
             return ResNet18(model_rng=model_rng,
                             num_classes=n_classes, in_channels=x_shape[0],
                             dropout=dropout,
                             add_head=add_head), \
-                   n_classes if add_head else 512, \
-                   retain_graph
+                   n_classes if add_head else 512
         elif model_type == "mlp":
             return DenseModel(model_rng,
                               input_size=x_shape[-1],
@@ -131,17 +128,14 @@ def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) 
                               hidden_sizes=model_config["hidden"],
                               dropout=dropout,
                               add_head=add_head), \
-                   n_classes if add_head else model_config["hidden"][-1], \
-                   retain_graph
+                   n_classes if add_head else model_config["hidden"][-1]
         elif model_type == "bilstm":
             model_config["retain_graph"] = True
-            retain_graph = True
             return BiLSTMModel(model_rng,
                                emb_dim=x_shape[-1],
                                num_classes=n_classes,
                                dropout=dropout), \
-                   n_classes if add_head else model_config["hidden"][-1], \
-                   retain_graph
+                   n_classes if add_head else model_config["hidden"][-1]
         else:
             raise NotImplementedError
 
@@ -154,7 +148,7 @@ def fit_and_evaluate(dataset:BaseDataset,
 
     from core.helper_functions import EarlyStopping
     loss = nn.CrossEntropyLoss()
-    model, retain_graph = dataset.get_classifier(model_rng)
+    model = dataset.get_classifier(model_rng)
     model = model.to(dataset.device)
     optimizer = dataset.get_optimizer(model)
 

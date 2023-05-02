@@ -119,6 +119,6 @@ if __name__ == '__main__':
     with open(f"../configs/topv2.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
     dataset = TopV2("../../datasets", config, np.random.default_rng(0), encoded=False)
-    model, retain_graph = dataset.get_classifier(model_rng=torch.Generator())
+    model = dataset.get_classifier(model_rng=torch.Generator())
     test_point = dataset.x_train[0].unsqueeze(0)
     model(test_point)

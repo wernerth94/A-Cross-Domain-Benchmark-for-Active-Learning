@@ -50,7 +50,7 @@ class ALGame(gym.Env):
         with torch.no_grad():
             self.n_interactions = 0
             self.added_images = 0
-            self.classifier, self.retain_graph = self.dataset.get_classifier(self.model_rng)
+            self.classifier = self.dataset.get_classifier(self.model_rng)
             # classifier.custom_init(self.classifier, self.model_rng)
             self.classifier.to(self.device)
             self.initial_weights = self.classifier.state_dict()
@@ -115,10 +115,7 @@ class ALGame(gym.Env):
         lastLoss = torch.inf
         for e in range(epochs):
             self.classifier.train()
-            # self.classifier.zero_grad()
             for i, (batch_x, batch_y) in enumerate(train_dataloader):
-                # if self.retain_graph:
-                #   self.classifier.zero_grad()
                 self.optimizer.zero_grad()
                 yHat = self.classifier(batch_x)
                 loss_value = self.loss(yHat, batch_y)

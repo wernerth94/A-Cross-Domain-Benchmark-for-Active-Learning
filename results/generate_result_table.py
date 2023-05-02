@@ -3,14 +3,10 @@ from os.path import exists, join
 import pandas as pd
 import numpy as np
 
-agents = ["Oracle", "SAL_23_01_16", "Coreset_Greedy", "MarginScore", "ShannonEntropy", "RandomAgent"]
-vector_data = ["Splice", "DNA", "USPS"]
-img_data = ["Cifar10Encoded", "FashionMnistEncoded"]
-
 def generate_table(agents, datasets, out_file):
     result_table = pd.DataFrame(index=agents, columns=datasets)
     for dataset in datasets:
-        dataset_folder = os.path.join("runs", dataset)
+        dataset_folder = os.path.join("../runs", dataset)
         if not os.path.isdir(dataset_folder):
             continue
         agent_aucs = dict()
@@ -28,10 +24,15 @@ def generate_table(agents, datasets, out_file):
                     result_table[dataset][agent] = "%1.3f +- %1.2f"%(np.mean(auc).item(), np.std(auc).item())
 
     if len(result_table) > 0:
-        result_table_file = os.path.join("runs", out_file)
+        result_table_file = os.path.join("../runs", out_file)
         if os.path.exists(result_table_file):
             os.remove(result_table_file)
         result_table.to_csv(result_table_file)
+
+
+agents = ["Oracle", "SAL_23_01_16", "Coreset_Greedy", "MarginScore", "ShannonEntropy", "RandomAgent"]
+vector_data = ["Splice", "DNA", "USPS"]
+img_data = ["Cifar10Encoded", "FashionMnistEncoded"]
 
 generate_table(agents, vector_data, "result_vector.csv")
 generate_table(agents, img_data, "result_img.csv")

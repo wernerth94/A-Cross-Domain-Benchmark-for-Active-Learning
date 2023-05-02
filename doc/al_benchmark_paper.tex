@@ -16,7 +16,9 @@
 \maketitle
 
 \section{Introduction}
-
+Among others, the authors of \cite{zhou2021towards} have pointed out severe inconsistencies in results of AL papers in recent years. 
+In their supplementary materials they conducted a meta analysis of reported results of several different AL algorithms and found that all considered algorithms only provided significant lifts in their own original papers, while all following literature reported performances no better that uncertainty sampling, or in some cases no better than random sampling for the same algorithm.
+The result of these inconsistencies is a chaotic landscape of AL algorithms where every paper claims to archive state-of-the-art results by significantly outperforming everyone else, while the vast majority of results proves to be non-reproducible.
 
 \subsection{Contribution}
 
@@ -239,6 +241,21 @@ This score does incorporate performance in early stages (low budget) as well as 
 A good AL algorithm should be able to perform well in both scenarios. \\
 {\color{red} TODO}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Oracle}\label{sec:oracle}
+{\color{red} Version: 1.0}\\
+Posing active learning as a sequence ordering problem, the oracle sequence for a given combination of dataset, model and training procedure would be the sequence that induces the highest AUC score for a given budget.
+However, since this combinatorial problem is not solvable for realistic datasets, previous works have proposed approximations to this oracle sequence.
+\cite{zhou2021towards} has used simulated annealing to search for the best sequence and used the best found solution after a fixed time budget. 
+Even though the reported performance curves display a significant lift over all other algorithms, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs). \\
+In this paper we propose a greedy oracle algorithm the constructs an approximation of the optimal sequence in an iterative fashion.
+Our oracle simply tests every data point in the provided sample of unlabeled points by fitting the classifier and directly measuring the resulting validation performance.
+The point with the best validation performance is selected and added to the labeled pool for that iteration.
+We noticed that this oracle is overfitting on the validation set, resulting in stagnating or even decreasing performance curves in later AL iterations.
+To circumvent this problem, we introduced margin sampling as a fallback option for the oracle.
+Whenever the oracle does not find an unlabeled point that results in an increase in performance (indicating an overfitting position), it defaults to margin sampling in that iteration.
+The pseudocode for our oracle can be found in Alg. \ref{alg:oracle}.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -305,12 +322,12 @@ The early stopping has patience 0, so it will stop as soon as the validation los
 	\begin{tabular}{l|lll}
 		& Splice        & DNA           & USPS          \\
 		\hline
-		Oracle          & 0.835 +- 0.01 & 0.879 +- 0.01 & 0.870 +- 0.01 \\
-		SAL\_23\_01\_16 & 0.808 +- 0.01 & 0.857 +- 0.02 & 0.865 +- 0.01 \\
-		Coreset\_Greedy & 0.808 +- 0.01 & 0.853 +- 0.02 & 0.849 +- 0.01 \\
-		MarginScore     & 0.806 +- 0.01 & 0.855 +- 0.02 & 0.864 +- 0.01 \\
-		ShannonEntropy  & 0.808 +- 0.01 & 0.855 +- 0.02 & 0.864 +- 0.01 \\
-		RandomAgent     & 0.797 +- 0.01 & 0.823 +- 0.02 & 0.831 +- 0.01
+		Oracle          & 0.835 $\pm$ 0.01 & 0.879 $\pm$ 0.01 & 0.870 $\pm$ 0.01 \\
+		SAL\_23\_01\_16 & 0.808 $\pm$ 0.01 & 0.857 $\pm$ 0.02 & 0.865 $\pm$ 0.01 \\
+		Coreset\_Greedy & 0.808 $\pm$ 0.01 & 0.853 $\pm$ 0.02 & 0.849 $\pm$ 0.01 \\
+		MarginScore     & 0.806 $\pm$ 0.01 & 0.855 $\pm$ 0.02 & 0.864 $\pm$ 0.01 \\
+		ShannonEntropy  & 0.808 $\pm$ 0.01 & 0.855 $\pm$ 0.02 & 0.864 $\pm$ 0.01 \\
+		RandomAgent     & 0.797 $\pm$ 0.01 & 0.823 $\pm$ 0.02 & 0.831 $\pm$ 0.01
 	\end{tabular}
 \end{table}
 %
@@ -318,12 +335,12 @@ The early stopping has patience 0, so it will stop as soon as the validation los
 	\begin{tabular}{l|ll}
 		& Cifar10 & FashionMnist \\
 		\hline
-		Oracle          & 0.718 +- 0.01  & 0.721 +- 0.01       \\
-		SAL\_23\_01\_16 & 0.660 +- 0.01  & 0.667 +- 0.01       \\
-		Coreset\_Greedy & 0.668 +- 0.01  & 0.674 +- 0.01       \\
-		MarginScore     & 0.674 +- 0.01  & 0.677 +- 0.01       \\
-		ShannonEntropy  & 0.671 +- 0.01  & 0.680 +- 0.01       \\
-		RandomAgent     & 0.632 +- 0.02  & 0.633 +- 0.01      
+		Oracle          & 0.718 $\pm$ 0.01  & 0.721 $\pm$ 0.01       \\
+		SAL\_23\_01\_16 & 0.660 $\pm$ 0.01  & 0.667 $\pm$ 0.01       \\
+		Coreset\_Greedy & 0.668 $\pm$ 0.01  & 0.674 $\pm$ 0.01       \\
+		MarginScore     & 0.674 $\pm$ 0.01  & 0.677 $\pm$ 0.01       \\
+		ShannonEntropy  & 0.671 $\pm$ 0.01  & 0.680 $\pm$ 0.01       \\
+		RandomAgent     & 0.632 $\pm$ 0.02  & 0.633 $\pm$ 0.01      
 	\end{tabular}
 \end{table}
 %
