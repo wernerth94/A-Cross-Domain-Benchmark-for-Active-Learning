@@ -3,6 +3,7 @@ from functools import partial
 from datetime import datetime
 import numpy as np
 import yaml
+from tqdm import tqdm
 from ray import tune
 import torch
 import torch.nn as nn
@@ -46,7 +47,7 @@ def evaluate_classification_config(raytune_config, DatasetClass, config_file, ca
 
         # early_stop = EarlyStopping(patience=40)
         MAX_EPOCHS = 50
-        for e in range(MAX_EPOCHS):
+        for e in tqdm(range(MAX_EPOCHS), miniters=1):
             for batch_x, batch_y in train_dataloader:
                 yHat = model(batch_x)
                 loss_value = loss(yHat, batch_y)

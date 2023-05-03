@@ -130,7 +130,6 @@ def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) 
                               add_head=add_head), \
                    n_classes if add_head else model_config["hidden"][-1]
         elif model_type == "bilstm":
-            model_config["retain_graph"] = True
             return BiLSTMModel(model_rng,
                                emb_dim=x_shape[-1],
                                num_classes=n_classes,
@@ -166,7 +165,7 @@ def fit_and_evaluate(dataset:BaseDataset,
             yHat = model(batch_x)
             loss_value = loss(yHat, batch_y)
             optimizer.zero_grad()
-            loss_value.backward(retain_graph=retain_graph)
+            loss_value.backward()
             optimizer.step()
         # early stopping on test
         model.eval()
