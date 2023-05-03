@@ -25,7 +25,7 @@ def evaluate_classification_config(raytune_config, DatasetClass, config_file, ca
 
     loss_sum = 0.0
     acc_sum = 0.0
-    restarts = 3
+    restarts = 2
     for i in range(restarts):
         pool_rng = np.random.default_rng(1)
         model_rng = torch.Generator()
