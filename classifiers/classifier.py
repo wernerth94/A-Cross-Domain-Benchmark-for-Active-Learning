@@ -147,7 +147,8 @@ def construct_model(model_rng, dataset:BaseDataset, model_config:dict, add_head=
 def fit_and_evaluate(dataset:BaseDataset,
                      model_rng,
                      disable_progess_bar:bool=False,
-                     max_epochs:int=4000):
+                     max_epochs:int=4000,
+                     patience:int=40):
 
     from core.helper_functions import EarlyStopping
     loss = nn.CrossEntropyLoss()
@@ -161,7 +162,7 @@ def fit_and_evaluate(dataset:BaseDataset,
     val_dataloader = DataLoader(TensorDataset(dataset.x_val, dataset.y_val), batch_size=512)
     test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512)
     all_accs = []
-    early_stop = EarlyStopping(patience=40)
+    early_stop = EarlyStopping(patience=patience)
     iterator = tqdm(range(max_epochs), disable=disable_progess_bar, miniters=2)
     for e in iterator:
         model.train()

@@ -11,6 +11,7 @@ parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--dataset", type=str, default="news")
 parser.add_argument("--encoded", type=int, default=0)
 parser.add_argument("--restarts", type=int, default=5)
+parser.add_argument("--patience", type=int, default=5)
 args = parser.parse_args()
 args.encoded = bool(args.encoded)
 
@@ -37,7 +38,7 @@ while run_id < max_run_id:
 
     # some convoluted saving to make it compatible with collect_results
     # and to be consistent with logging of other runs
-    accuracies = [fit_and_evaluate(dataset, model_rng)]
+    accuracies = [fit_and_evaluate(dataset, model_rng, patience=args.patience)]
     data_dict = {}
     for k, v in enumerate(accuracies):
         data_dict[k] = [v[-1]]

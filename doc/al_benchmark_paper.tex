@@ -196,18 +196,6 @@ This process is repeated $B$ times $i := [1 \ldots B]$.
 \end{algorithm}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Datasets}
-{\color{red} Version: 1.0}\\
-In this work we use 4 different datasets from two domains.
-For vector data, we use DNA and Splice (Source: \cite{libsvmtools}) and for image data we use FashionMNIST \cite{xiao2017fashion} and Cifar10 \cite{krizhevsky2009learning}. \\
-We would like to point out that these datasets can be considered "toy-datasets" and therefore not relevant for practical purposes.
-This might be true if we aimed to develop novel classification models on these dataset, however we are solely focused on comparing different AL algorithms in this paper.
-Our core assumption is that a well-performing algorithm in our benchmark will transfer well into more practical use-cases. \\ [1mm]
-Adapting the experimental setting from \cite{hacohen2022active} we offer all our datasets in the raw setting as well as pre-encoded by a fixed embedding model that was trained in an unsupervised manner. 
-The pre-encoded datasets offer multiple advantages in that they require smaller classification models (i.e. small MLPs) and in general much less sampled datapoints to archive close to upper bound performance (measured with the full dataset).
-They unify experimental setups for different datasets and therefore make them much more comparable.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Methodology}
@@ -316,11 +304,35 @@ The early stopping has patience 0, so it will stop as soon as the validation los
 \section{Experiments}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Datasets}
+\subsection{Datasets}\label{sec:datasets}
+{\color{red} Version: 1.0}\\
+For all our datasets we use the pre-defined train / test splits, if given. 
+In the remaining cases, we define test sets upfront and store them into separate files to keep them fixed across all experiments.
+The validation set is split during experiment-time and depends on the dataset-seed.
 
-\paragraph{News Category}
-Top 15 categories by count as indicated by Kaggle site \\
-Dropped sentences above 80 words to reduce padding (retaining 99,86\% of the data)
+\paragraph{Tabular}
+We use \textbf{Splice}, \textbf{DNA} and \textbf{USPS} from LibSVMTools \cite{libsvmtools}.
+All three datasets are normalized between [0, 1].
+
+\paragraph{Image}
+We use \textbf{FashionMNIST} \cite{xiao2017fashion} and \textbf{Cifar10} \cite{krizhevsky2009learning}.
+Both datasets are normalized between [-1, 1].
+
+\paragraph{Text}
+We use \textbf{News Category} \cite{misra2022news} and \textbf{TopV2} \cite{chen-etal-2020-low-resource}.
+For News Category we use  the 15 most common categories as indicated by its Kaggle site.
+We additionally drop sentences above 80 words to reduce the necessary padding (retaining 99,86\% of the data).
+For TopV2, we are only using the "alarm" domain.
+Both datasets are encoded with pre-trained GloVe embeddings \cite{pennington2014glove}.
+Since neither set provided a fixed test set, we split random 5000 datapoints into a test set. \\ [3mm]
+%
+We would like to point out that these datasets can be considered "toy-datasets" and therefore not relevant for practical purposes.
+This might be true if we aimed to develop novel classification models on these datasets, however we are solely focused on comparing different AL algorithms in this paper.
+Our core assumption is that a well-performing algorithm in our benchmark will transfer well into more practical use-cases. \\ [1mm]
+Adapting the experimental setting from \cite{hacohen2022active} we offer all our datasets in the raw setting as well as pre-encoded by a fixed embedding model that was trained by unsupervised contrastive learning. 
+The text datasets are an exception, as they are only offered in their encoded form.
+The pre-encoded datasets offer multiple advantages in that they require smaller classification models (i.e. small MLPs) and in general much less sampled datapoints to archive close to upper bound performance (measured with the full dataset).
+They unify experimental setups for different datasets and therefore make them much more comparable.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Splice Embedded}
