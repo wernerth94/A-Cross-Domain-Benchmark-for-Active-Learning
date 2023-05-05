@@ -141,6 +141,8 @@ def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
     # Text
     elif name == "topv2":
         return datasets.TopV2
+    elif name == "news":
+        return datasets.News
     # Toy
     elif name == 'toydata':
         return datasets.ToyData1

@@ -158,9 +158,9 @@ class BaseDataset(ABC):
     def get_classifier(self, model_rng) -> Module:
         from classifiers.classifier import construct_model
         if self.encoded:
-            model, _= construct_model(model_rng, self.x_shape, self.n_classes, self.config["classifier_embedded"])
+            model, _= construct_model(model_rng, self, self.config["classifier_embedded"])
         else:
-            model, _ = construct_model(model_rng, self.x_shape, self.n_classes, self.config["classifier"])
+            model, _ = construct_model(model_rng, self, self.config["classifier"])
         return model
 
     def get_pretext_encoder(self, config: dict, seed=1) -> nn.Module:
@@ -357,6 +357,11 @@ def convert_to_channel_first(train: Union[Tensor, np.ndarray], test: Union[Tenso
         test = test.permute(0, 3, 1, 2)
     return train, test
 
+
+def to_one_hot(labels:np.ndarray)->np.ndarray:
+    one_hot = np.zeros((len(labels), labels.max() + 1))
+    one_hot[np.arange(len(labels)), labels] = 1
+    return one_hot
 
 def postprocess_torch_dataset(train, test) -> Tuple:
     x_train, y_train = train.data, np.array(train.targets)

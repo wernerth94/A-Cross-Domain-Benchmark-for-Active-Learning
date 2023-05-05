@@ -104,11 +104,13 @@ class ConvolutionalModel(nn.Module):
         return x
 
 
-def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) -> Tuple[nn.Module, int]:
+def construct_model(model_rng, dataset:BaseDataset, model_config:dict, add_head=True) -> Tuple[nn.Module, int]:
         '''
         Constructs the model by name and additional parameters
         Returns model and its output dim
         '''
+        x_shape = dataset.x_shape
+        n_classes = dataset.n_classes
         model_type = model_config["type"].lower()
         dropout = model_config["dropout"] if "dropout" in model_config else None
         if model_type == "linear":
@@ -130,8 +132,10 @@ def construct_model(model_rng, x_shape, n_classes, model_config, add_head=True) 
                               add_head=add_head), \
                    n_classes if add_head else model_config["hidden"][-1]
         elif model_type == "bilstm":
+            assert hasattr(dataset, "embedding_data_file"), "Dataset is missing the embedding file. This is specific to text datasets."
+            embedding_data = torch.load(dataset.embedding_data_file)
             return BiLSTMModel(model_rng,
-                               emb_dim=x_shape[-1],
+                               embedding_data=embedding_data,
                                num_classes=n_classes,
                                dropout=dropout), \
                    n_classes if add_head else model_config["hidden"][-1]

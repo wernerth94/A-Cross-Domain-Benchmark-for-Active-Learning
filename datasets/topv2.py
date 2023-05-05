@@ -6,7 +6,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pack_padded_sequence
 from torchvision import transforms
-from core.data import BaseDataset, VectorDataset, normalize, postprocess_svm_data
+from core.data import BaseDataset
 import requests, zipfile
 import pickle
 import nltk
@@ -91,8 +91,8 @@ class TopV2(BaseDataset):
             embs = word_embs
             list_of_embeddings.append(embs)
         embeddings_batch = torch.stack(list_of_embeddings, dim=0)
-        embeddings_pack = pack_padded_sequence(embeddings_batch, torch.tensor(lens),
-                                               batch_first=True, enforce_sorted=False)
+        # embeddings_pack = pack_padded_sequence(embeddings_batch, torch.tensor(lens),
+        #                                        batch_first=True, enforce_sorted=False)
 
         return embeddings_batch
 

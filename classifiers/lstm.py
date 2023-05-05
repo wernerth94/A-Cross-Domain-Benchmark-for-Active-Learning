@@ -2,28 +2,39 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 import torch.nn.functional as F
+from classifiers.seeded_layers import SeededEmbedding, SeededLinear, SeededLSTM
 
 class BiLSTMModel(nn.Module):
-    def __init__(self, model_rng, emb_dim, num_classes, dropout=None):
+    def __init__(self, model_rng, embedding_data:torch.Tensor, num_classes, dropout=None):
         '''
         BiLSTM model for top-level intent classification
-        tokenize_func takes a sentence string and returns a list of tokens for each word in the sentence,
-        as well as the list of tokenized words. unknown word is given the token value == num-tokens
         '''
         super(BiLSTMModel, self).__init__()
         self.dropout = dropout
-        self.model_rng = model_rng # TODO
-        self.lstm = nn.LSTM(input_size=emb_dim, hidden_size=emb_dim,
-                            batch_first=True, bidirectional=True)
-        self.output = nn.Linear(emb_dim * 2, num_classes)
+        self.model_rng = model_rng
+        num_emb, emb_dim = embedding_data.size()
+        self.pad_idx = num_emb - 1
+        self.emb_dim = emb_dim
+        self.word_embedding = SeededEmbedding.from_pretrained(model_rng,
+                                                              embedding_data, freeze=True,
+                                                              padding_idx=self.pad_idx)
+
+        self.lstm = SeededLSTM(model_rng,
+                               input_size=emb_dim, hidden_size=emb_dim,
+                               batch_first=True, bidirectional=True)
+        self.output = SeededLinear(model_rng, emb_dim * 2, num_classes)
 
 
     def forward(self, x):
         device = next(self.parameters()).device
         # Count non-zero embeddings
         with torch.no_grad():
-            lens = (x.sum(dim=-1) != 0).sum(dim=-1).to(device)
-        embeddings_pack = pack_padded_sequence(x, torch.tensor(lens),
+            num_of_pad = (x == self.pad_idx).int().sum(dim=-1)
+            lens = torch.ones(len(x)) * x.size(-1)
+            lens -= num_of_pad
+            lens = lens.to(device)
+        x = self.word_embedding(x)
+        embeddings_pack = pack_padded_sequence(x, lens,
                                                batch_first=True, enforce_sorted=False)
         lstm_hidden_pack, (hidden, _) = self.lstm(embeddings_pack)
 
