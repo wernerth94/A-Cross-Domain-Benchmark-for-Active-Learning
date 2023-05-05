@@ -6,8 +6,9 @@
 - torchvision
 - matplotlib
 - Pandas
-- sklearn
+- scikit-learn
 - faiss-cpu
+- nltk
 - ray\[tune\] (Optional)
 
 ## Quick Start
