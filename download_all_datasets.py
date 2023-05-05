@@ -14,7 +14,8 @@ all_names = [
     "usps",
     "fashion_mnist",
     "cifar10",
-    "TopV2"
+    "TopV2",
+    "News"
 ]
 
 for name in all_names:
