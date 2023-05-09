@@ -7,11 +7,12 @@ dataset:
 
 classifier:
   type: BiLSTM
+  dropout: 0.05
 
 optimizer:
   type: NAdam
-  lr: 0.01
-  weight_decay: 0.0
+  lr: 0.00155412888113029
+  weight_decay: 1.77805840656653E-07
 
 dataset_embedded:
   encoder_checkpoint: "Not supported"
