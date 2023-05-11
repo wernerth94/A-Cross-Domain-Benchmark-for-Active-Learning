@@ -164,5 +164,7 @@ def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
         return agents.BALD
     elif name == "sal":
         return agents.SAL
+    elif name == "typiclust":
+        return agents.TypiClust
     else:
         raise ValueError(f"Agent name '{name}' not recognized")

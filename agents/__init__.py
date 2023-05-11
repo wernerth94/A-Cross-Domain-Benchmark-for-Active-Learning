@@ -4,3 +4,4 @@ from agents.random_agent import RandomAgent
 from agents.sal import SAL
 from agents.shannon_entropy import ShannonEntropy
 from agents.bald import BALD
+from agents.typiclust import TypiClust

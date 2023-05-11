@@ -113,8 +113,8 @@ class SAL(BaseAgent):
     Top-Level Shell for the framework
     """
 
-    def __init__(self, agent_rng, config, file="sar_23_01_16.pth", device=None):
-        super().__init__(agent_rng, config)
+    def __init__(self, agent_seed, config, file="sar_23_01_16.pth", device=None):
+        super().__init__(agent_seed, config)
         self.name += '_23_01_16'
 
         if device == None:
@@ -167,15 +167,17 @@ class SAL(BaseAgent):
         return state.cpu()
 
 
-    def predict(self, state_ids: list[int],
-                      x_unlabeled: Tensor,
+    def predict(self, x_unlabeled: Tensor,
                       x_labeled: Tensor, y_labeled: Tensor,
                       per_class_instances: dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier: Module, optimizer: Optimizer) -> Union[Tensor, dict]:
+                      classifier: Module, optimizer: Optimizer,
+                      sample_size=100) -> Union[Tensor, dict]:
 
         with torch.no_grad():
+            replacement_needed = len(x_unlabeled) < sample_size
+            state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=replacement_needed)
             sample_x = x_unlabeled[state_ids]
             sample_features = self._get_sample_features(sample_x, classifier, y_labeled.shape[1])
             interal_features = self._get_internal_features(initial_test_acc, current_test_acc, added_images, budget)
@@ -187,7 +189,7 @@ class SAL(BaseAgent):
                 "info": Batch(),
             })
             result = self.agent(data)
-        return torch.from_numpy(result.act)
+        return state_ids[torch.from_numpy(result.act)]
 
     def get_meta_data(self)->str:
         s = super().get_meta_data()

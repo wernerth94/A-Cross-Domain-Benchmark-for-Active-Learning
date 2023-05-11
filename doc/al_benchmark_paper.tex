@@ -59,13 +59,13 @@ Table \ref{tab:benchmark_comparison} shows a feature comparison between our prop
 	\label{tab:benchmark_comparison}
 \end{table}
 
-Manual NIPS Benchmark paper eval (out of 6):
-\begin{itemize}
-	\item Has new method: 1
-	\item Multiple domains: 2
-	\item $> 5$ datasets: 3
-	\item $> 5$ baselines: 4
-\end{itemize}
+%Manual NIPS Benchmark paper eval (out of 6):
+%\begin{itemize}
+%	\item Has new method: 1
+%	\item Multiple domains: 2
+%	\item $> 5$ datasets: 3
+%	\item $> 5$ baselines: 4
+%\end{itemize}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -94,8 +94,7 @@ called acquisition function, s.t. the expected loss of a model learned on all pr
 	\quad b\in 1{:}B
 \end{align*}
 (\textit{We would need to switch from lowest expected loss to highest AUC}) \\
-Since combinatorial problem of finding the optimal subset $\mathcal{D}_\text{train}$ is computational not feasible, we apply two relaxations to the problem. 
-Firstly, we allow sequential construction of $\mathcal{D}_\text{train}$ and secondly, we limit the choice of data points in every iteration to a random sample of size $\tau$. \\ [2mm]
+Since combinatorial problem of finding the optimal subset $\mathcal{D}_\text{train}$ is computational not feasible, we allow sequential construction of $\mathcal{D}_\text{train}$. \\ [2mm]
 %
 To construct the active learning setting, we suppress the labels $\mathcal{Y}$ of $\mathcal{D}_\text{train}$ to form the unlabeled pool $\mathcal{U} := \mathcal{X}^*$ and form and initial labeled pool by uniformly sampling $k$ number of instances per class from $\mathcal{U}$ and recovering their label $\mathcal{L} := (\mathcal{X}, \mathcal{Y})^{k*C}$. \\ [2mm]
 
@@ -112,9 +111,10 @@ For each iteration $i$ the environment samples a subset of size $\tau$ of unlabe
 The action $a^{(i)}$ is the index of the selected instance in $u^{(i)}$ out of all possible indices $A := [1 \ldots \tau]$.
 This process is repeated $B$ times $i := [1 \ldots B]$.
 
+% TODO: remove tau from pseudocode
 \begin{minipage}{0.59\linewidth}
 	\begin{algorithm}[H]
-		\caption{Active Learning {\color{red} OLD}}\label{alg:active_learning}
+		\caption{Active Learning}\label{alg:active_learning}
 		\begin{algorithmic}[1]
 			\Require $\mathcal{U}$ \Comment{Unlabeled Pool}
 			\Require $\tau$ \Comment{Unlabeled Sample Size}
@@ -123,11 +123,12 @@ This process is repeated $B$ times $i := [1 \ldots B]$.
 			\State $\mathcal{L}^{(1)} \gets \operatorname{seed}(\mathcal{U})$  \Comment{Create the initial labeled set}
 			\State $\mathcal{U}^{(1)} \gets \mathcal{U}$
 			\For{$i := 1 \ldots B$}
-				\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i)})$  \Comment{$\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
-				\State $u^{(i)} \underset{\tau}{\sim} \mathcal{U}^{(i)}$
-				\State $s^{(i)} \gets \omega(u^{(i)})$
-				\State $a^{(i)} \gets \Omega(s^{(i)})$ \Comment{$a^{(i)}$ is an index inside of $u^{(i)}$}
-				\State $y^{(i)} \gets \operatorname{label}(u^{(i)}_{a})$ \Comment{$u^{(i)}_{a}$ is shorthand for $u^{(i)}_{a^{(i)}}$}
+				\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i)})$  %\Comment{$\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
+				\State $u^{(i)} \sim \text{unif}(1:|\mathcal{U}^{(i)}|)$
+				\State $a^{(i)} \gets \Omega(u^{(i)}) \hspace{2mm}|\hspace{2mm} a \in 1:|u^{(i)}|$ 
+				%\Comment{$a^{(i)}$ is an index inside of $u^{(i)}$}
+				\State $y^{(i)} \gets \operatorname{label}(u^{(i)}_{a})$ 
+				%\Comment{$u^{(i)}_{a}$ is shorthand for $u^{(i)}_{a^{(i)}}$}
 				\State $\mathcal{L}^{(i+1)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_a, y^{(i)})\}$
 				\State $\mathcal{U}^{(i+1)} \gets \mathcal{U}^{(i)} \setminus \{u^{(i)}_a\}$
 			\EndFor
@@ -163,7 +164,7 @@ This process is repeated $B$ times $i := [1 \ldots B]$.
 
 
 \begin{algorithm}
-	\caption{Oracle {\color{red} OLD}}\label{alg:oracle}
+	\caption{Oracle}\label{alg:oracle}
 	\begin{algorithmic}[1]
 		\Require $\mathcal{U}$ \Comment{Unlabeled Pool}
 		\Require $\tau$ \Comment{Unlabeled Sample Size}
@@ -173,7 +174,7 @@ This process is repeated $B$ times $i := [1 \ldots B]$.
 		\State $\mathcal{U}^{(1)} \gets \mathcal{U}$
 		\For{$i := 1 \ldots B$} 
 			\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i)})$  \Comment{$\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
-			\State $u^{(i)} \underset{\tau}{\sim} \mathcal{U}^{(i)}$
+			\State $u^{(i)} \sim \text{unif}(1:|\mathcal{U}^{(i)}|)$
 			\State $r* \gets -\infty$
 			\State $j* \gets -1$
 			\For{$j := 1 \ldots \tau$} \Comment{Testing every unlabeled point}
@@ -207,36 +208,45 @@ A big focus in this work is to provide an experimental setup that is fully repro
 In our opinion, an evaluation on one dataset with a given seed should always be done on the same sequence of batches $x_0, \ldots, x_B$.
 Even though different AL algorithms will pick different samples from these batches, making them unavailable for sampling in later batches, the theoretical decision tree for every possible choice in every iteration $i$ should stay the same.
 This behavior is not possible with the default choice of setting a global seed at the start of the experiment, since a single additional random draw from the random number generator completely changes the decision tree for the batches.
-This additional random number might be drawn during the initialization of the classification model, or the AL algorithm, or even during every AL iteration if $\Omega$ is stochastic.
-This problem also applies to the initialization of the classification models $\theta$, the initialization and querying of $Omega$ and the drawn mini batches during the training of $\theta$.
+This additional random number might be drawn during the initialization of the classification model, the AL algorithm, or even during every AL iteration if $\Omega$ is stochastic.
+This problem also applies to the initialization of the classification model $\theta$, the initialization and querying of $\Omega$ and the drawn mini batches during the training of $\theta$.
 The desired control over all these processes can be archived by assigning a separate seeded random number generator to all these processes.
 To the best of our knowledge, we are the first work that discusses this issue and proposes a solution for it.
-We hypothesize that the insufficient setup with global seeds contributes to the on-going problem of inconsistent results of AL algorithms in different papers.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Comparibility}\label{sec:comparibility}
-{\color{red} Version: brain dump}\\
-We split the evaluation model that generates accuracy scores and the model that generates features for the AL agent. \\
-This allows for dropout / ensemble approaches to invest more compute to generate features \\
-The normal evaluation model is available as a fallback of course \\
-This way, the comparison is always fair
+We hypothesize that the insufficient setup with global seeds contributes to the on-going problem of inconsistent results of AL algorithms in different papers. \\ [1mm]
+In summary, we introduce three different seeds: $s_\Omega$ for the acquisition function, $s_\mathcal{D}$ for dataset splitting and mini batch sampling and $s_\theta$ for model initialization and sampling of dropout masks.
+Unless stated otherwise, we will keep $s_\Omega$ fixed for restarts of the same experiment, while $s_\mathcal{D}$ and $s_\theta$ are incremented by 1 between restarts to introduce stochasticity into our framework.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Evaluation}\label{sec:evaluation}
-{\color{red} Version: 0.1}\\
-We compare different AL algorithms based on their archived AUC score (Eq. \ref{eq:auc}).
+{\color{red} Version: 1.0}\\
+We compare different AL algorithms based on their median AUC score (Eq. \ref{eq:auc}) across multiple restarts of the experiment.
 This score does incorporate performance in early stages (low budget) as well as capabilities to push the classifier in later stages (high budget).
-A good AL algorithm should be able to perform well in both scenarios. \\
-{\color{red} TODO}
+A good AL algorithm should be able to perform well in both scenarios. \\ [1mm]
+Since AUC is dependent on the chosen budget, we need a general rule on how to set this hyperparameter that does not inherently benefit a subset of algorithms.
+In this work, we choose the budget per dataset to be the first point at which the oracle manages to reach a percentage of the upper bound performance.
+Even though we would like to propose a single percentage value for all datasets, we found that different data modalities and use cases need different percentages to produce sensible budgets.
+We propose the following values: \textbf{Tabular}: 99\%, \textbf{Image}: 90\% and \textbf{Text}: {\color{red}TODO}. \\ [1mm]
+Additionally, we provide evidence in Fig. \ref{fig:restarts} that previous works have not evaluated their experiments with a sufficient number of restarts.
+To create one slice in Fig. \ref{fig:restarts}, we used all our runs for the Splice dataset and drew multiple sub-sets of that respective size (X axis), effectively simulating an experiment with that many restarts.
+Calculating the AUC values for every drawn run allows us to draw the box-plot.
+Each box represents the variance of an evaluation if conducted with the respective number of restarts.
+We can clearly observe that low repetitions ($<10$) provide an uncertain evaluation where lucky and unlucky draws of the same experiment give drastically different median AUC values.
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{img/ablation_restarts.png}
+	\caption{Random draws from Splice with different numbers of repetitions.}
+	\label{fig:restarts}
+\end{figure}
+To combat is uncertain evaluation, we propose to repeat every experiment 50 times, to arrive at the true median AUC for each algorithm.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Oracle}\label{sec:oracle}
 {\color{red} Version: 1.0}\\
 Posing active learning as a sequence ordering problem, the oracle sequence for a given combination of dataset, model and training procedure would be the sequence that induces the highest AUC score for a given budget.
 However, since this combinatorial problem is not solvable for realistic datasets, previous works have proposed approximations to this oracle sequence.
-\cite{zhou2021towards} has used simulated annealing to search for the best sequence and used the best found solution after a fixed time budget. 
-Even though the reported performance curves display a significant lift over all other algorithms, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs). \\
-In this paper we propose a greedy oracle algorithm the constructs an approximation of the optimal sequence in an iterative fashion.
+\cite{zhou2021towards} has used simulated annealing to search for the optimal sequence and used the best  solution found after a fixed time budget. 
+Even though their reported performance curves display a significant lift over all other algorithms, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs). \\
+In this paper we propose a greedy oracle algorithm that constructs an approximation of the optimal sequence in an iterative fashion.
 Our oracle simply tests every data point in the provided sample of unlabeled points by fitting the classifier and directly measuring the resulting validation performance.
 The point with the best validation performance is selected and added to the labeled pool for that iteration.
 We noticed that this oracle is overfitting on the validation set, resulting in stagnating or even decreasing performance curves in later AL iterations.
@@ -248,23 +258,6 @@ The pseudocode for our oracle can be found in Alg. \ref{alg:oracle}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Implementation Details}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{State Space}
-{\color{red} Version: 0.1 Remove analogies to RL}\\
-Since every AL agent needs a different state space our environment exposes a full state to the agent, so that the agent has full control of what information will be used. \\ [1mm]
-The state can include the following information:
-\begin{itemize}
-	\item The entire labeled dataset $\mathcal{L}^{(i)}$
-	\item The entire unlabeled dataset $\mathcal{U}^{(i)}$
-	\item A histogram of labeled points per class (count)
-	\item The available budget $B$
-	\item Number of added datapoints $|\mathcal{L}| - |\mathcal{S}|$
-	\item The initial validation accuracy $\operatorname{acc}^{(0)}$ and current validation accuracy $\operatorname{acc}^{(i)}$
-	\item The current classification model including all model weights $\theta^{(i)}$
-	\item The current optimizer including it's full state
-	\item The current sample of unlabeled points $u^{(i)}$
-\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Choosing the Classifier}\label{sec:choosing_the_classifier}
@@ -394,6 +387,7 @@ They unify experimental setups for different datasets and therefore make them mu
 \bibliography{main.bib} 
 
 \appendix
+
 
 \section{Comparison of different sample sizes $\tau$}
 \begin{figure}[H]

@@ -15,8 +15,6 @@ A good AL algorithm should be able to distinguish data-noise from model-noise th
 
 
 # Postprocessing
-- deriving SeededConvLayer
-  - Apply that to Resnet
 - AL Eval: Towards Robust Reprocudible Active Learning Using Neural Networks
 - TypiClust Code (unsupervised embeddings, retraining the embeddings)
 - TypiClust Oracle

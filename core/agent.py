@@ -3,11 +3,13 @@ from abc import ABC, abstractmethod
 from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
+import numpy as np
 
 class BaseAgent(ABC):
 
-    def __init__(self, agent_rng, config:dict):
-        self.agent_rng = agent_rng
+    def __init__(self, agent_seed, config:dict):
+        self.agent_seed = agent_seed
+        self.agent_rng = np.random.default_rng(agent_seed)
         self.config = config
         self.name = str(self.__class__).split('.')[-1][:-2]
         print(f"Loaded Agent: {self.name}")
@@ -22,8 +24,7 @@ class BaseAgent(ABC):
 
 
     @abstractmethod
-    def predict(self, state_ids:list[int],
-                      x_unlabeled:Tensor,
+    def predict(self, x_unlabeled:Tensor,
                       x_labeled:Tensor, y_labeled:Tensor,
                       per_class_instances:dict,
                       budget:int, added_images:int,

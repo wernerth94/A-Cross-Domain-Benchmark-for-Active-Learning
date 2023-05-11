@@ -8,8 +8,8 @@ from core.agent import BaseAgent
 
 class BALD(BaseAgent):
 
-    def __init__(self, agent_rng, config, dropout_trials=5):
-        super().__init__(agent_rng, config)
+    def __init__(self, agent_seed, config, dropout_trials=5):
+        super().__init__(agent_seed, config)
         assert "current_run_info" in config and "encoded" in config["current_run_info"]
         self.dropout_trials = dropout_trials
         self.dropout_model = None
@@ -24,15 +24,17 @@ class BALD(BaseAgent):
             config[class_key]["dropout"] = 0.2
 
 
-    def predict(self, state_ids: list[int],
-                      x_unlabeled: Tensor,
+    def predict(self, x_unlabeled: Tensor,
                       x_labeled: Tensor, y_labeled: Tensor,
                       per_class_instances: dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier: Module, optimizer: Optimizer) -> Union[Tensor, dict]:
+                      classifier: Module, optimizer: Optimizer,
+                      sample_size=100) -> Union[Tensor, dict]:
 
         with torch.no_grad():
+            replacement_needed = len(x_unlabeled) < sample_size
+            state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=replacement_needed)
             classifier.train()
             for m in classifier.modules():
                 if isinstance(m, torch.nn.BatchNorm2d) or isinstance(m, torch.nn.BatchNorm1d):
@@ -61,4 +63,4 @@ class BALD(BaseAgent):
 
             u_x = g_x - f_x
 
-        return torch.argmax(u_x, dim=0)
+        return state_ids[torch.argmax(u_x, dim=0)]

@@ -1,3 +1,5 @@
+import time
+
 import experiment_util as util
 import argparse
 from pprint import pprint
@@ -13,11 +15,11 @@ parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--agent", type=str, default="margin")
-parser.add_argument("--dataset", type=str, default="news")
-parser.add_argument("--encoded", type=int, default=0)
-parser.add_argument("--sample_size", type=int, default=20)
-parser.add_argument("--restarts", type=int, default=10)
+parser.add_argument("--agent", type=str, default="typiclust")
+parser.add_argument("--dataset", type=str, default="fashion_mnist")
+parser.add_argument("--encoded", type=int, default=1)
+# parser.add_argument("--sample_size", type=int, default=20)
+parser.add_argument("--restarts", type=int, default=5)
 ##########################################################
 parser.add_argument("--experiment_postfix", type=str, default=None)
 args = parser.parse_args()
@@ -50,7 +52,6 @@ while run_id < max_run_id:
     dataset = DatasetClass(args.data_folder, config, pool_rng, args.encoded)
     dataset = dataset.to(util.device)
     env = core.ALGame(dataset,
-                      args.sample_size,
                       pool_rng,
                       model_seed=model_seed,
                       data_loader_seed=data_loader_seed,
@@ -65,13 +66,18 @@ while run_id < max_run_id:
 
     save_meta_data(log_path, agent, env, dataset)
 
+    print(f"Starting run {run_id}")
+    time.sleep(0.1) # prevents printing uglyness with tqdm
+
     with core.EnvironmentLogger(env, log_path, util.is_cluster) as env:
         done = False
         dataset.reset()
         state = env.reset()
-        for i in tqdm(range(env.env.budget), miniters=2):
+        iterator = tqdm(range(env.env.budget), miniters=2)
+        for i in iterator:
             action = agent.predict(*state)
             state, reward, done, truncated, info = env.step(action.item())
+            iterator.set_postfix({"accuracy": env.accuracies[1][-1]})
             if done or truncated:
                 break # fail save; should not happen
 

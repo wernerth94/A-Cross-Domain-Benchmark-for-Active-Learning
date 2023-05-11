@@ -10,7 +10,6 @@ from core.data import BaseDataset
 class ALGame(gym.Env):
 
     def __init__(self, dataset: BaseDataset,
-                 labeled_sample_size: int,
                  pool_rng: np.random.Generator,
                  model_seed: int,
                  data_loader_seed: int = 2023,
@@ -29,7 +28,7 @@ class ALGame(gym.Env):
 
         self.dataset = dataset
         self.budget = dataset.budget
-        self.sample_size = labeled_sample_size
+        # self.sample_size = labeled_sample_size
         self.fitting_mode = dataset.class_fitting_mode
         self.loss = nn.CrossEntropyLoss().to(self.device)
 
@@ -43,7 +42,7 @@ class ALGame(gym.Env):
                 self.observation_space[key] = gym.spaces.Box(-np.inf, np.inf, shape=[len(value), ])
         else:
             self.observation_space = gym.spaces.Box(-np.inf, np.inf, shape=[len(state), ])
-        self.action_space = gym.spaces.Discrete(self.sample_size)
+        self.action_space = gym.spaces.Discrete(len(dataset.x_unlabeled))
         self.spec = gym.envs.registration.EnvSpec("RlAl-v0", reward_threshold=np.inf, entry_point="ALGame")
 
     def reset(self, *args, **kwargs) -> list:
@@ -62,10 +61,9 @@ class ALGame(gym.Env):
         return self.create_state()
 
     def create_state(self):
-        replacement_needed = len(self.x_unlabeled) < self.sample_size
-        self.state_ids = self.pool_rng.choice(len(self.x_unlabeled), self.sample_size, replace=replacement_needed)
-        state = [self.state_ids,
-                 self.x_unlabeled,
+        # replacement_needed = len(self.x_unlabeled) < self.sample_size
+        # self.state_ids = self.pool_rng.choice(len(self.x_unlabeled), self.sample_size, replace=replacement_needed)
+        state = [self.x_unlabeled,
                  self.x_labeled, self.y_labeled,
                  self.per_class_instances,
                  self.budget, self.added_images,
@@ -74,10 +72,12 @@ class ALGame(gym.Env):
         return state
 
     def step(self, action: int):
+        assert action >= 0 and action < len(self.x_unlabeled)
         with torch.no_grad():
             self.n_interactions += 1
             self.added_images += 1
-            datapoint_id = self.state_ids[action]
+            # datapoint_id = self.state_ids[action]
+            datapoint_id = action
             # keep track of the added images
             self.per_class_instances[int(torch.argmax(self.y_unlabeled[datapoint_id]).cpu())] += 1
             # add the point to the labeled set
@@ -173,8 +173,7 @@ class ALGame(gym.Env):
         pass
 
     def get_meta_data(self) -> str:
-        return f"{str(self)} \n" \
-               f"Sample Size: {self.sample_size}"
+        return f"{str(self)} \n"
 
 
 class OracleALGame(ALGame):
@@ -187,6 +186,7 @@ class OracleALGame(ALGame):
         super().__init__(dataset, labeled_sample_size, pool_rng, model_seed, data_loader_seed, device)
         self.starting_state_rng = np.random.default_rng(self.data_loader_seed)
         self.oracle_counter = 0
+        self.sample_size = labeled_sample_size
 
     def _get_internal_state(self):
         initial_weights = copy.deepcopy(self.classifier.state_dict())
@@ -210,7 +210,9 @@ class OracleALGame(ALGame):
         # preserve the initial state for this iteration
         self.initial_state = self._get_internal_state()
         self.data_loader_seed_i = int(self.starting_state_rng.integers(1, 1000, 1)[0])
-        for act, i in enumerate(self.state_ids):
+        replacement_needed = len(self.x_unlabeled) < self.sample_size
+        state_ids = self.pool_rng.choice(len(self.x_unlabeled), self.sample_size, replace=replacement_needed)
+        for act, i in enumerate(state_ids):
             with torch.no_grad():
                 # restore initial states
                 self._set_internal_state(self.initial_state)
@@ -230,14 +232,14 @@ class OracleALGame(ALGame):
         self._set_internal_state(self.initial_state)
         if max_reward == 0.0:
             # No point with positive impact was found. Defaulting to Margin sampling
-            x_sample = self.x_unlabeled[self.state_ids]
+            x_sample = self.x_unlabeled[state_ids]
             pred = self.classifier(x_sample).detach()
             pred = torch.softmax(pred, dim=1)
             two_highest, _ = pred.topk(2, dim=1)
             bVsSB = 1 - (two_highest[:, -2] - two_highest[:, -1])
             torch.unsqueeze(bVsSB, dim=-1)
             action = torch.argmax(bVsSB, dim=0)
-            best_i = self.state_ids[action]
+            best_i = state_ids[action]
         with torch.no_grad():
             self.per_class_instances[int(torch.argmax(self.y_unlabeled[best_i]).cpu())] += 1
             # add the point to the labeled set
