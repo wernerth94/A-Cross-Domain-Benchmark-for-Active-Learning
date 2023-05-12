@@ -29,7 +29,7 @@ class BiLSTMModel(nn.Module):
         device = next(self.parameters()).device
         # Count non-zero embeddings
         with torch.no_grad():
-            num_of_pad = (x == self.pad_idx).int().sum(dim=-1)
+            num_of_pad = (x == self.pad_idx).int().sum(dim=-1).to(device)
             lens = torch.ones(len(x)) * x.size(-1)
             lens -= num_of_pad
             lens = lens.to(device)
