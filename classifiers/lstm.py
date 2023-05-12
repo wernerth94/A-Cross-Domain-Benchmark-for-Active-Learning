@@ -32,6 +32,7 @@ class BiLSTMModel(nn.Module):
             num_of_pad = (x == self.pad_idx).int().sum(dim=-1).cpu()
             lens = torch.ones(len(x)) * x.size(-1)
             lens -= num_of_pad
+            lens = lens.int()
         x = self.word_embedding(x)
         embeddings_pack = pack_padded_sequence(x, lens.tolist(),
                                                batch_first=True, enforce_sorted=False)
