@@ -29,13 +29,11 @@ class BiLSTMModel(nn.Module):
         device = next(self.parameters()).device
         # Count non-zero embeddings
         with torch.no_grad():
-            num_of_pad = (x == self.pad_idx).int().sum(dim=-1)
+            num_of_pad = (x == self.pad_idx).int().sum(dim=-1).cpu()
             lens = torch.ones(len(x)) * x.size(-1)
-            num_of_pad = num_of_pad.to(device)
-            lens = lens.to(device)
             lens -= num_of_pad
         x = self.word_embedding(x)
-        embeddings_pack = pack_padded_sequence(x, lens,
+        embeddings_pack = pack_padded_sequence(x, lens.tolist(),
                                                batch_first=True, enforce_sorted=False)
         lstm_hidden_pack, (hidden, _) = self.lstm(embeddings_pack)
 
