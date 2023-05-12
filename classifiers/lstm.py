@@ -25,7 +25,7 @@ class BiLSTMModel(nn.Module):
         self.output = SeededLinear(model_rng, emb_dim * 2, num_classes)
 
 
-    def forward(self, x):
+    def _encode(self, x):
         device = next(self.parameters()).device
         # Count non-zero embeddings
         with torch.no_grad():
@@ -45,7 +45,10 @@ class BiLSTMModel(nn.Module):
         #     avg_hiddens.append(avg_hidden)
         # avg_hiddens = torch.stack(avg_hiddens, dim=0)
         avg_hiddens = torch.cat((hidden[-2, :, :], hidden[-1, :, :]), dim=1)
+        return avg_hiddens
 
+    def forward(self, x):
+        avg_hiddens = self._encode(x)
         if self.dropout is not None:
             avg_hiddens = F.dropout(avg_hiddens, self.dropout, training=self.training)
         logits = self.output(avg_hiddens)
