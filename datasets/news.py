@@ -33,7 +33,7 @@ class News(BaseDataset):
     def _download_data(self, target_to_one_hot=True, max_sentence_len=80):
         zip_url = "https://www.ismll.uni-hildesheim.de/personen/twerner/news_categories.zip"
 
-        print("This download can take up to 10 minutes (108MB)")
+        print("This download may take multiple minutes (108MB)")
         if not exists(self.raw_zip_file):
             r = requests.get(zip_url)
             with open(self.raw_zip_file, 'wb') as f:
@@ -48,7 +48,7 @@ class News(BaseDataset):
         used_categories = ["POLITICS", "WELLNESS", "ENTERTAINMENT", "TRAVEL", "STYLE & BEAUTY", "PARENTING", "HEALTHY LIVING",
                            "QUEER VOICES", "FOOD & DRINK", "BUSINESS", "COMEDY", "SPORTS", "BLACK VOICES", "HOME & LIVING", "PARENTS"]
 
-        print("Extracting and Embedding...")
+        print("Extracting and Processing...")
         if exists(self.raw_unzipped_file):
             with open(self.raw_unzipped_file, "r") as f:
                 lines = f.readlines()

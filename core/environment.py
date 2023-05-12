@@ -183,7 +183,7 @@ class OracleALGame(ALGame):
                  model_seed: int,
                  data_loader_seed: int = 2023,
                  device=None):
-        super().__init__(dataset, labeled_sample_size, pool_rng, model_seed, data_loader_seed, device)
+        super().__init__(dataset, pool_rng, model_seed, data_loader_seed, device)
         self.starting_state_rng = np.random.default_rng(self.data_loader_seed)
         self.oracle_counter = 0
         self.sample_size = labeled_sample_size

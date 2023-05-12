@@ -21,6 +21,7 @@ class TopV2(BaseDataset):
         self.raw_unzipped_file = os.path.join(cache_folder, "optimal_al_data/intent_classification/data/TOP.pkl")
         self.raw_train_file = os.path.join(cache_folder, "topv2_train.txt")
         self.raw_test_file = os.path.join(cache_folder, "topv2_test.txt")
+        self.embedding_data_file = os.path.join(cache_folder, "topv2_al_embeddings.pt")
         fitting_mode = "from_scratch" if encoded else "finetuning"
         super().__init__(cache_folder, config, pool_rng, encoded,
                          data_file, fitting_mode)
@@ -39,37 +40,54 @@ class TopV2(BaseDataset):
             z = zipfile.ZipFile(self.raw_zip_file)
             z.extract('intent_classification/data/TOP.pkl', os.path.join(self.cache_folder, "optimal_al_data"))
 
-        print("Extracting and Embedding...")
+        print("Extracting and Processing...")
         if exists(self.raw_unzipped_file):
             data = pickle.load(open(self.raw_unzipped_file, "rb"))
             all_points = data[self.config["dataset"]["domain"].lower()]["raw"]
-            embeddings = data['GLOVE_EMBEDDING']
+            embedding_dict = data['GLOVE_EMBEDDING']
             x = [p[0] for p in all_points]
-            x = self._embed_texts(x, embeddings)
             y = [p[1] for p in all_points]
+            # x = self._embed_texts(x, embeddings)
+
+            # Save embedding dict as numpy array
+            embeddings = np.array(list(embedding_dict.values())).astype(np.float16)
+            num_embedding, emb_dim = embeddings.shape
+            unk_idx = num_embedding
+            pad_idx = num_embedding + 1
+            word_embedding_data = torch.cat((torch.tensor(embeddings).float(),
+                                             torch.randn(1, emb_dim) * 0.01,   # <unk>
+                                             torch.zeros(1, emb_dim)           # <pad>
+                                            ), dim=0)
+            torch.save(word_embedding_data, self.embedding_data_file)
+
+            token_x = self._tokenize_texts(x, embedding_dict)
+            token_x = self._pad_texts(token_x, pad_idx)
+            token_x = torch.stack(token_x)
+
             one_hot_y = np.zeros((len(y), max(y) + 1))
             one_hot_y[np.arange(len(y)), y] = 1
             all_ids = list(range(len(x)))
             self.pool_rng.shuffle(all_ids)
             train_ids, test_ids = all_ids[:-5000], all_ids[-5000:]
-            self.x_train, self.y_train = x[train_ids], one_hot_y[train_ids]
-            self.x_test, self.y_test = x[test_ids], one_hot_y[test_ids]
-            self._convert_data_to_tensors()
+            self.x_train, self.y_train = token_x[train_ids], torch.from_numpy(one_hot_y[train_ids])
+            self.x_test, self.y_test = token_x[test_ids], torch.from_numpy(one_hot_y[test_ids])
+            # self._convert_data_to_tensors()
 
+    def _pad_texts(self, tokenized_sentences:list, pad_idx:int):
+        lens = list(map(len, tokenized_sentences))
+        max_len = max(lens)
+        for i, tks in enumerate(tokenized_sentences):
+            pad_len = max_len - len(tks)
+            if pad_len > 0:
+                pad_tks = (torch.ones(pad_len) * pad_idx).long()
+                cat_tks = torch.cat((torch.tensor(tks), pad_tks))
+                tokenized_sentences[i] = cat_tks
+            else:
+                tokenized_sentences[i] = torch.Tensor(tokenized_sentences[i]).int()
 
+        return tokenized_sentences
 
-    def _embed_texts(self, sentences:list, embedding_dict:dict):
-        embeddings = np.array(list(embedding_dict.values()))
-        num_embedding, emb_dim = embeddings.shape
-        unk_idx = num_embedding
-        pad_idx = num_embedding + 1
-        word_embedding_data = torch.cat((torch.tensor(embeddings).float(),
-                                         torch.randn(1, emb_dim) * 0.01,             # <unk>
-                                         torch.zeros(1, emb_dim)                     # <pad>
-                                        ), dim=0)
-        word_embedding = nn.Embedding.from_pretrained(word_embedding_data, freeze=True,
-                                                      padding_idx=pad_idx)
-
+    def _tokenize_texts(self, sentences:list, embedding_dict:dict):
         vocabs = {v: i for i, v in enumerate(embedding_dict.keys())}
         def _tokenize(sent):
             words = nltk.word_tokenize(sent)
@@ -77,24 +95,25 @@ class TopV2(BaseDataset):
             return tks, words
 
         list_of_tokens, list_of_words = zip(*map(_tokenize, sentences))
-        lens = list(map(len, list_of_tokens))
-        max_len = max(lens)
-        list_of_embeddings = []
-        for tks, words in zip(list_of_tokens, list_of_words):
-            pad_len = max_len - len(tks)
-            if pad_len == 0:
-                word_embs = word_embedding(torch.tensor(tks))
-            else:
-                pad_tks = (torch.ones(pad_len) * pad_idx).long()
-                cat_tks = torch.cat((torch.tensor(tks), pad_tks))
-                word_embs = word_embedding(cat_tks)
-            embs = word_embs
-            list_of_embeddings.append(embs)
-        embeddings_batch = torch.stack(list_of_embeddings, dim=0)
-        # embeddings_pack = pack_padded_sequence(embeddings_batch, torch.tensor(lens),
-        #                                        batch_first=True, enforce_sorted=False)
-
-        return embeddings_batch
+        return list(list_of_tokens)
+        # lens = list(map(len, list_of_tokens))
+        # max_len = max(lens)
+        # list_of_embeddings = []
+        # for tks, words in zip(list_of_tokens, list_of_words):
+        #     pad_len = max_len - len(tks)
+        #     if pad_len == 0:
+        #         word_embs = word_embedding(torch.tensor(tks))
+        #     else:
+        #         pad_tks = (torch.ones(pad_len) * pad_idx).long()
+        #         cat_tks = torch.cat((torch.tensor(tks), pad_tks))
+        #         word_embs = word_embedding(cat_tks)
+        #     embs = word_embs
+        #     list_of_embeddings.append(embs)
+        # embeddings_batch = torch.stack(list_of_embeddings, dim=0)
+        # # embeddings_pack = pack_padded_sequence(embeddings_batch, torch.tensor(lens),
+        # #                                        batch_first=True, enforce_sorted=False)
+        #
+        # return embeddings_batch
 
     def load_pretext_data(self)->tuple[Dataset, Dataset]:
         raise NotImplementedError
