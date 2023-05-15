@@ -47,7 +47,7 @@ class TypiClust(BaseAgent):
         # pick the most typical example from the top-ranked cluster
         cluster_id = clusters_df.iloc[0].cluster_id
         indices = (labels == cluster_id).nonzero()[0]
-        rel_feats = all_data[indices]
+        rel_feats = all_data[indices].numpy()
         typicality = self._calculate_typicality(rel_feats, min(self.K_NN, len(indices) // 2))
         idx = indices[typicality.argmax()]
         return idx
