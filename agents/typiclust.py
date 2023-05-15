@@ -25,7 +25,7 @@ class TypiClust(BaseAgent):
                       classifier:Module, optimizer:Optimizer)->Union[Tensor, dict]:
 
         num_clusters = min(len(x_labeled) + 1, self.MAX_NUM_CLUSTERS)
-        all_data = torch.concat([x_unlabeled, x_labeled], dim=0)
+        all_data = torch.concat([x_unlabeled, x_labeled], dim=0).cpu()
         clusters = self._kmeans(all_data, num_clusters=num_clusters)
         labels = np.copy(clusters)
         # counting cluster sizes and number of labeled samples per cluster
