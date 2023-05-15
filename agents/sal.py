@@ -127,7 +127,7 @@ class SAL(BaseAgent):
         hidden_sizes = 3*72
         net = TianTimeDistributedNet(state_shape, hidden_sizes).to(device)
         _ = torch.optim.Adam(net.parameters())
-        agent = SurrogatePolicy(agent_rng, net, _)
+        agent = SurrogatePolicy(self.agent_rng, net, _)
         agent.load_state_dict(torch.load(chkpt_path, map_location=device))
         for p in agent.model.parameters():
             p.requires_grad = False

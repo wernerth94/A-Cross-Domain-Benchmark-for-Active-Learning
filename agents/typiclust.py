@@ -53,12 +53,13 @@ class TypiClust(BaseAgent):
         return idx
 
 
-    def _get_nn(self, features, num_neighbors):
+    def _get_nn(self, features:np.ndarray, num_neighbors:int):
+        f32 = features.astype(np.float32)
         # calculates nearest neighbors on GPU
         d = features.shape[1]
         cpu_index = faiss.IndexFlatL2(d)
-        cpu_index.add(features)  # add vectors to the index
-        distances, indices = cpu_index.search(features, num_neighbors + 1)
+        cpu_index.add(f32)  # add vectors to the index
+        distances, indices = cpu_index.search(f32, num_neighbors + 1)
         # 0 index is the same sample, dropping it
         return distances[:, 1:], indices[:, 1:]
 
