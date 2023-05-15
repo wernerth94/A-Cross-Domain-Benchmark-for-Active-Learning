@@ -26,7 +26,6 @@ class BiLSTMModel(nn.Module):
 
 
     def _encode(self, x):
-        device = next(self.parameters()).device
         # Count non-zero embeddings
         with torch.no_grad():
             num_of_pad = (x == self.pad_idx).int().sum(dim=-1).cpu()
