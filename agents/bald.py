@@ -40,9 +40,10 @@ class BALD(BaseAgent):
                 if isinstance(m, torch.nn.BatchNorm2d) or isinstance(m, torch.nn.BatchNorm1d):
                     m.eval()
 
+            device = x_unlabeled.device
             x_sample = x_unlabeled[state_ids]
-            y_hat_sum = torch.zeros( (len(x_sample), y_labeled.size(-1)) )
-            entropy_sum = torch.zeros( (len(x_sample)) )
+            y_hat_sum = torch.zeros( (len(x_sample), y_labeled.size(-1)) ).to(device)
+            entropy_sum = torch.zeros(len(x_sample)).to(device)
             for trial in range(self.dropout_trials):
                 y_hat = classifier(x_sample)
                 y_hat = torch.nn.functional.softmax(y_hat, dim=-1)
