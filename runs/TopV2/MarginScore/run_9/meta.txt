@@ -1,6 +1,6 @@
 # Dataset: 
 TopV2
-Budget: 200
+Budget: 300
 Seeding points per class: 1
 Classifier Batch Size: 64
 Source: https://arxiv.org/pdf/2010.03546v1.pdf 
