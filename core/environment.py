@@ -50,8 +50,7 @@ class ALGame(gym.Env):
             self.n_interactions = 0
             self.added_images = 0
             self.classifier = self.dataset.get_classifier(self.model_rng)
-            # classifier.custom_init(self.classifier, self.model_rng)
-            self.classifier.to(self.device)
+            self.classifier = self.classifier.to(self.device)
             self.initial_weights = self.classifier.state_dict()
             self.optimizer = self.dataset.get_optimizer(self.classifier)
             self.reset_al_pool()
