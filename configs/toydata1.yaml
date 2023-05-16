@@ -2,12 +2,11 @@
 dataset:
   budget: 50
   initial_points_per_class: 1
-  classifier_batch_size: 43
+  classifier_batch_size: 32
   validation_split: 0.2
 
 classifier:
-  type: MLP
-  hidden: [24, 12]
+  type: Linear
 
 optimizer:
   type: NAdam
