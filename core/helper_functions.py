@@ -144,8 +144,8 @@ def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
     elif name == "news":
         return datasets.News
     # Toy
-    elif name == 'toydata':
-        return datasets.ToyData1
+    # elif name == 'toydata':
+    #     return datasets.ToyData1
 
     else:
         raise ValueError(f"Dataset name '{name}' not recognized")
