@@ -58,7 +58,7 @@ class Badge(BaseAgent):
                 x_embed = model._encode(x)
                 logits = model(x)
                 batch_probs = F.softmax(logits, dim=1)
-                predicted_class = np.argmax(batch_probs,1)
+                predicted_class = torch.argmax(batch_probs,1)
                 emb_dim = x_embed.size(-1)
                 n_classes = logits.size(-1)
 
