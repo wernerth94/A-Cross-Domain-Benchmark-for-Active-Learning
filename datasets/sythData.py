@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 
 class SynthData(BaseDataset):
     def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
-                 data_file=None, dataset='3Clust'):
+                 data_file=None, dataset='ThreeClust'):
         self.dataset = dataset
         fitting_mode = "from_scratch" if encoded else "finetuning"
         super().__init__(cache_folder, config, pool_rng, encoded,
@@ -13,7 +13,7 @@ class SynthData(BaseDataset):
 
 
 
-    def createToy_3Clust(self, n_perClust=50, cov=[[1, 0], [0, 1]] ):
+    def createToy_ThreeClust(self, n_perClust=50, cov=[[1, 0], [0, 1]] ):
 
         mean1 = [0, 0]
         cluster1 = self.pool_rng.multivariate_normal(mean1, cov, n_perClust)
@@ -35,7 +35,7 @@ class SynthData(BaseDataset):
 
         self.data_3Clust = np.concatenate((data_pos, data_neg), axis=0)
 
-    def creatToy_Sissor(self, n_samples=10,  n_clusters=10, dist_cluster=2, cov=[[1, 0], [0, 1]] ):
+    def creatToy_Scissor(self, n_samples=10,  n_clusters=10, dist_cluster=2, cov=[[1, 0], [0, 1]] ):
 
         # Generate data for two classes from 4 clusters
         # n_samples : pro cluster - divide by 2 for n_samples per class
@@ -61,12 +61,12 @@ class SynthData(BaseDataset):
 
         self.data_Sissor = np.concatenate((data_pos,data_neg),axis=0)
 
-    def _download_data(self, dataset='3Clust', train_ratio=0.8, test_ratio=0.20):
+    def _download_data(self, dataset='ThreeClust', train_ratio=0.8, test_ratio=0.20):
         assert train_ratio + test_ratio == 1, "The sum of train, val, and test should be equal to 1."
 
-        if self.dataset == '3Clust':
+        if self.dataset == 'ThreeClust':
             data = self.data_3Clust
-        elif self.dataset == 'Sissor':
+        elif self.dataset == 'Scissor':
             data = self.data_Sissor
 
         self.x_train = data[:, 0: 2]
@@ -94,3 +94,15 @@ class SynthData(BaseDataset):
         self._convert_data_to_tensors()
 
 
+class ThreeClust(SynthData):
+    def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
+                 data_file=None, dataset='ThreeClust'):
+        super().__init__(cache_folder, config, pool_rng, encoded,
+                         data_file, dataset)
+
+
+class Scissor(SynthData):
+    def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
+                 data_file=None, dataset='Scissor'):
+        super().__init__(cache_folder, config, pool_rng, encoded,
+                         data_file, dataset)
