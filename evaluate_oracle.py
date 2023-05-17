@@ -12,7 +12,7 @@ parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--dataset", type=str, default="news")
+parser.add_argument("--dataset", type=str, default="ThreeClust")
 parser.add_argument("--encoded", type=int, default=0)
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=3)
@@ -24,13 +24,14 @@ args.encoded = bool(args.encoded)
 run_id = args.run_id
 max_run_id = run_id + args.restarts
 while run_id < max_run_id:
-    with open(f"configs/{args.dataset}.yaml", 'r') as f:
+    with open(f"configs/{args.dataset.lower()}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
     config["current_run_info"] = args.__dict__
     print("Config:")
     pprint(config)
     print("Config End \n")
 
+    print(f"Starting run {run_id}")
     pool_rng = np.random.default_rng(args.pool_seed + run_id)
     model_seed = args.model_seed + run_id
     # This is currently the only way to seed dropout layers in Python
