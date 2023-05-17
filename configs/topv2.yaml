@@ -1,6 +1,6 @@
 dataset:
   domain: alarm
-  budget: 300
+  budget: 125
   initial_points_per_class: 1
   classifier_batch_size: 64
   validation_split: 0.2
