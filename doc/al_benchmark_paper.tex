@@ -55,6 +55,7 @@
 \end{abstract}
 
 \section{Introduction}
+{\color{red} Version: Braindump}\\
 Among others, the authors of \cite{zhou2021towards} have pointed out severe inconsistencies in results of AL papers in recent years. 
 In their supplementary materials they conducted a meta analysis of reported results of several different AL algorithms and found that all considered algorithms only provided significant lifts in their own original papers, while all following literature reported performances no better that uncertainty sampling, or in some cases no better than random sampling for the same algorithm.
 The result of these inconsistencies is a chaotic landscape of AL algorithms where every paper claims to archive state-of-the-art results by significantly outperforming everyone else, while the vast majority of results proves to be non-reproducible.
@@ -302,6 +303,18 @@ The pseudocode for our oracle can be found in Alg. \ref{alg:oracle}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Implementation Details}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Sampling Strategies}\label{sec:sampling_strategies}
+\paragraph{Uncertainty Sampling}
+\paragraph{BALD}
+\paragraph{BADGE}
+\paragraph{Coreset}
+\paragraph{TypiClust}
+%
+\subsubsection{Honorable Mentions}
+\paragraph{Learning Loss for AL}
+Introduces an updated classification model training via an auxiliary loss and therefore cannot be compared fairly against classification models without this boosted training regime.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Choosing the Classifier}\label{sec:choosing_the_classifier}

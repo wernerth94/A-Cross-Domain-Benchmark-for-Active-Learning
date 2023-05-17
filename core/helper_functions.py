@@ -136,7 +136,7 @@ def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
     # Image
     elif name == "cifar10":
         return datasets.Cifar10
-    elif name == "fashion_mnist":
+    elif name == "fashionmnist":
         return datasets.FashionMnist
     # Text
     elif name == "topv2":
@@ -162,6 +162,8 @@ def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
         return agents.Coreset_Greedy
     elif name == "bald":
         return agents.BALD
+    elif name == "badge":
+        return agents.Badge
     elif name == "sal":
         return agents.SAL
     elif name == "typiclust":

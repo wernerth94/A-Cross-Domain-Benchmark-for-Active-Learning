@@ -15,11 +15,11 @@ parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--agent", type=str, default="typiclust")
-parser.add_argument("--dataset", type=str, default="news")
+parser.add_argument("--agent", type=str, default="badge")
+parser.add_argument("--dataset", type=str, default="splice")
 parser.add_argument("--encoded", type=int, default=0)
 # parser.add_argument("--sample_size", type=int, default=20)
-parser.add_argument("--restarts", type=int, default=5)
+parser.add_argument("--restarts", type=int, default=10)
 ##########################################################
 parser.add_argument("--experiment_postfix", type=str, default=None)
 args = parser.parse_args()
@@ -36,7 +36,6 @@ while run_id < max_run_id:
     print("Config End \n")
 
     pool_rng = np.random.default_rng(args.pool_seed + run_id)
-    agent_rng = np.random.default_rng(args.agent_seed)
     model_seed = args.model_seed + run_id
     # This is currently the only way to seed dropout layers in Python
     torch.random.manual_seed(args.model_seed + run_id)
@@ -56,7 +55,7 @@ while run_id < max_run_id:
                       model_seed=model_seed,
                       data_loader_seed=data_loader_seed,
                       device=util.device)
-    agent = AgentClass(agent_rng, config)
+    agent = AgentClass(args.agent_seed, config)
 
     if args.experiment_postfix is not None:
         base_path = os.path.join("runs", dataset.name, f"{agent.name}_{args.experiment_postfix}")
