@@ -12,4 +12,4 @@ from datasets.topv2 import TopV2
 from datasets.news import News
 
 # Toy Datasets
-# from datasets.toydata1 import ToyData1
+from datasets.sythData import SynthData

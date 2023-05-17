@@ -1,12 +1,12 @@
-
-from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel_first, subsample_data
 import numpy as np
+from core.data import BaseDataset, normalize
 from sklearn.model_selection import train_test_split
 
 
 class SynthData(BaseDataset):
     def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
-                 data_file=None,):
+                 data_file=None, dataset='3Clust'):
+        self.dataset = dataset
         fitting_mode = "from_scratch" if encoded else "finetuning"
         super().__init__(cache_folder, config, pool_rng, encoded,
                          data_file, fitting_mode)
@@ -15,7 +15,6 @@ class SynthData(BaseDataset):
 
     def createToy_3Clust(self, n_perClust=50, cov=[[1, 0], [0, 1]] ):
 
-        self.filename_3Clust = 'toydata_3Clust.npy'
         mean1 = [0, 0]
         cluster1 = self.pool_rng.multivariate_normal(mean1, cov, n_perClust)
 
@@ -34,7 +33,7 @@ class SynthData(BaseDataset):
         data_pos = np.c_[data_pos, np.ones(len(data_pos))]
         data_neg = np.c_[data_neg, np.zeros(len(data_neg))]
 
-        np.save(self.filename_3Clust, np.concatenate((data_pos, data_neg), axis=0))
+        self.data_3Clust = np.concatenate((data_pos, data_neg), axis=0)
 
     def creatToy_Sissor(self, n_samples=10,  n_clusters=10, dist_cluster=2, cov=[[1, 0], [0, 1]] ):
 
@@ -43,7 +42,6 @@ class SynthData(BaseDataset):
         # n_clusters : Number of Clusters along the decision border
         # dist_cluster : distance of clusters
 
-        self.filename_sissor = 'toydata_sissor.npy'
         pos_cls = []
         neg_cls = []
 
@@ -61,18 +59,38 @@ class SynthData(BaseDataset):
         data_pos = np.concatenate(pos_cls, axis=0)
         data_neg = np.concatenate(neg_cls, axis=0)
 
-        np.save(self.filename_sissor, np.concatenate((data_pos,data_neg),axis=0))
+        self.data_Sissor = np.concatenate((data_pos,data_neg),axis=0)
 
-    def _download_data(self, dataset='3Clust', train_ratio=0.5, val_ratio=0.25, test_ratio=0.25):
-        assert train_ratio + val_ratio + test_ratio == 1, "The sum of train, val, and test should be equal to 1."
+    def _download_data(self, dataset='3Clust', train_ratio=0.8, test_ratio=0.20):
+        assert train_ratio + test_ratio == 1, "The sum of train, val, and test should be equal to 1."
 
-        if dataset == '3Clust':
-            data = self.filename_3Clust
-        elif dataset == 'Sissor':
-            data = self.filename_sissor
+        if self.dataset == '3Clust':
+            data = self.data_3Clust
+        elif self.dataset == 'Sissor':
+            data = self.data_Sissor
 
-        self.train_data, remaining_data = train_test_split(data, train_size=train_ratio, random_state=42)
-        self.val_data, self.test_data = train_test_split(remaining_data, train_size=val_ratio / (val_ratio + test_ratio),
-                                               random_state=42)
+        self.x_train = data[:, 0: 2]
+        self.y_train = data[:,-1]
+        self.x_test  = data[:, 0: 2]
+        self.y_test  = data[:,-1]
+
+
+        ids = np.arange(self.x_train.shape[0], dtype=int)
+        self.pool_rng.shuffle(ids)
+        cut = int(len(ids) * test_ratio)
+        train_ids = ids[cut:]
+        test_ids = ids[:cut]
+
+        self.x_train = self.x_train[train_ids]
+        self.y_train = self.y_train[train_ids]
+        self.x_test = self.x_train[test_ids]
+        self.y_test = self.y_train[test_ids]
+
+
+        self.x_train, self.x_test = normalize(self.x_train, self.x_test, mode="min_max")
+        self.x_train = self.x_train.astype('float32')
+        self.x_test = self.x_test.astype('float32')
+
+        self._convert_data_to_tensors()
 
 
