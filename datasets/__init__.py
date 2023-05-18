@@ -12,4 +12,5 @@ from datasets.topv2 import TopV2
 from datasets.news import News
 
 # Toy Datasets
-from datasets.sythData import SynthData
+from datasets.sythData import ThreeClust
+from datasets.sythData import Scissor

@@ -1,0 +1,13 @@
+# Dataset: 
+ThreeClust
+Budget: 100
+Seeding points per class: 1
+Classifier Batch Size: 32 
+
+# Agent: 
+MarginScore 
+
+# Environment: 
+<ALGame<RlAl-v0>> 
+ 
+

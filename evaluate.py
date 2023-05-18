@@ -15,8 +15,8 @@ parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--agent", type=str, default="badge")
-parser.add_argument("--dataset", type=str, default="splice")
+parser.add_argument("--agent", type=str, default="margin")
+parser.add_argument("--dataset", type=str, default="Scissor")
 parser.add_argument("--encoded", type=int, default=0)
 # parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=10)
@@ -28,7 +28,7 @@ args.encoded = bool(args.encoded)
 run_id = args.run_id
 max_run_id = run_id + args.restarts
 while run_id < max_run_id:
-    with open(f"configs/{args.dataset}.yaml", 'r') as f:
+    with open(f"configs/{args.dataset.lower()}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
     config["current_run_info"] = args.__dict__
     print("Config:")

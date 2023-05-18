@@ -99,7 +99,8 @@ class BaseDataset(ABC):
 
     def _load_or_download_data(self):
         # make sure the base files are there
-        if not exists(join(self.cache_folder, self.data_file)):
+        if self.data_file is not None and \
+           not exists(join(self.cache_folder, self.data_file)):
             print(f"No local copy of {self.name} found in {self.cache_folder}. \nDownloading Data...")
             self._download_data()
             assert hasattr(self, "x_train")

@@ -1,0 +1,13 @@
+# Dataset: 
+Scissor
+Budget: 50
+Seeding points per class: 1
+Classifier Batch Size: 32 
+
+# Agent: 
+RandomAgent 
+
+# Environment: 
+<ALGame<RlAl-v0>> 
+ 
+
