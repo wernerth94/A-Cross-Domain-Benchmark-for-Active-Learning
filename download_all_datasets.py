@@ -30,7 +30,10 @@ for name in all_names:
     DatasetClass = get_dataset_by_name(name)
     DatasetClass(args.data_folder, config, pool_rng, encoded=False)
     if args.encode:
-        DatasetClass(args.data_folder, config, pool_rng, encoded=True)
+        try:
+            DatasetClass(args.data_folder, config, pool_rng, encoded=True)
+        except AssertionError:
+            pass
 
 print("\n")
 print("> all datasets prepared")
