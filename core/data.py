@@ -141,7 +141,7 @@ class BaseDataset(ABC):
             for x in tqdm(test_loader):
                 x_enc = model(x[0])
                 enc_test = torch.cat([enc_test, x_enc], dim=0)
-            enc_train, enc_test = normalize(enc_train, enc_test, mode="min_max")
+            enc_train, enc_test = normalize(enc_train.numpy(), enc_test.numpy(), mode="mean_std")
             self.x_train, self.y_train, self.x_test, self.y_test = to_torch(enc_train, torch.float32, device), y_train, \
                                                                    to_torch(enc_test, torch.float32, device), y_test
 
