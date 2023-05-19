@@ -20,7 +20,7 @@ class FashionMnist(BaseDataset):
         # add an explicit color dimension for compatibility
         x_train = torch.unsqueeze(x_train, -1)
         x_test = torch.unsqueeze(x_test, -1)
-        x_test, self.y_test = subsample_data(x_test, y_test, test_data_fraction)
+        x_test, self.y_test = subsample_data(x_test, y_test, test_data_fraction, self.pool_rng)
         self.x_train, self.x_test = convert_to_channel_first(x_train, x_test)
         # normalize pixel values from [0..255] to [-1..1]
         high = 255.0
