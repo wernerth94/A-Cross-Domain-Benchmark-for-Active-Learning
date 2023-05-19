@@ -1,6 +1,6 @@
 # Dataset: 
 Cifar10Encoded
-Budget: 500
+Budget: 350
 Seeding points per class: 1
 Classifier Batch Size: 64
 Source: TorchVision
