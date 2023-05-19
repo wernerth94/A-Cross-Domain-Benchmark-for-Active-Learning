@@ -126,7 +126,8 @@ class BaseDataset(ABC):
 
     def _encode(self, x_train, y_train, x_test, y_test):
         with torch.no_grad():
-            device = "cuda" if torch.cuda.is_available() else "cpu"
+            device = "cpu"
+            # device = "cuda" if torch.cuda.is_available() else "cpu"
             model = self.get_pretext_encoder(self.config)
             model.load_state_dict(torch.load(self.encoder_model_checkpoint, map_location=device))
             model = model.to(device)
