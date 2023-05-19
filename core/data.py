@@ -126,12 +126,13 @@ class BaseDataset(ABC):
 
     def _encode(self, x_train, y_train, x_test, y_test):
         with torch.no_grad():
+            device = "cuda" if torch.cuda.is_available() else "cpu"
             model = self.get_pretext_encoder(self.config)
-            model.load_state_dict(torch.load(self.encoder_model_checkpoint, map_location=torch.device('cpu')))
-            train_loader = DataLoader(TensorDataset(x_train), shuffle=False, batch_size=512, drop_last=False)
-            test_loader = DataLoader(TensorDataset(x_test), shuffle=False, batch_size=512, drop_last=False)
-            enc_train = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"]))
-            enc_test = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"]))
+            model.load_state_dict(torch.load(self.encoder_model_checkpoint, map_location=device))
+            train_loader = DataLoader(TensorDataset(x_train.to(device)), shuffle=False, batch_size=512, drop_last=False)
+            test_loader = DataLoader(TensorDataset(x_test.to(device)), shuffle=False, batch_size=512, drop_last=False)
+            enc_train = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"])).to(device)
+            enc_test = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"])).to(device)
             for x in tqdm(train_loader):
                 x_enc = model(x[0])
                 enc_train = torch.cat([enc_train, x_enc], dim=0)
@@ -139,8 +140,8 @@ class BaseDataset(ABC):
                 x_enc = model(x[0])
                 enc_test = torch.cat([enc_test, x_enc], dim=0)
             enc_train, enc_test = normalize(enc_train, enc_test, mode="min_max")
-            self.x_train, self.y_train, self.x_test, self.y_test = to_torch(enc_train, torch.float32), y_train, \
-                                                                   to_torch(enc_test, torch.float32), y_test
+            self.x_train, self.y_train, self.x_test, self.y_test = to_torch(enc_train, torch.float32, device), y_train, \
+                                                                   to_torch(enc_test, torch.float32, device), y_test
 
     def _load_data(self, encoded) -> Union[None, Tuple]:
         """
