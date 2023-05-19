@@ -129,6 +129,7 @@ class BaseDataset(ABC):
             device = "cuda" if torch.cuda.is_available() else "cpu"
             model = self.get_pretext_encoder(self.config)
             model.load_state_dict(torch.load(self.encoder_model_checkpoint, map_location=device))
+            model = model.to(device)
             train_loader = DataLoader(TensorDataset(x_train.to(device)), shuffle=False, batch_size=512, drop_last=False)
             test_loader = DataLoader(TensorDataset(x_test.to(device)), shuffle=False, batch_size=512, drop_last=False)
             enc_train = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"])).to(device)
