@@ -138,7 +138,9 @@ class BaseDataset(ABC):
             for x in tqdm(test_loader):
                 x_enc = model(x[0])
                 enc_test = torch.cat([enc_test, x_enc], dim=0)
-            self.x_train, self.y_train, self.x_test, self.y_test = enc_train, y_train, enc_test, y_test
+            enc_train, enc_test = normalize(enc_train, enc_test, mode="min_max")
+            self.x_train, self.y_train, self.x_test, self.y_test = to_torch(enc_train, torch.float32), y_train, \
+                                                                   to_torch(enc_test, torch.float32), y_test
 
     def _load_data(self, encoded) -> Union[None, Tuple]:
         """
@@ -169,7 +171,7 @@ class BaseDataset(ABC):
         from classifiers.classifier import construct_model
         model_rng = torch.Generator()
         model_rng.manual_seed(seed)
-        backbone, out_dim = construct_model(model_rng, self.x_shape, self.n_classes, config["pretext_encoder"], add_head=False)
+        backbone, out_dim = construct_model(model_rng, self, config["pretext_encoder"], add_head=False)
         config["pretext_encoder"]["encoder_dim"] = out_dim
         model = ContrastiveModel({'backbone': backbone, 'dim': config["pretext_encoder"]["encoder_dim"]},
                                  head="mlp", features_dim=config["pretext_encoder"]["feature_dim"])

@@ -369,44 +369,30 @@ They unify experimental setups for different datasets and therefore make them mu
 	\begin{tabular}{l|lll}
 		& Splice        & DNA           & USPS          \\
 		\hline
-		Oracle          & 0.835 $\pm$ 0.01 & 0.879 $\pm$ 0.01 & 0.870 $\pm$ 0.01 \\
-		SAL\_23\_01\_16 & 0.808 $\pm$ 0.01 & 0.857 $\pm$ 0.02 & 0.865 $\pm$ 0.01 \\
-		Coreset\_Greedy & 0.808 $\pm$ 0.01 & 0.853 $\pm$ 0.02 & 0.849 $\pm$ 0.01 \\
-		MarginScore     & 0.806 $\pm$ 0.01 & 0.855 $\pm$ 0.02 & 0.864 $\pm$ 0.01 \\
-		ShannonEntropy  & 0.808 $\pm$ 0.01 & 0.855 $\pm$ 0.02 & 0.864 $\pm$ 0.01 \\
-		RandomAgent     & 0.797 $\pm$ 0.01 & 0.823 $\pm$ 0.02 & 0.831 $\pm$ 0.01
+		Oracle          & 0.830 +- 0.01 & 0.836 +- 0.02 & 0.823 +- 0.01 \\
+		SAL & 0.799 +- 0.01 & 0.797 +- 0.03 & 0.809 +- 0.01 \\
+		Coreset & 0.800 +- 0.01 & 0.795 +- 0.03 & 0.787 +- 0.02 \\
+		TypiClust       & 0.790 +- 0.01 & 0.771 +- 0.04 & 0.761 +- 0.02 \\
+		MarginScore     & 0.797 +- 0.02 & 0.795 +- 0.04 & 0.808 +- 0.01 \\
+		ShannonEntropy  & 0.799 +- 0.02 & 0.794 +- 0.04 & 0.807 +- 0.01 \\
+		RandomAgent     & 0.788 +- 0.01 & 0.765 +- 0.03 & 0.772 +- 0.01 \\
+		Badge           & 0.807 +- 0.01 & 0.769 +- 0.06 & 0.797 +- 0.02 \\
+		BALD            & 0.811 +- 0.01 & 0.743 +- 0.04 & 0.717 +- 0.05
 	\end{tabular}
+	\caption{AUC values for all algorithms on the tabular datasets. Higher is better.}
 \end{table}
 %
-\begin{table}[]
-	\begin{tabular}{l|ll}
-		& Cifar10 & FashionMnist \\
-		\hline
-		Oracle          & 0.718 $\pm$ 0.01  & 0.721 $\pm$ 0.01       \\
-		SAL\_23\_01\_16 & 0.660 $\pm$ 0.01  & 0.667 $\pm$ 0.01       \\
-		Coreset\_Greedy & 0.668 $\pm$ 0.01  & 0.674 $\pm$ 0.01       \\
-		MarginScore     & 0.674 $\pm$ 0.01  & 0.677 $\pm$ 0.01       \\
-		ShannonEntropy  & 0.671 $\pm$ 0.01  & 0.680 $\pm$ 0.01       \\
-		RandomAgent     & 0.632 $\pm$ 0.02  & 0.633 $\pm$ 0.01      
-	\end{tabular}
-\end{table}
-%
-\begin{figure}[H]
+\begin{figure}
 	\centering
-	\includegraphics[width=0.8\linewidth]{img/eval_splice_embedded}
-	\caption{Results for all algorithms on the pre-encoded Splice dataset}
+	\includegraphics[width=0.8\linewidth]{img/eval_dna}
+	\caption{Results for all algorithms on the DNA dataset}
 \end{figure}
-\begin{figure}[H]
+%
+\begin{figure}
 \centering
-\includegraphics[width=0.8\linewidth]{img/eval_splice_embedded_cd}
-\caption{Critical Difference Diagram for Splice where every restart of the algorithm is one sample for the Wilcoxon-Holm method}
+	\includegraphics[width=0.8\linewidth]{img/macro_al.png}
+	\caption{Critical Difference Diagram for all datasets and algorithms}
 \end{figure}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.8\linewidth]{img/eval_macro}
-\caption{Critical Difference Diagram for Splice, DNA, USPS and Cifar10}
-\end{figure}
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -423,6 +409,57 @@ They unify experimental setups for different datasets and therefore make them mu
 
 \appendix
 
+\section{Other result tables}
+\begin{table}[H]
+	\begin{tabular}{l|lll}
+		& SpliceEncoded & DNAEncoded    & USPSEncoded   \\
+		\hline
+		Oracle          & 0.754 +- 0.02 & 0.726 +- 0.02 & 0.674 +- 0.01 \\
+		SAL & 0.675 +- 0.03 & 0.640 +- 0.04 & 0.634 +- 0.01 \\
+		Coreset & 0.690 +- 0.02 & 0.644 +- 0.05 & 0.607 +- 0.02 \\
+		TypiClust       & 0.695 +- 0.02 & 0.660 +- 0.03 & 0.643 +- 0.01 \\
+		MarginScore     & 0.675 +- 0.03 & 0.643 +- 0.05 & 0.632 +- 0.02 \\
+		ShannonEntropy  & 0.673 +- 0.03 & 0.638 +- 0.05 & 0.626 +- 0.02 \\
+		RandomAgent     & 0.680 +- 0.03 & 0.633 +- 0.04 & 0.594 +- 0.02 \\
+		Badge           & 0.670 +- 0.04 & 0.600 +- 0.07 & 0.597 +- 0.02 \\
+		BALD            & 0.660 +- 0.04 & 0.597 +- 0.06 & 0.652 +- 0.01
+	\end{tabular}
+	\caption{AUC values for all algorithms on the encoded tabular datasets. Higher is better.}
+\end{table}
+%
+\begin{table}[H]
+	\begin{tabular}{l|ll}
+		& Cifar10Encoded & FashionMnistEncoded \\
+		\hline
+		Oracle          & 0.699 +- 0.01  & 0.721 +- 0.01       \\
+		SAL & 0.623 +- 0.01  & 0.667 +- 0.01       \\
+		Coreset & 0.641 +- 0.01  & 0.674 +- 0.01       \\
+		TypiClust       & 0.627 +- 0.01  & 0.638 +- 0.01       \\
+		MarginScore     & 0.641 +- 0.01  & 0.676 +- 0.01       \\
+		ShannonEntropy  & 0.637 +- 0.02  & 0.680 +- 0.01       \\
+		RandomAgent     & 0.598 +- 0.02  & 0.633 +- 0.01       \\
+		Badge           & 0.645 +- 0.02  & 0.681 +- 0.01       \\
+		BALD            & 0.633 +- 0.01  & 0.666 +- 0.01      
+	\end{tabular}
+	\caption{AUC values for all algorithms on the encoded image datasets. Higher is better.}
+\end{table}
+%
+\begin{table}[H]
+	\begin{tabular}{l|ll}
+		& TopV2         & News          \\
+		\hline
+		Oracle          & 0.860 +- 0.01 & 0.448 +- 0.01 \\
+		SAL & 0.831 +- 0.01 & 0.312 +- 0.01 \\
+		Coreset & 0.816 +- 0.02 & 0.355 +- 0.02 \\
+		TypiClust       & 0.718 +- 0.02 & 0.314 +- 0.01 \\
+		MarginScore     & 0.821 +- 0.02 & 0.357 +- 0.01 \\
+		ShannonEntropy  & 0.794 +- 0.02 & 0.342 +- 0.01 \\
+		RandomAgent     & 0.776 +- 0.02 & 0.349 +- 0.01 \\
+		Badge           & 0.824 +- 0.01 & 0.343 +- 0.01 \\
+		BALD            & 0.825 +- 0.02 & 0.347 +- 0.01
+	\end{tabular}
+\caption{AUC values for all algorithms on the text datasets. Higher is better.}
+\end{table}
 
 \section{Alternative Plot for Restarts Ablation}
 \begin{figure}[H]

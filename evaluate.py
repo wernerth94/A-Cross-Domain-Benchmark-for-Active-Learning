@@ -15,9 +15,9 @@ parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--agent", type=str, default="margin")
-parser.add_argument("--dataset", type=str, default="Scissor")
-parser.add_argument("--encoded", type=int, default=0)
+parser.add_argument("--agent", type=str, default="TypiClust")
+parser.add_argument("--dataset", type=str, default="cifar10")
+parser.add_argument("--encoded", type=int, default=1)
 # parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=10)
 ##########################################################
@@ -63,8 +63,6 @@ while run_id < max_run_id:
         base_path = os.path.join("runs", dataset.name, agent.name)
     log_path = os.path.join(base_path, f"run_{run_id}")
 
-    save_meta_data(log_path, agent, env, dataset)
-
     print(f"Starting run {run_id}")
     time.sleep(0.1) # prevents printing uglyness with tqdm
 
@@ -82,4 +80,5 @@ while run_id < max_run_id:
 
     # collect results from all runs
     collect_results(base_path, "run_")
+    save_meta_data(log_path, agent, env, dataset)
     run_id += 1

@@ -66,7 +66,10 @@ class TypiClust(BaseAgent):
 
     def _get_mean_nn_dist(self, features, num_neighbors, return_indices=False):
         distances, indices = self._get_nn(features, num_neighbors)
-        mean_distance = distances.mean(axis=1)
+        if distances.shape[1] > 0:
+            mean_distance = distances.mean(axis=1)
+        else:
+            mean_distance = np.zeros(len(distances))
         if return_indices:
             return mean_distance, indices
         return mean_distance
