@@ -13,7 +13,7 @@ class FashionMnist(BaseDataset):
                          data_file, fitting_mode)
 
 
-    def _download_data(self, test_data_fraction=0.1):
+    def _download_data(self, test_data_fraction=0.5):
         train = torchvision.datasets.FashionMNIST(root=self.cache_folder, train=True, download=True)
         test = torchvision.datasets.FashionMNIST(root=self.cache_folder, train=False, download=True)
         x_train, self.y_train, x_test, y_test = postprocess_torch_dataset(train, test)

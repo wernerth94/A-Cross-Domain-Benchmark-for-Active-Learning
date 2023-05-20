@@ -12,7 +12,7 @@ class Cifar10(BaseDataset):
                          data_file, fitting_mode)
 
 
-    def _download_data(self, target_to_one_hot=True, test_data_fraction=0.1):
+    def _download_data(self, target_to_one_hot=True, test_data_fraction=0.5):
         train = torchvision.datasets.CIFAR10(root=self.cache_folder, train=True, download=True)
         test = torchvision.datasets.CIFAR10(root=self.cache_folder, train=False, download=True)
         x_train, self.y_train, x_test, y_test = postprocess_torch_dataset(train, test)
