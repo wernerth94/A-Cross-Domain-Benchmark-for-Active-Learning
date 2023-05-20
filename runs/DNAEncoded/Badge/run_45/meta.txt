@@ -10,7 +10,3 @@ Classifier: DenseNet
 # Agent: 
 Badge 
 
-# Environment: 
-<ALGame<RlAl-v0>> 
- 
-

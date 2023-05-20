@@ -9,5 +9,5 @@ Classifier: ResNet18
 
 # Environment: 
 <OracleALGame<RlAl-v0>> 
-Sample Size: 20 
+ 
 

@@ -11,7 +11,3 @@ Classifier: ResNet18
 SAL_23_01_16
 Checkpoint: sar_23_01_16.pth 
 
-# Environment: 
-<ALGame<RlAl-v0>> 
-Sample Size: 20 
-

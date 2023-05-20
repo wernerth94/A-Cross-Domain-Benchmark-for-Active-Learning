@@ -10,7 +10,3 @@ Classifier: ResNet18
 # Agent: 
 BALD 
 
-# Environment: 
-<ALGame<RlAl-v0>> 
- 
-

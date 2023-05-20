@@ -1,6 +1,6 @@
 # Dataset: 
 DNAEncoded
-Budget: 300
+Budget: 40
 Seeding points per class: 1
 Classifier Batch Size: 64
 Source: LibSVMTools
@@ -9,8 +9,4 @@ Classifier: DenseNet
 
 # Agent: 
 Coreset_Greedy 
-
-# Environment: 
-<ALGame<RlAl-v0>> 
-Sample Size: 20 
 
