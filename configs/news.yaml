@@ -1,8 +1,8 @@
 dataset:
-  budget: 700
+  budget: 1500
   initial_points_per_class: 1
   classifier_batch_size: 64
-  validation_split: 0.01
+  validation_split: 0.03
 
 classifier:
   # Copied from TopV2

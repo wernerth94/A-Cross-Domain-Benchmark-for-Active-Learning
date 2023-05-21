@@ -97,7 +97,7 @@ class News(BaseDataset):
 
             all_ids = list(range(len(tokenized_sentences)))
             self.pool_rng.shuffle(all_ids)
-            train_ids, test_ids = all_ids[:-5000], all_ids[-5000:]
+            train_ids, test_ids = all_ids[:-7000], all_ids[-7000:]
             self.x_train, self.y_train = tokenized_sentences[train_ids], cleaned_labels[train_ids]
             self.x_test, self.y_test = tokenized_sentences[test_ids], cleaned_labels[test_ids]
             # self._convert_data_to_tensors()
