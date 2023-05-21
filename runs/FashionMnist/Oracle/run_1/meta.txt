@@ -1,0 +1,13 @@
+# Dataset: 
+FashionMnist
+Budget: 2000
+Seeding points per class: 20
+Classifier Batch Size: 64
+Source: TorchVision
+Normalization: Linear between [-1..1]
+Classifier: ResNet18 
+
+# Environment: 
+<OracleALGame<RlAl-v0>> 
+ 
+
