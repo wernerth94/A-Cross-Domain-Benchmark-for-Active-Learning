@@ -1,7 +1,7 @@
 dataset:
   budget: 2000
   initial_points_per_class: 20
-  classifier_batch_size: 1
+  classifier_batch_size: 64
   validation_split: 0.04
 
 classifier:
