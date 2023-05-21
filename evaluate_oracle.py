@@ -49,7 +49,6 @@ while run_id < max_run_id:
                             device=util.device)
     base_path = os.path.join("runs", dataset.name, f"Oracle")
     log_path = os.path.join(base_path, f"run_{run_id}")
-    save_meta_data(log_path, None, env, dataset)
 
     with core.EnvironmentLogger(env, log_path, util.is_cluster) as env:
         done = False
@@ -70,5 +69,6 @@ while run_id < max_run_id:
 
 
     # collect results from all runs
+    save_meta_data(log_path, None, env, dataset)
     collect_results(base_path, "run_")
     run_id += 1
