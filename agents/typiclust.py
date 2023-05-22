@@ -28,7 +28,7 @@ class TypiClust(BaseAgent):
         state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
         num_clusters = min(len(x_labeled) + 1, self.MAX_NUM_CLUSTERS)
         if len(x_unlabeled.size()) > 2:
-            assert hasattr(classifier, "_encode"), "When using TypiClust with un-embedded data, the classifier needs the _encode method"
+            assert hasattr(classifier, "_encode"), "When using TypiClust with images or text, the classifier needs the _encode method"
             all_data = torch.concat([self._embed(x_unlabeled[state_ids], classifier),
                                      self._embed(x_labeled, classifier)], dim=0).cpu()
         else:
