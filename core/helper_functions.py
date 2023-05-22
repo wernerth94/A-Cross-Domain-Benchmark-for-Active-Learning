@@ -1,9 +1,7 @@
 from typing import Union, Callable
 import os
-import math
 from os.path import join, exists
 import torch
-from torch.nn.init import calculate_gain, _calculate_correct_fan
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -173,3 +171,8 @@ def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
         return agents.TypiClust
     else:
         raise ValueError(f"Agent name '{name}' not recognized")
+
+
+if __name__ == '__main__':
+    base_path = "runs/News/Oracle"
+    collect_results(base_path, "run_")

@@ -59,6 +59,7 @@ while run_id < max_run_id:
             if done or truncated:
                 break # fail save; should not happen
 
+        save_meta_data(log_path, None, env, dataset)
         if args.store_dataset:
             # store dataset for later HP optimization
             out_file = os.path.join(log_path, "labeled_data.pt")
@@ -69,6 +70,5 @@ while run_id < max_run_id:
 
 
     # collect results from all runs
-    save_meta_data(log_path, None, env, dataset)
     collect_results(base_path, "run_")
     run_id += 1
