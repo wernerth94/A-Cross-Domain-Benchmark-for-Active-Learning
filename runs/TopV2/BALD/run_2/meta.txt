@@ -11,7 +11,3 @@ Classifier: BiLSTM
 # Agent: 
 BALD 
 
-# Environment: 
-<ALGame<RlAl-v0>> 
- 
-

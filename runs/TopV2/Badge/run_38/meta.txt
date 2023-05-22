@@ -11,7 +11,3 @@ Classifier: BiLSTM
 # Agent: 
 Badge 
 
-# Environment: 
-<ALGame<RlAl-v0>> 
- 
-
