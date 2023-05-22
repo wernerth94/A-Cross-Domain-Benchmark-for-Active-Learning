@@ -156,7 +156,7 @@ class BaseDataset(ABC):
         else:
             file = os.path.join(self.cache_folder, self.data_file)
         if os.path.exists(file):
-            dataset = torch.load(file)
+            dataset = torch.load(file, map_location=torch.device("cpu"))
             return dataset["x_train"], dataset["y_train"], \
                    dataset["x_test"], dataset["y_test"]
         return None
