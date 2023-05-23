@@ -22,11 +22,14 @@ class FashionMnist(BaseDataset):
         x_test = torch.unsqueeze(x_test, -1)
         x_test, self.y_test = subsample_data(x_test, y_test, test_data_fraction, self.pool_rng)
         self.x_train, self.x_test = convert_to_channel_first(x_train, x_test)
-        # normalize pixel values from [0..255] to [-1..1]
+        # normalize pixel values from [0..255] to [0..1]
         high = 255.0
-        self.x_train = self.x_train / (high / 2.0) - 1.0
-        self.x_test = self.x_test / (high / 2.0) - 1.0
+        self.x_train = self.x_train / high
+        self.x_test = self.x_test / high
         self._convert_data_to_tensors()
+        # normalizer = transforms.Compose( [transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))] )
+        # self.x_test = normalizer(self.x_test)
+        # self.x_train = normalizer(self.x_train)
         print("Download successful")
 
 
