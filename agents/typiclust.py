@@ -28,7 +28,11 @@ class TypiClust(BaseAgent):
         state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
         num_clusters = min(len(x_labeled) + 1, self.MAX_NUM_CLUSTERS)
         if len(x_unlabeled.size()) > 2:
-            assert hasattr(classifier, "_encode"), "When using TypiClust with images or text, the classifier needs the _encode method"
+            assert hasattr(classifier, "_encode"), "When using TypiClust with images, the classifier needs the _encode method"
+            all_data = torch.concat([self._embed(x_unlabeled[state_ids], classifier),
+                                     self._embed(x_labeled, classifier)], dim=0).cpu()
+        elif len(x_unlabeled.size()) == 2 and x_unlabeled.dtype == torch.int64:
+            assert hasattr(classifier, "_encode"), "When using TypiClust with text, the classifier needs the _encode method"
             all_data = torch.concat([self._embed(x_unlabeled[state_ids], classifier),
                                      self._embed(x_labeled, classifier)], dim=0).cpu()
         else:
@@ -55,8 +59,11 @@ class TypiClust(BaseAgent):
         cluster_id = clusters_df.iloc[0].cluster_id
         indices = (labels == cluster_id).nonzero()[0]
         rel_feats = all_data[indices].numpy()
-        typicality = self._calculate_typicality(rel_feats, min(self.K_NN, len(indices) // 2))
-        idx = indices[typicality.argmax()]
+        if len(rel_feats) > 0:
+            typicality = self._calculate_typicality(rel_feats, min(self.K_NN, len(indices) // 2))
+            idx = indices[typicality.argmax()]
+        else:
+            idx = self.agent_rng.choice(len(state_ids))
         return state_ids[idx]
 
 
