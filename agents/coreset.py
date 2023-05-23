@@ -20,12 +20,12 @@ class Coreset_Greedy(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier: Module, optimizer: Optimizer,
-                      sample_size=100) -> Union[Tensor, dict]:
+                      sample_size=10000) -> Union[Tensor, dict]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
         with torch.no_grad():
-            replacement_needed = len(x_unlabeled) < sample_size
-            state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=replacement_needed)
+            sample_size = min(sample_size, len(x_unlabeled))
+            state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
             candidates = classifier._encode(x_unlabeled[state_ids])
             centers = classifier._encode(x_labeled)
             dist = pairwise_distances(candidates.detach().cpu(), centers.detach().cpu(), metric='euclidean')
