@@ -1,6 +1,7 @@
 import numpy as np
 from core.data import BaseDataset, normalize
 from sklearn.model_selection import train_test_split
+import torchvision
 
 
 class SynthData(BaseDataset):
