@@ -99,7 +99,8 @@ class BaseDataset(ABC):
 
     def _load_or_download_data(self):
         # make sure the base files are there
-        if not exists(join(self.cache_folder, self.data_file)):
+        if self.data_file is not None and \
+           not exists(join(self.cache_folder, self.data_file)):
             print(f"No local copy of {self.name} found in {self.cache_folder}. \nDownloading Data...")
             self._download_data()
             assert hasattr(self, "x_train")
@@ -125,19 +126,24 @@ class BaseDataset(ABC):
 
     def _encode(self, x_train, y_train, x_test, y_test):
         with torch.no_grad():
+            device = "cpu"
+            # device = "cuda" if torch.cuda.is_available() else "cpu"
             model = self.get_pretext_encoder(self.config)
-            model.load_state_dict(torch.load(self.encoder_model_checkpoint, map_location=torch.device('cpu')))
-            train_loader = DataLoader(TensorDataset(x_train), shuffle=False, batch_size=512, drop_last=False)
-            test_loader = DataLoader(TensorDataset(x_test), shuffle=False, batch_size=512, drop_last=False)
-            enc_train = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"]))
-            enc_test = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"]))
+            model.load_state_dict(torch.load(self.encoder_model_checkpoint, map_location=device))
+            model = model.to(device)
+            train_loader = DataLoader(TensorDataset(x_train.to(device)), shuffle=False, batch_size=512, drop_last=False)
+            test_loader = DataLoader(TensorDataset(x_test.to(device)), shuffle=False, batch_size=512, drop_last=False)
+            enc_train = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"])).to(device)
+            enc_test = torch.zeros((0, self.config["pretext_encoder"]["feature_dim"])).to(device)
             for x in tqdm(train_loader):
                 x_enc = model(x[0])
                 enc_train = torch.cat([enc_train, x_enc], dim=0)
             for x in tqdm(test_loader):
                 x_enc = model(x[0])
                 enc_test = torch.cat([enc_test, x_enc], dim=0)
-            self.x_train, self.y_train, self.x_test, self.y_test = enc_train, y_train, enc_test, y_test
+            enc_train, enc_test = normalize(enc_train.numpy(), enc_test.numpy(), mode="mean_std")
+            self.x_train, self.y_train, self.x_test, self.y_test = to_torch(enc_train, torch.float32, device), y_train, \
+                                                                   to_torch(enc_test, torch.float32, device), y_test
 
     def _load_data(self, encoded) -> Union[None, Tuple]:
         """
@@ -150,7 +156,7 @@ class BaseDataset(ABC):
         else:
             file = os.path.join(self.cache_folder, self.data_file)
         if os.path.exists(file):
-            dataset = torch.load(file)
+            dataset = torch.load(file, map_location=torch.device("cpu"))
             return dataset["x_train"], dataset["y_train"], \
                    dataset["x_test"], dataset["y_test"]
         return None
@@ -168,7 +174,7 @@ class BaseDataset(ABC):
         from classifiers.classifier import construct_model
         model_rng = torch.Generator()
         model_rng.manual_seed(seed)
-        backbone, out_dim = construct_model(model_rng, self.x_shape, self.n_classes, config["pretext_encoder"], add_head=False)
+        backbone, out_dim = construct_model(model_rng, self, config["pretext_encoder"], add_head=False)
         config["pretext_encoder"]["encoder_dim"] = out_dim
         model = ContrastiveModel({'backbone': backbone, 'dim': config["pretext_encoder"]["encoder_dim"]},
                                  head="mlp", features_dim=config["pretext_encoder"]["feature_dim"])

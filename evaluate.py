@@ -15,8 +15,8 @@ parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--agent", type=str, default="badge")
-parser.add_argument("--dataset", type=str, default="splice")
+parser.add_argument("--agent", type=str, default="typiclust")
+parser.add_argument("--dataset", type=str, default="topv2")
 parser.add_argument("--encoded", type=int, default=0)
 # parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=10)
@@ -28,7 +28,7 @@ args.encoded = bool(args.encoded)
 run_id = args.run_id
 max_run_id = run_id + args.restarts
 while run_id < max_run_id:
-    with open(f"configs/{args.dataset}.yaml", 'r') as f:
+    with open(f"configs/{args.dataset.lower()}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
     config["current_run_info"] = args.__dict__
     print("Config:")
@@ -63,8 +63,6 @@ while run_id < max_run_id:
         base_path = os.path.join("runs", dataset.name, agent.name)
     log_path = os.path.join(base_path, f"run_{run_id}")
 
-    save_meta_data(log_path, agent, env, dataset)
-
     print(f"Starting run {run_id}")
     time.sleep(0.1) # prevents printing uglyness with tqdm
 
@@ -82,4 +80,5 @@ while run_id < max_run_id:
 
     # collect results from all runs
     collect_results(base_path, "run_")
+    save_meta_data(log_path, agent, env, dataset)
     run_id += 1

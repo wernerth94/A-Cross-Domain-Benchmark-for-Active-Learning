@@ -12,7 +12,7 @@ parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--dataset", type=str, default="news")
+parser.add_argument("--dataset", type=str, default="ThreeClust")
 parser.add_argument("--encoded", type=int, default=0)
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=3)
@@ -24,13 +24,14 @@ args.encoded = bool(args.encoded)
 run_id = args.run_id
 max_run_id = run_id + args.restarts
 while run_id < max_run_id:
-    with open(f"configs/{args.dataset}.yaml", 'r') as f:
+    with open(f"configs/{args.dataset.lower()}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
     config["current_run_info"] = args.__dict__
     print("Config:")
     pprint(config)
     print("Config End \n")
 
+    print(f"Starting run {run_id}")
     pool_rng = np.random.default_rng(args.pool_seed + run_id)
     model_seed = args.model_seed + run_id
     # This is currently the only way to seed dropout layers in Python
@@ -48,7 +49,6 @@ while run_id < max_run_id:
                             device=util.device)
     base_path = os.path.join("runs", dataset.name, f"Oracle")
     log_path = os.path.join(base_path, f"run_{run_id}")
-    save_meta_data(log_path, None, env, dataset)
 
     with core.EnvironmentLogger(env, log_path, util.is_cluster) as env:
         done = False
@@ -59,6 +59,7 @@ while run_id < max_run_id:
             if done or truncated:
                 break # fail save; should not happen
 
+        save_meta_data(log_path, None, env, dataset)
         if args.store_dataset:
             # store dataset for later HP optimization
             out_file = os.path.join(log_path, "labeled_data.pt")

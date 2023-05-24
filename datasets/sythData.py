@@ -4,8 +4,10 @@ from sklearn.model_selection import train_test_split
 
 
 class SynthData(BaseDataset):
+
     def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
                  data_file=None, dataset='ThreeClust'):
+        assert not encoded, "This dataset does not support encodings"
         self.dataset = dataset
         fitting_mode = "from_scratch" if encoded else "finetuning"
         super().__init__(cache_folder, config, pool_rng, encoded,
@@ -13,7 +15,7 @@ class SynthData(BaseDataset):
 
 
 
-    def createToy_ThreeClust(self, n_perClust=50, cov=[[1, 0], [0, 1]] ):
+    def createToy_ThreeClust(self, n_perClust=150, cov=[[1, 0], [0, 1]] ):
 
         mean1 = [0, 0]
         cluster1 = self.pool_rng.multivariate_normal(mean1, cov, n_perClust)
@@ -33,9 +35,9 @@ class SynthData(BaseDataset):
         data_pos = np.c_[data_pos, np.ones(len(data_pos))]
         data_neg = np.c_[data_neg, np.zeros(len(data_neg))]
 
-        self.data_3Clust = np.concatenate((data_pos, data_neg), axis=0)
+        return np.concatenate((data_pos, data_neg), axis=0)
 
-    def creatToy_Scissor(self, n_samples=10,  n_clusters=10, dist_cluster=2, cov=[[1, 0], [0, 1]] ):
+    def creatToy_Scissor(self, n_samples=50,  n_clusters=10, dist_cluster=2, cov=[[1, 0], [0, 1]] ):
 
         # Generate data for two classes from 4 clusters
         # n_samples : pro cluster - divide by 2 for n_samples per class
@@ -56,10 +58,13 @@ class SynthData(BaseDataset):
             pos_cls.append(pos_cluster)
             neg_cls.append(neg_cluster)
 
+
         data_pos = np.concatenate(pos_cls, axis=0)
         data_neg = np.concatenate(neg_cls, axis=0)
+        data_pos = np.c_[data_pos, np.ones(len(data_pos))]
+        data_neg = np.c_[data_neg, np.zeros(len(data_neg))]
 
-        self.data_Sissor = np.concatenate((data_pos,data_neg),axis=0)
+        return np.concatenate((data_pos,data_neg),axis=0)
 
     def creatDivergentSin(self, n_samples=100, divergence_factor=0.5, sin_freq=2, cov=0.3):
 
@@ -75,41 +80,53 @@ class SynthData(BaseDataset):
         data_pos = np.c_[cluster_above_y, np.ones(len(cluster_above_y))]
         data_neg = np.c_[cluster_below_y, np.zeros(len(cluster_below_y))]
 
-        self.data_DivSin = np.concatenate((data_pos, data_neg), axis=0)
+        return np.concatenate((data_pos, data_neg), axis=0)
 
     def _download_data(self, dataset='ThreeClust', train_ratio=0.8, test_ratio=0.20):
+        raise NotImplementedError
+
+    def _load_data(self, dataset='ThreeClust', train_ratio=0.8, test_ratio=0.20):
         assert train_ratio + test_ratio == 1, "The sum of train, val, and test should be equal to 1."
 
         if self.dataset == 'ThreeClust':
-            data = self.data_3Clust
+            data = self.createToy_ThreeClust()
         elif self.dataset == 'Scissor':
-            data = self.data_Sissor
-        elif self.dataset == 'DivergentSin':
-            data = self.data_DivSin
+            data = self.creatToy_Scissor()
+        elif self.dataset == 'Scissor':
+            data = self.creatDivergentSin()
+        else:
+            raise NotImplementedError
 
-        self.x_train = data[:, 0: 2]
-        self.y_train = data[:, -1]
-        self.x_test  = data[:, 0: 2]
-        self.y_test  = data[:, -1]
-
-
-        ids = np.arange(self.x_train.shape[0], dtype=int)
+        ids = np.arange(data.shape[0], dtype=int)
         self.pool_rng.shuffle(ids)
         cut = int(len(ids) * test_ratio)
         train_ids = ids[cut:]
         test_ids = ids[:cut]
 
-        self.x_train = self.x_train[train_ids]
-        self.y_train = self.y_train[train_ids]
-        self.x_test = self.x_train[test_ids]
-        self.y_test = self.y_train[test_ids]
+        x_train = data[train_ids, :2]
+        y_train = to_one_hot(data[train_ids, -1].astype(int))
+        x_test = data[test_ids, :2]
+        y_test = to_one_hot(data[test_ids, -1].astype(int))
+
+        x_train, x_test = normalize(x_train, x_test, mode="min_max")
+        x_train = x_train.astype('float32')
+        x_test = x_test.astype('float32')
+
+        return to_torch(x_train, torch.float32, device=self.device), \
+               to_torch(y_train, torch.float32, device=self.device), \
+               to_torch(x_test, torch.float32, device=self.device), \
+               to_torch(y_test, torch.float32, device=self.device),
 
 
-        self.x_train, self.x_test = normalize(self.x_train, self.x_test, mode="min_max")
-        self.x_train = self.x_train.astype('float32')
-        self.x_test = self.x_test.astype('float32')
+    # Abstract methods from the Parent
+    def get_pretext_transforms(self, config: dict) -> torchvision.transforms.Compose:
+        raise NotImplementedError
 
-        self._convert_data_to_tensors()
+    def get_pretext_validation_transforms(self, config: dict) -> torchvision.transforms.Compose:
+        raise NotImplementedError
+
+    def load_pretext_data(self) -> tuple[Dataset, Dataset]:
+        raise NotImplementedError
 
 
 class ThreeClust(SynthData):

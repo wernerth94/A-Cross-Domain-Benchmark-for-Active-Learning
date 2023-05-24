@@ -9,5 +9,5 @@ Classifier: DenseNet
 
 # Environment: 
 <OracleALGame<RlAl-v0>> 
-Sample Size: 20 
+ 
 

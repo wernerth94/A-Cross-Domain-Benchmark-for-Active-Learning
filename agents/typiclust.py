@@ -8,8 +8,7 @@ from core.agent import BaseAgent
 from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
-
-
+from torch.utils.data import TensorDataset, DataLoader
 
 
 class TypiClust(BaseAgent):
@@ -22,16 +21,28 @@ class TypiClust(BaseAgent):
                       per_class_instances:dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier:Module, optimizer:Optimizer)->Union[Tensor, dict]:
+                      classifier:Module, optimizer:Optimizer,
+                      sample_size:int=10000)->Union[Tensor, dict]:
 
+        sample_size = min(sample_size, len(x_unlabeled))
+        state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
         num_clusters = min(len(x_labeled) + 1, self.MAX_NUM_CLUSTERS)
-        all_data = torch.concat([x_unlabeled, x_labeled], dim=0).cpu()
+        if len(x_unlabeled.size()) > 2:
+            assert hasattr(classifier, "_encode"), "When using TypiClust with images, the classifier needs the _encode method"
+            all_data = torch.concat([self._embed(x_unlabeled[state_ids], classifier),
+                                     self._embed(x_labeled, classifier)], dim=0).cpu()
+        elif len(x_unlabeled.size()) == 2 and x_unlabeled.dtype == torch.int64:
+            assert hasattr(classifier, "_encode"), "When using TypiClust with text, the classifier needs the _encode method"
+            all_data = torch.concat([self._embed(x_unlabeled[state_ids], classifier),
+                                     self._embed(x_labeled, classifier)], dim=0).cpu()
+        else:
+            all_data = torch.concat([x_unlabeled[state_ids], x_labeled], dim=0).cpu()
         clusters = self._kmeans(all_data, num_clusters=num_clusters)
         labels = np.copy(clusters)
         # counting cluster sizes and number of labeled samples per cluster
         cluster_ids, cluster_sizes = np.unique(labels, return_counts=True)
         cluster_ids, cluster_sizes = self._fill_in_zero_size_clusters(cluster_ids, cluster_sizes)
-        existing_indices = np.arange(len(x_unlabeled), len(x_unlabeled)+len(x_labeled))
+        existing_indices = np.arange(len(state_ids), len(state_ids)+len(x_labeled))
         cluster_labeled_counts = np.bincount(labels[existing_indices], minlength=len(cluster_ids))
         clusters_df = pd.DataFrame({'cluster_id': cluster_ids,
                                     'cluster_size': cluster_sizes,
@@ -48,9 +59,12 @@ class TypiClust(BaseAgent):
         cluster_id = clusters_df.iloc[0].cluster_id
         indices = (labels == cluster_id).nonzero()[0]
         rel_feats = all_data[indices].numpy()
-        typicality = self._calculate_typicality(rel_feats, min(self.K_NN, len(indices) // 2))
-        idx = indices[typicality.argmax()]
-        return idx
+        if len(rel_feats) > 0:
+            typicality = self._calculate_typicality(rel_feats, min(self.K_NN, len(indices) // 2))
+            idx = indices[typicality.argmax()]
+        else:
+            idx = self.agent_rng.choice(len(state_ids))
+        return state_ids[idx]
 
 
     def _get_nn(self, features:np.ndarray, num_neighbors:int):
@@ -66,7 +80,10 @@ class TypiClust(BaseAgent):
 
     def _get_mean_nn_dist(self, features, num_neighbors, return_indices=False):
         distances, indices = self._get_nn(features, num_neighbors)
-        mean_distance = distances.mean(axis=1)
+        if distances.shape[1] > 1:
+            mean_distance = distances.mean(axis=1)
+        else:
+            mean_distance = np.zeros(len(distances))
         if return_indices:
             return mean_distance, indices
         return mean_distance
@@ -100,3 +117,17 @@ class TypiClust(BaseAgent):
                 counts = np.insert(counts, i, 0)
             i += 1
         return clusters, counts
+
+    def _embed(self, x:Tensor, model:Module)->Tensor:
+        with torch.no_grad():
+            loader = DataLoader(TensorDataset(x),
+                                batch_size=256)
+            emb_x = None
+            for batch in loader:
+                batch = batch[0]
+                emb_batch = model._encode(batch)
+                if emb_x is None:
+                    emb_dim = emb_batch.size(-1)
+                    emb_x = torch.zeros((0, emb_dim)).to(emb_batch.device)
+                emb_x = torch.cat([emb_x, emb_batch])
+        return emb_x

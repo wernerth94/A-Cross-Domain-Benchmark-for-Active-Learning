@@ -68,7 +68,7 @@ class TopV2(BaseDataset):
             one_hot_y[np.arange(len(y)), y] = 1
             all_ids = list(range(len(x)))
             self.pool_rng.shuffle(all_ids)
-            train_ids, test_ids = all_ids[:-5000], all_ids[-5000:]
+            train_ids, test_ids = all_ids[:-7000], all_ids[-7000:]
             self.x_train, self.y_train = token_x[train_ids], torch.from_numpy(one_hot_y[train_ids])
             self.x_test, self.y_test = token_x[test_ids], torch.from_numpy(one_hot_y[test_ids])
             # self._convert_data_to_tensors()

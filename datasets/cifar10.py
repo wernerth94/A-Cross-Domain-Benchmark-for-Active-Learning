@@ -12,17 +12,20 @@ class Cifar10(BaseDataset):
                          data_file, fitting_mode)
 
 
-    def _download_data(self, target_to_one_hot=True, test_data_fraction=0.1):
+    def _download_data(self, target_to_one_hot=True, test_data_fraction=0.5):
         train = torchvision.datasets.CIFAR10(root=self.cache_folder, train=True, download=True)
         test = torchvision.datasets.CIFAR10(root=self.cache_folder, train=False, download=True)
         x_train, self.y_train, x_test, y_test = postprocess_torch_dataset(train, test)
         x_test, self.y_test = subsample_data(x_test, y_test, test_data_fraction, self.pool_rng)
         self.x_train, self.x_test = convert_to_channel_first(x_train, x_test)
-        # normalize pixel values from [0..255] to [-1..1]
+        # normalize pixel values from [0..255] to [0..1]
         high = 255.0
-        self.x_train = self.x_train / (high / 2.0) - 1.0
-        self.x_test = self.x_test / (high / 2.0) - 1.0
+        self.x_train = self.x_train / high
+        self.x_test = self.x_test / high
         self._convert_data_to_tensors()
+        normalizer = transforms.Compose( [transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))] )
+        self.x_test = normalizer(self.x_test)
+        self.x_train = normalizer(self.x_train)
         print("Download successful")
 
     def load_pretext_data(self)->tuple[Dataset, Dataset]:

@@ -1,0 +1,16 @@
+# Dataset: 
+Splice
+Budget: 600
+Seeding points per class: 1
+Classifier Batch Size: 43
+Source: LibSVMTools
+Normalization: Linear between [0..1]
+Classifier: DenseNet 
+
+# Agent: 
+BALD 
+
+# Environment: 
+<ALGame<RlAl-v0>> 
+ 
+

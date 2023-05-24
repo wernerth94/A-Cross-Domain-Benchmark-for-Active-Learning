@@ -1,6 +1,6 @@
 # Dataset: 
 News
-Budget: 700
+Budget: 1500
 Seeding points per class: 1
 Classifier Batch Size: 64
 Source: https://arxiv.org/pdf/2010.03546v1.pdf 
@@ -10,8 +10,4 @@ Classifier: BiLSTM
 
 # Agent: 
 Coreset_Greedy 
-
-# Environment: 
-<ALGame<RlAl-v0>> 
- 
 

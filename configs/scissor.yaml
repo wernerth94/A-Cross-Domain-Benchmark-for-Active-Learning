@@ -12,3 +12,6 @@ optimizer:
   type: NAdam
   lr: 0.001
   weight_decay: 0.0
+
+dataset_embedded:
+  encoder_checkpoint: NotImplemented

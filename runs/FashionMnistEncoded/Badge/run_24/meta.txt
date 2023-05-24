@@ -10,7 +10,3 @@ Classifier: ResNet18
 # Agent: 
 Badge 
 
-# Environment: 
-<ALGame<RlAl-v0>> 
- 
-

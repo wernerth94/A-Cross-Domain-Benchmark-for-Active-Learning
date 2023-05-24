@@ -10,7 +10,3 @@ Classifier: DenseNet
 # Agent: 
 Coreset_Greedy 
 
-# Environment: 
-<ALGame<RlAl-v0>> 
-Sample Size: 20 
-

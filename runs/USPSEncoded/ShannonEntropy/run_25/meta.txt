@@ -10,7 +10,3 @@ Classifier: DenseNet
 # Agent: 
 ShannonEntropy 
 
-# Environment: 
-<ALGame<RlAl-v0>> 
-Sample Size: 20 
-
