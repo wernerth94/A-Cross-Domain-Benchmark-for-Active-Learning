@@ -40,36 +40,8 @@ class SynthData(BaseDataset):
 
         return np.concatenate((data_pos, data_neg), axis=0)
 
-    def creatToy_Scissor(self, n_samples=50,  n_clusters=10, dist_cluster=2, cov=[[1, 0], [0, 1]] ):
 
-        # Generate data for two classes from 4 clusters
-        # n_samples : pro cluster - divide by 2 for n_samples per class
-        # n_clusters : Number of Clusters along the decision border
-        # dist_cluster : distance of clusters
-
-        pos_cls = []
-        neg_cls = []
-
-        for i in range(n_clusters):
-            mean_pos_cls = [i * dist_cluster, 2 + 0.5 * i]
-            mean_neg_cls = [i * dist_cluster, -2 - 0.5 * i]
-
-
-            pos_cluster = self.pool_rng.multivariate_normal(mean_pos_cls, cov, n_samples)
-            neg_cluster = self.pool_rng.multivariate_normal(mean_neg_cls, cov, n_samples)
-
-            pos_cls.append(pos_cluster)
-            neg_cls.append(neg_cluster)
-
-
-        data_pos = np.concatenate(pos_cls, axis=0)
-        data_neg = np.concatenate(neg_cls, axis=0)
-        data_pos = np.c_[data_pos, np.ones(len(data_pos))]
-        data_neg = np.c_[data_neg, np.zeros(len(data_neg))]
-
-        return np.concatenate((data_pos,data_neg),axis=0)
-
-    def creatDivergentSin(self, n_samples=100, divergence_factor=0.5, sin_freq=2, cov=0.3):
+    def createDivergingSin(self, n_samples=100, divergence_factor=0.5, sin_freq=2, cov=0.3):
 
         x = np.linspace(0, 10, n_samples)
         sin_curve = np.sin(sin_freq*x)
@@ -98,10 +70,8 @@ class SynthData(BaseDataset):
 
         if self.dataset == 'ThreeClust':
             data = self.createToy_ThreeClust()
-        elif self.dataset == 'Scissor':
-            data = self.creatToy_Scissor()
-        elif self.dataset == 'Scissor':
-            data = self.creatDivergentSin()
+        elif self.dataset == 'DivergingSin':
+            data = self.createDivergingSin()
         else:
             raise NotImplementedError
 
@@ -144,15 +114,9 @@ class ThreeClust(SynthData):
                          data_file, dataset)
 
 
-class Scissor(SynthData):
+class DivergingSin(SynthData):
     def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
-                 data_file=None, dataset='Scissor'):
-        super().__init__(cache_folder, config, pool_rng, encoded,
-                         data_file, dataset)
-
-class DivergentSin(SynthData):
-    def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
-                 data_file=None, dataset='DivergentSin'):
+                 data_file=None, dataset='DivergingSin'):
         super().__init__(cache_folder, config, pool_rng, encoded,
                          data_file, dataset)
 

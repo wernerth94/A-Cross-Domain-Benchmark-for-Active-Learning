@@ -6,7 +6,8 @@ dataset:
   validation_split: 0.2
 
 classifier:
-  type: Linear
+  type: MLP
+  hidden: [12, 2]
 
 optimizer:
   type: NAdam
