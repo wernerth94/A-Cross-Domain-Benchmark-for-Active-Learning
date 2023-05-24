@@ -12,24 +12,26 @@
 
 \title{Towards Comparable Active Learning}
 \author{%
-	David S.~Hippocampus\thanks{Use footnote for providing further information
-		about author (webpage, alternative address)---\emph{not} for acknowledging
-		funding agencies.} \\
-	Department of Computer Science\\
-	Cranberry-Lemon University\\
-	Pittsburgh, PA 15213 \\
-	\texttt{hippo@cs.cranberry-lemon.edu} \\
+	Thorben Werner 
+	\thanks{Information Systems and Machine Learning Lab (ISMLL)} 
+	\\
+	Institute of Computer Science\\
+	University of Hildesheim\\
+	Universitätsplatz 1, 31141 Hildesheim \\
+	\texttt{werner@ismll.de} \\
 	% examples of more authors
-	% \And
-	% Coauthor \\
-	% Affiliation \\
-	% Address \\
-	% \texttt{email} \\
-	% \AND
-	% Coauthor \\
-	% Affiliation \\
-	% Address \\
-	% \texttt{email} \\
+	\And
+	Johannes Burchert$^*$ \\
+	Institute of Computer Science\\
+	University of Hildesheim\\
+	Universitätsplatz 1, 31141 Hildesheim \\
+	\texttt{burchert@ismll.de} \\
+	\AND
+	Prof. Lars Schmidt-Thieme$^*$ \\
+	Institute of Computer Science\\
+	University of Hildesheim\\
+	Universitätsplatz 1, 31141 Hildesheim \\
+	\texttt{schmidt-thieme@ismll.uni-hildesheim.de} \\
 	% \And
 	% Coauthor \\
 	% Affiliation \\
@@ -74,27 +76,16 @@ To allow comparison between
 	\item Simple algorithm for an Oracle-Curve that can be constructed greedily and does not rely on search.
 \end{enumerate}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Related Work}
-{\color{red} Version: Braindump}\\
-Many different algorithms have been proposed for active learning. 
-In this work we focus on those approaches that have shown consistent results over the years as well as newer approaches that have demonstrated significant lifts in their initial experiments.
-AL algorithms can be categorized into two classes: Geometric approaches and uncertainty-based approaches.
-Geometric approaches include CoreSet \cite{sener2017active} and TypiClust \cite{hacohen2022active}, which use clustering techniques to partition the data and then sample their unlabeled points based on the clusters.
-Uncertainty-based approaches include classic uncertainty sampling (based on Shannon-Entropy and the margin-score), BALD \cite{kirsch2019batchbald} and BADGE \cite{ashdeep}, which use metrics to measure the classifiers state. \\ [1mm]
-%
-Some previous work also aimed to provide a benchmark suite for active learning:
-The authors of \cite{beck2021effective} and \cite{li2022empirical} both focus on active learning in the image domain.
-While \cite{beck2021effective} discuss a new metric to measure AL performance, which they call "Label Efficiency" and provide experiments on many common configurations for data preparation, model training and other hyperparameters, \cite{li2022empirical} focuses on combined approaches of AL and semi-supervised learning to aid model training.
-The authors of \cite{hu2021towards} study models that are learned with AL techniques in the image and text domain.
-They test for several different properties of the models including robustness, response to compression techniques and final performance.
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Overview}
-Table \ref{tab:benchmark_comparison} shows a feature comparison between our proposed benchmark and several existing benchmarks in the literature, as well as methodological AL papers with an extensive experiments section. \\
-{\color{red} TODO} We include in this table any methodological paper that experiments on at least two domains.
+We constrain our work on pool-based active learning where a pool of unlabeled samples is fixed at the start of each experiment and samples are chosen sequentially.
+Specifically, we are not experimenting on so-called batch active learning, where at each iteration multiple unlabeled samples are chosen at the same time.
+Even though batch AL is the more active research domain, it does not have a principled advantage over single-sample AL except speed of computation.
+Not only is the problem of optimizing a portfolio of unlabeled samples more complicated to solve, the algorithms also have systematically less information per sample to work with.
+For this reason we propose to focus more research effort on single-sample AL to find better algorithms in an environment that is simpler to solve and easier to control.
+Table \ref{tab:benchmark_comparison} shows a feature comparison between our proposed benchmark and several existing benchmarks in the literature, as well as methodological AL papers with experiments on at least two data domains.
 \begin{table}[h]
 	\centering
 	\begin{tabular}{l | c c c c c}
@@ -215,6 +206,24 @@ Where $\hat y_i$ is the retrained classification model after the i-\textit{th} i
 	\end{algorithm}
 	In Alg. \ref{alg:oracle} $\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{D}_\text{test}, \hat y_\theta, e^\text{max})$, $\operatorname{label}(u^{(i)}_{j})$ recovers the label of instance $u^{(i)}_{j}$ and $\operatorname{margin}(u^{(i)}, \hat y_\theta)$ applies margin sampling to select as a fallback, when the oracle has not found another option that induces a positive change in classification performance.
 \end{minipage}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Related Work}
+{\color{red} Version: Braindump}\\
+Many different algorithms have been proposed for active learning. 
+In this work we focus on those approaches that have shown consistent results over the years as well as newer approaches that have demonstrated significant lifts in their initial experiments.
+AL algorithms can be categorized into two classes: Geometric approaches and uncertainty-based approaches.
+Geometric approaches include CoreSet \cite{sener2017active} and TypiClust \cite{hacohen2022active}, which use clustering techniques to partition the data and then sample their unlabeled points based on the clusters.
+Uncertainty-based approaches include classic uncertainty sampling (based on Shannon-Entropy and the margin-score), BALD \cite{kirsch2019batchbald} and BADGE \cite{ashdeep}, which use metrics to measure the classifiers state. \\ [1mm]
+%
+Some previous work also aimed to provide a benchmark suite for active learning:
+The authors of \cite{beck2021effective} and \cite{li2022empirical} both focus on active learning in the image domain.
+While \cite{beck2021effective} discuss a new metric to measure AL performance, which they call "Label Efficiency" and provide experiments on many common configurations for data preparation, model training and other hyperparameters, \cite{li2022empirical} focuses on combined approaches of AL and semi-supervised learning to aid model training.
+The authors of \cite{hu2021towards} study models that are learned with AL techniques in the image and text domain.
+They test for several different properties of the models including robustness, response to compression techniques and final performance.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
