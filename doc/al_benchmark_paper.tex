@@ -94,18 +94,17 @@ They test for several different properties of the models including robustness, r
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Overview}
 Table \ref{tab:benchmark_comparison} shows a feature comparison between our proposed benchmark and several existing benchmarks in the literature, as well as methodological AL papers with an extensive experiments section. \\
-{\color{red} TODO} We include in this table any methodological paper that experiments on at least two domains. \\
-{\color{red} TODO} Define AL scenarios (really hard)
+{\color{red} TODO} We include in this table any methodological paper that experiments on at least two domains.
 \begin{table}[h]
 	\centering
 	\begin{tabular}{l | c c c c c}
-		Paper & \# Datasets & Domains & Scenarios & Oracle & RL Alg. \\
+		Paper & Sampling & \# Datasets & Domains & Algorithms & Oracle \\
 		\hline
-		Beck et al. \cite{beck2021effective} & 4 & 1 & 3 & - & - \\
-		Hu et al. \cite{hu2021towards} & 5 & 2 & 1 & - & - \\
-		Li et al. \cite{li2022empirical} & 5 & 1 & 1 & - & - \\
-		Zhou et al. \cite{zhou2021towards} & 3 & 2 & 1 & \checkmark & - \\
-		\textbf{Ours} & 5 & 2 & 2 & \checkmark & -
+		Beck et al. \cite{beck2021effective} & batch & 4 & 1 & 7 & - \\
+		Hu et al. \cite{hu2021towards} & batch & 5 & 2 & 13 & - \\
+		Li et al. \cite{li2022empirical} & batch & 5 & 1 & 13 & - \\
+		Zhou et al. \cite{zhou2021towards} & batch & 3 & 2 & 2 & \checkmark \\
+		\textbf{Ours} & single & 9 & 4 & 6 & \checkmark 
 	\end{tabular}
 	\caption{Comparison of our benchmark with the existing literature}
 	\label{tab:benchmark_comparison}
@@ -492,11 +491,11 @@ No improved classifier training (semi-supervised, etc.)
 		Dataset & Classifier & Optimizer & LR & Weight Decay & Dropout \\
 		\hline
 		Splice & [24, 12] & NAdam & 1.2e-3 & 5.9e-5 & 0 \\
-		SpliceEnc. & [12, 48] & NAdam & 6.2e-4 & 5.9e-6 & 0 \\
+		SpliceEnc. & linear & NAdam & 6.2e-4 & 5.9e-6 & 0 \\
 		DNA & [24, 12] & NAdam & 3.9e-2 & 3.6e-5 & 0 \\
-		DNAEnc & [24] & NAdam & 1.6e-3 & 4e-4 & 0 \\
+		DNAEnc & linear & NAdam & 1.6e-3 & 4e-4 & 0 \\
 		USPS & [24, 12] & Adam & 8.1e-3 & 1.5e-6 & 0 \\
-		USPS & [48, 24] & NAdam & 7.8e-3 & 1.9e-6 & 0 \\
+		USPS & linear & NAdam & 7.8e-3 & 1.9e-6 & 0 \\
 		FashionMnist & ResNet18 & NAdam & 1e-3 & 0 & 0 \\
 		FashionMnistEnc & linear & Adam & 1.6e-3 & 1e-5 & 5e-2 \\
 		Cifar10 & ResNet18 & NAdam & 1e-3 & 0 & 0 \\
