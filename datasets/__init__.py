@@ -14,3 +14,4 @@ from datasets.news import News
 # Toy Datasets
 from datasets.sythData import ThreeClust
 from datasets.sythData import Scissor
+from datasets.sythData import DivergentSin

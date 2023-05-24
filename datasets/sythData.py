@@ -1,11 +1,6 @@
-import os
-
 import numpy as np
-import torchvision.transforms
-from torch.utils.data import Dataset
-
-import torch
-from core.data import BaseDataset, normalize, to_torch, to_one_hot
+from core.data import BaseDataset, normalize
+from sklearn.model_selection import train_test_split
 
 
 class SynthData(BaseDataset):
@@ -56,6 +51,7 @@ class SynthData(BaseDataset):
             mean_pos_cls = [i * dist_cluster, 2 + 0.5 * i]
             mean_neg_cls = [i * dist_cluster, -2 - 0.5 * i]
 
+
             pos_cluster = self.pool_rng.multivariate_normal(mean_pos_cls, cov, n_samples)
             neg_cluster = self.pool_rng.multivariate_normal(mean_neg_cls, cov, n_samples)
 
@@ -70,6 +66,22 @@ class SynthData(BaseDataset):
 
         return np.concatenate((data_pos,data_neg),axis=0)
 
+    def creatDivergentSin(self, n_samples=100, divergence_factor=0.5, sin_freq=2, cov=0.3):
+
+        x = np.linspace(0, 10, n_samples)
+        sin_curve = np.sin(sin_freq*x)
+
+        # Cluster above the curve
+        cluster_above_y = sin_curve + divergence_factor * x + self.pool_rng.random.normal(0, cov, n_samples)
+
+        # Cluster below the curve
+        cluster_below_y = sin_curve - divergence_factor * x + self.pool_rng.random.normal(0, cov, n_samples)
+
+        data_pos = np.c_[cluster_above_y, np.ones(len(cluster_above_y))]
+        data_neg = np.c_[cluster_below_y, np.zeros(len(cluster_below_y))]
+
+        return np.concatenate((data_pos, data_neg), axis=0)
+
     def _download_data(self, dataset='ThreeClust', train_ratio=0.8, test_ratio=0.20):
         raise NotImplementedError
 
@@ -80,6 +92,8 @@ class SynthData(BaseDataset):
             data = self.createToy_ThreeClust()
         elif self.dataset == 'Scissor':
             data = self.creatToy_Scissor()
+        elif self.dataset == 'Scissor':
+            data = self.creatDivergentSin()
         else:
             raise NotImplementedError
 
@@ -127,3 +141,10 @@ class Scissor(SynthData):
                  data_file=None, dataset='Scissor'):
         super().__init__(cache_folder, config, pool_rng, encoded,
                          data_file, dataset)
+
+class DivergentSin(SynthData):
+    def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
+                 data_file=None, dataset='DivergentSin'):
+        super().__init__(cache_folder, config, pool_rng, encoded,
+                         data_file, dataset)
+
