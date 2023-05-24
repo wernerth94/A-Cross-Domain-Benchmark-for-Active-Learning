@@ -7,7 +7,3 @@ Source: LibSVMTools
 Normalization: Linear between [0..1]
 Classifier: DenseNet 
 
-# Environment: 
-<OracleALGame<RlAl-v0>> 
- 
-
