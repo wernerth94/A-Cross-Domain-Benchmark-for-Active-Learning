@@ -144,8 +144,8 @@ def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
     # Toy
     elif name == 'threeclust':
         return datasets.ThreeClust
-    elif name == 'scissor':
-        return datasets.Scissor
+    elif name == 'divergingsin':
+        return datasets.DivergingSin
 
     else:
         raise ValueError(f"Dataset name '{name}' not recognized")
