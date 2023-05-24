@@ -14,6 +14,7 @@ all_names = [
     "splice",
     "dna",
     "usps",
+    "mnist",
     "fashionmnist",
     "cifar10",
     "TopV2",
