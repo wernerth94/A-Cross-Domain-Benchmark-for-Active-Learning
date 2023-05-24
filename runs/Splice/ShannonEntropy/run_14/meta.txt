@@ -1,6 +1,6 @@
 # Dataset: 
 Splice
-Budget: 700
+Budget: 600
 Seeding points per class: 1
 Classifier Batch Size: 43
 Source: LibSVMTools
@@ -9,8 +9,4 @@ Classifier: DenseNet
 
 # Agent: 
 ShannonEntropy 
-
-# Environment: 
-<ALGame<RlAl-v0>> 
-Sample Size: 20 
 
