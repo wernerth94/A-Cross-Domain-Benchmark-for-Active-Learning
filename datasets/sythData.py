@@ -1,7 +1,9 @@
 import numpy as np
-from core.data import BaseDataset, normalize
+import torch
+from core.data import BaseDataset, normalize, to_torch, to_one_hot
 from sklearn.model_selection import train_test_split
 import torchvision
+from torch.utils.data import Dataset
 
 
 class SynthData(BaseDataset):
