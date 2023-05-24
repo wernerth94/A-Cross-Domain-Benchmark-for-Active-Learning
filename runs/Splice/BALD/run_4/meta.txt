@@ -10,3 +10,7 @@ Classifier: DenseNet
 # Agent: 
 BALD 
 
+# Environment: 
+<ALGame<RlAl-v0>> 
+ 
+

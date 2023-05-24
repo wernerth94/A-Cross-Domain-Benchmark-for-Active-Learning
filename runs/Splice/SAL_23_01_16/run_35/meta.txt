@@ -1,6 +1,6 @@
 # Dataset: 
 Splice
-Budget: 600
+Budget: 700
 Seeding points per class: 1
 Classifier Batch Size: 43
 Source: LibSVMTools
@@ -10,4 +10,8 @@ Classifier: DenseNet
 # Agent: 
 SAL_23_01_16
 Checkpoint: sar_23_01_16.pth 
+
+# Environment: 
+<ALGame<RlAl-v0>> 
+Sample Size: 20 
 
