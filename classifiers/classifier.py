@@ -158,7 +158,7 @@ def fit_and_evaluate(dataset:BaseDataset,
 
     train_dataloader = DataLoader(TensorDataset(dataset.x_train, dataset.y_train),
                                   batch_size=dataset.classifier_batch_size,
-                                  shuffle=True, num_workers=4)
+                                  shuffle=True)
     val_dataloader = DataLoader(TensorDataset(dataset.x_val, dataset.y_val), batch_size=512)
     test_dataloader = DataLoader(TensorDataset(dataset.x_test, dataset.y_test), batch_size=512)
     all_accs = []
@@ -172,7 +172,8 @@ def fit_and_evaluate(dataset:BaseDataset,
             optimizer.zero_grad()
             loss_value.backward()
             optimizer.step()
-        # early stopping on test
+
+        # early stopping on validation
         model.eval()
         with torch.no_grad():
             loss_sum = 0.0

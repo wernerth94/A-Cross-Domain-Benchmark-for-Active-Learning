@@ -41,6 +41,9 @@ for dataset_name in datasets:
     dataset_dir = join("runs", dataset_name)
     budget = load_budget(dataset_name)
 
+    if not exists(dataset_dir):
+        print(f"{dataset_name} does not exist")
+        continue
     relevant_agents = os.listdir(dataset_dir)
     relevant_agents = [r for r in relevant_agents if r not in excluded_agents]
     for agent in relevant_agents:
