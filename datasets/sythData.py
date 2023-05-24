@@ -48,12 +48,12 @@ class SynthData(BaseDataset):
 
         # Cluster above the curve
         cluster_above_x = x
-        cluster_above_y = sin_curve + divergence_factor * x + self.pool_rng.random.normal(0, cov, n_samples)
+        cluster_above_y = sin_curve + divergence_factor * x + self.pool_rng.normal(0, cov, n_samples)
         cluster_above = np.c_[cluster_above_x, cluster_above_y]
 
         # Cluster below the curve
         cluster_below_x = x
-        cluster_below_y = sin_curve - divergence_factor * x + self.pool_rng.random.normal(0, cov, n_samples)
+        cluster_below_y = sin_curve - divergence_factor * x + self.pool_rng.normal(0, cov, n_samples)
         cluster_below = np.c_[cluster_below_x, cluster_below_y]
 
 
