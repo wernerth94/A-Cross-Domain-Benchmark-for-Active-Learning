@@ -61,6 +61,22 @@ class SynthData(BaseDataset):
 
         self.data_Sissor = np.concatenate((data_pos,data_neg),axis=0)
 
+    def creatDivergentSin(self, n_samples=100, divergence_factor=0.5, sin_freq=2, cov=0.3):
+
+        x = np.linspace(0, 10, n_samples)
+        sin_curve = np.sin(sin_freq*x)
+
+        # Cluster above the curve
+        cluster_above_y = sin_curve + divergence_factor * x + self.pool_rng.random.normal(0, cov, n_samples)
+
+        # Cluster below the curve
+        cluster_below_y = sin_curve - divergence_factor * x + self.pool_rng.random.normal(0, cov, n_samples)
+
+        data_pos = np.c_[cluster_above_y, np.ones(len(cluster_above_y))]
+        data_neg = np.c_[cluster_below_y, np.zeros(len(cluster_below_y))]
+
+        self.data_DivSin = np.concatenate((data_pos, data_neg), axis=0)
+
     def _download_data(self, dataset='ThreeClust', train_ratio=0.8, test_ratio=0.20):
         assert train_ratio + test_ratio == 1, "The sum of train, val, and test should be equal to 1."
 
@@ -68,11 +84,13 @@ class SynthData(BaseDataset):
             data = self.data_3Clust
         elif self.dataset == 'Scissor':
             data = self.data_Sissor
+        elif self.dataset == 'DivergentSin':
+            data = self.data_DivSin
 
         self.x_train = data[:, 0: 2]
-        self.y_train = data[:,-1]
+        self.y_train = data[:, -1]
         self.x_test  = data[:, 0: 2]
-        self.y_test  = data[:,-1]
+        self.y_test  = data[:, -1]
 
 
         ids = np.arange(self.x_train.shape[0], dtype=int)
@@ -106,3 +124,10 @@ class Scissor(SynthData):
                  data_file=None, dataset='Scissor'):
         super().__init__(cache_folder, config, pool_rng, encoded,
                          data_file, dataset)
+
+class DivergentSin(SynthData):
+    def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
+                 data_file=None, dataset='DivergentSin'):
+        super().__init__(cache_folder, config, pool_rng, encoded,
+                         data_file, dataset)
+
