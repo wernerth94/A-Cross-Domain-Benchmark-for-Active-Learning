@@ -6,8 +6,9 @@ dataset:
   validation_split: 0.2
 
 classifier:
-  type: MLP
-  hidden: [24, 12]
+  type: linear
+#  type: MLP
+#  hidden: [24, 12]
 
 optimizer:
   type: Adam

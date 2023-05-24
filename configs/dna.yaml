@@ -23,8 +23,9 @@ dataset_embedded:
   classifier_batch_size: 64
 
 classifier_embedded:
-  type: MLP
-  hidden: [24]
+  type: linear
+#  type: MLP
+#  hidden: [24]
 
 optimizer_embedded:
   type: NAdam
