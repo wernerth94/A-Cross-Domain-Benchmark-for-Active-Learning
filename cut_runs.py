@@ -30,6 +30,8 @@ datasets = [
     "USPSEncoded",
     "Cifar10",
     "Cifar10Encoded",
+    "Mnist",
+    "MnistEncoded",
     "FashionMnist",
     "FashionMnistEncoded",
     "News",
