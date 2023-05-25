@@ -10,7 +10,3 @@ Classifier: DenseNet
 # Agent: 
 TypiClust 
 
-# Environment: 
-<ALGame<RlAl-v0>> 
- 
-
