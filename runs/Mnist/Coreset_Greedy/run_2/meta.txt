@@ -1,6 +1,6 @@
 # Dataset: 
 Mnist
-Budget: 1000
+Budget: 400
 Seeding points per class: 1
 Classifier Batch Size: 64
 Source: TorchVision
