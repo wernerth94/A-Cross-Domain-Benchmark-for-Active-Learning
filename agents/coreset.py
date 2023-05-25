@@ -6,6 +6,7 @@ from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
 from core.agent import BaseAgent
+from torch.utils.data import TensorDataset, DataLoader
 
 
 class Coreset_Greedy(BaseAgent):
@@ -26,9 +27,23 @@ class Coreset_Greedy(BaseAgent):
         with torch.no_grad():
             sample_size = min(sample_size, len(x_unlabeled))
             state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
-            candidates = classifier._encode(x_unlabeled[state_ids])
-            centers = classifier._encode(x_labeled)
+            candidates = self._embed(x_unlabeled[state_ids], classifier)
+            centers = self._embed(x_labeled, classifier)
             dist = pairwise_distances(candidates.detach().cpu(), centers.detach().cpu(), metric='euclidean')
             dist = np.min(dist, axis=1).reshape(-1, 1)
             dist = torch.from_numpy(dist)
         return state_ids[torch.argmax(dist, dim=0)]
+
+    def _embed(self, x:Tensor, model:Module)->Tensor:
+        with torch.no_grad():
+            loader = DataLoader(TensorDataset(x),
+                                batch_size=256)
+            emb_x = None
+            for batch in loader:
+                batch = batch[0]
+                emb_batch = model._encode(batch)
+                if emb_x is None:
+                    emb_dim = emb_batch.size(-1)
+                    emb_x = torch.zeros((0, emb_dim)).to(emb_batch.device)
+                emb_x = torch.cat([emb_x, emb_batch])
+        return emb_x

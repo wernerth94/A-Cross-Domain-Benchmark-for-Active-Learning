@@ -26,17 +26,10 @@ class TypiClust(BaseAgent):
 
         sample_size = min(sample_size, len(x_unlabeled))
         state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
+        all_data = torch.concat([self._embed(x_unlabeled[state_ids], classifier),
+                                 self._embed(x_labeled, classifier)], dim=0).cpu()
+
         num_clusters = min(len(x_labeled) + 1, self.MAX_NUM_CLUSTERS)
-        if len(x_unlabeled.size()) > 2:
-            assert hasattr(classifier, "_encode"), "When using TypiClust with images, the classifier needs the _encode method"
-            all_data = torch.concat([self._embed(x_unlabeled[state_ids], classifier),
-                                     self._embed(x_labeled, classifier)], dim=0).cpu()
-        elif len(x_unlabeled.size()) == 2 and x_unlabeled.dtype == torch.int64:
-            assert hasattr(classifier, "_encode"), "When using TypiClust with text, the classifier needs the _encode method"
-            all_data = torch.concat([self._embed(x_unlabeled[state_ids], classifier),
-                                     self._embed(x_labeled, classifier)], dim=0).cpu()
-        else:
-            all_data = torch.concat([x_unlabeled[state_ids], x_labeled], dim=0).cpu()
         clusters = self._kmeans(all_data, num_clusters=num_clusters)
         labels = np.copy(clusters)
         # counting cluster sizes and number of labeled samples per cluster

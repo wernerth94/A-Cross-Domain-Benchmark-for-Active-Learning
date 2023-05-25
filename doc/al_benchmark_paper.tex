@@ -187,13 +187,14 @@ Where $\hat y_i$ is the retrained classification model after the i-\textit{th} i
 		\caption{Retrain}\label{alg:retrain}
 		\begin{algorithmic}[1]
 			\Require $\mathcal{L}$ \Comment{Labeled Pool}
+			\Require $\mathcal{D}_\text{val}$ \Comment{Validation Data}
 			\Require $\mathcal{D}_\text{test}$ \Comment{Test Data}
 			\Require $\hat y_\theta$ \Comment{Class. Model}
 			\Require $e^\text{max}$ \Comment{Maximum Epochs}
 			\State $\text{loss}^* \gets \infty$
 			\For{$i := 1 \ldots e^{\text{max}}$}
 			\State $\theta_{i+1} \gets \theta_i - \eta \nabla_\theta \ell(\mathcal{L}, \hat y_{\theta})$
-			\State $\text{loss}_i \gets \ell(\mathcal{L}^\text{test}, \hat y_{\theta})$
+			\State $\text{loss}_i \gets \ell(\mathcal{D}^\text{val}, \hat y_{\theta})$
 			\If{$\text{loss}_i < \text{loss}^*$}
 			\State $\text{loss}^* \gets \text{loss}_i$
 			\Else
@@ -201,7 +202,7 @@ Where $\hat y_i$ is the retrained classification model after the i-\textit{th} i
 			\EndIf
 			\EndFor
 			\State
-			\Return Acc($\mathcal{L}^\text{test}, \hat y_{\theta}$)
+			\Return Acc($\mathcal{D}^\text{test}, \hat y_{\theta}$)
 		\end{algorithmic}
 	\end{algorithm}
 	In Alg. \ref{alg:oracle} $\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{D}_\text{test}, \hat y_\theta, e^\text{max})$, $\operatorname{label}(u^{(i)}_{j})$ recovers the label of instance $u^{(i)}_{j}$ and $\operatorname{margin}(u^{(i)}, \hat y_\theta)$ applies margin sampling to select as a fallback, when the oracle has not found another option that induces a positive change in classification performance.
