@@ -1,15 +1,14 @@
 from typing import Union, Callable
 import os
 from os.path import join, exists
+from core.agent import BaseAgent
+from core.data import BaseDataset
+import datasets
 import torch
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
-from core.agent import BaseAgent
-import agents
-from core.data import BaseDataset
-import datasets
 
 class EarlyStopping:
     def __init__(self, patience=7, lower_is_better=True):
@@ -96,13 +95,6 @@ def plot_learning_curves(list_of_accs:list, out_file:str=None):
 
 
 def collect_results(base_path, folder_prefix):
-    def check_for_nan_cols(df: pd.DataFrame):
-        cleaned_pd = df.copy(deep=True)
-        for col_name in df:
-            if df[col_name].isnull().values.any():
-                cleaned_pd.drop(columns=[col_name], inplace=True)
-        return cleaned_pd
-
     result_acc = pd.DataFrame()
     result_loss = pd.DataFrame()
     for run_folder in os.listdir(base_path):
@@ -110,13 +102,11 @@ def collect_results(base_path, folder_prefix):
             acc_file_path = join(base_path, run_folder, "accuracies.csv")
             if exists(acc_file_path):
                 accuracies = pd.read_csv(acc_file_path, header=0, index_col=0)
-                accuracies = check_for_nan_cols(accuracies)
                 result_acc = pd.concat([result_acc, accuracies], axis=1, ignore_index=True)
 
             loss_file_path = join(base_path, run_folder, "losses.csv")
             if exists(loss_file_path):
                 losses = pd.read_csv(loss_file_path, header=0, index_col=0)
-                losses = check_for_nan_cols(losses)
                 result_loss = pd.concat([result_loss, losses], axis=1, ignore_index=True)
     result_acc.to_csv(join(base_path, "accuracies.csv"))
     result_loss.to_csv(join(base_path, "losses.csv"))
@@ -154,6 +144,7 @@ def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
 
 
 def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
+    import agents
     name = name.lower()
     if name == "random":
         return agents.RandomAgent
@@ -179,5 +170,5 @@ def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
 
 
 if __name__ == '__main__':
-    base_path = "runs/News/Oracle"
+    base_path = "runs/Mnist/BatchRandomAgent"
     collect_results(base_path, "run_")
