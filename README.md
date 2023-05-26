@@ -9,6 +9,8 @@
 - scikit-learn
 - faiss-cpu
 - nltk
+- PyYAML
+- batchbald-redux
 - ray\[tune\] (Optional)
 
 ## Quick Start
