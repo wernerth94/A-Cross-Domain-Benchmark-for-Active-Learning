@@ -11,10 +11,10 @@ Classifier: ResNet18
 BatchRandomAgent 
 
 # Config: 
-dataset: {'budget': 400, 'initial_points_per_class': 1, 'classifier_batch_size': 64, 'validation_split': 0.04} 
+dataset: {'budget': 400, 'classifier_fitting_mode': 'finetuning', 'initial_points_per_class': 1, 'classifier_batch_size': 64, 'validation_split': 0.04} 
 classifier: {'type': 'Resnet18'} 
 optimizer: {'type': 'NAdam', 'lr': 0.001, 'weight_decay': 0.0} 
-dataset_embedded: {'encoder_checkpoint': 'TODO', 'budget': 500, 'initial_points_per_class': 1, 'classifier_batch_size': 64} 
+dataset_embedded: {'encoder_checkpoint': 'TODO', 'budget': 500, 'classifier_fitting_mode': 'from_scratch', 'initial_points_per_class': 1, 'classifier_batch_size': 64} 
 classifier_embedded: {'type': 'Linear', 'dropout': 0.05} 
 optimizer_embedded: {'type': 'Adam', 'lr': 0.00167934377193017, 'weight_decay': 1.0272188756302e-05} 
 pretext_encoder: {'type': 'Resnet18', 'feature_dim': 128} 

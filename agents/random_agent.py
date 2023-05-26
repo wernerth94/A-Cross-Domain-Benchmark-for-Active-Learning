@@ -29,8 +29,9 @@ class BatchRandomAgent(BaseAgent):
         Batch AL mode works better with from_scratch training
         The finetuning approach seemingly does have enough iterations to work reliably
         """
-        config["dataset"]["classifier_fitting_mode"] = "from_scratch"
-        config["dataset_embedded"]["classifier_fitting_mode"] = "from_scratch"
+        # config["dataset"]["classifier_fitting_mode"] = "from_scratch"
+        # config["dataset_embedded"]["classifier_fitting_mode"] = "from_scratch"
+        pass
 
 
     def predict(self, x_unlabeled: Tensor,
@@ -40,4 +41,4 @@ class BatchRandomAgent(BaseAgent):
                       initial_test_acc:float, current_test_acc:float,
                       classifier: Module, optimizer: Optimizer) -> Union[Tensor, dict]:
         ids = self.agent_rng.choice(len(x_unlabeled), self.batch_size, replace=False)
-        return ids
+        return list(ids)

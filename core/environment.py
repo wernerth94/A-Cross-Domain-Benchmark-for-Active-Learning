@@ -76,19 +76,20 @@ class ALGame(gym.Env):
 
 
     def step(self, action: Union[int, list[int]]):
+        reward = 0
         if isinstance(action, int):
             action = [action]
 
-        with torch.no_grad():
-            self.n_interactions += len(action)
-            self.added_images += len(action)
-            action = sorted(action)[::-1] # add datapoints from last index to first
-            for a in action:
+        self.n_interactions += len(action)
+        self.added_images += len(action)
+        action = sorted(action)[::-1] # add datapoints from last index to first
+        for a in action:
+            with torch.no_grad():
                 self._add_point_to_labeled_pool(a)
 
-        # fit classification model
-        reward = self.fit_classifier()
-        # pick new sample for the next state
+            # fit classification model
+            reward = self.fit_classifier()
+
         next_state = self.create_state()
         done = self.added_images >= self.budget
         truncated = False
@@ -115,6 +116,7 @@ class ALGame(gym.Env):
         test_dataloader = DataLoader(TensorDataset(self.dataset.x_test, self.dataset.y_test), batch_size=512,
                                      # num_workers=4 # dropped for CUDA compat
                                      )
+        val_loss_list = [] # used for debugging only
         for e in range(epochs):
             self.classifier.train()
             for i, (batch_x, batch_y) in enumerate(train_dataloader):
@@ -131,7 +133,8 @@ class ALGame(gym.Env):
                     yHat = self.classifier(batch_x)
                     class_loss = self.loss(yHat, torch.argmax(batch_y.long(), dim=1))
                     loss_sum += class_loss.detach().cpu().numpy()
-                # early stop on test with patience of 0
+
+                val_loss_list.append(loss_sum)
                 if early_stop.check_stop(loss_sum):
                     break
         self.current_val_loss = loss_sum
