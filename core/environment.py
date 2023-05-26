@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
 import gym
 from core.data import BaseDataset
+from core.helper_functions import EarlyStopping
 
 
 class ALGame(gym.Env):
@@ -97,6 +98,9 @@ class ALGame(gym.Env):
     def _fit_classifier(self, epochs=50, from_scratch=False):
         if from_scratch:
             self.classifier.load_state_dict(self.initial_weights)
+            early_stop = EarlyStopping(patience=3)
+        else:
+            early_stop = EarlyStopping(patience=0)
 
         drop_last = self.dataset.classifier_batch_size < len(self.x_labeled)
         train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
@@ -111,7 +115,6 @@ class ALGame(gym.Env):
         test_dataloader = DataLoader(TensorDataset(self.dataset.x_test, self.dataset.y_test), batch_size=512,
                                      # num_workers=4 # dropped for CUDA compat
                                      )
-        lastLoss = torch.inf
         for e in range(epochs):
             self.classifier.train()
             for i, (batch_x, batch_y) in enumerate(train_dataloader):
@@ -129,9 +132,8 @@ class ALGame(gym.Env):
                     class_loss = self.loss(yHat, torch.argmax(batch_y.long(), dim=1))
                     loss_sum += class_loss.detach().cpu().numpy()
                 # early stop on test with patience of 0
-                if loss_sum >= lastLoss:
+                if early_stop.check_stop(loss_sum):
                     break
-                lastLoss = loss_sum
         self.current_val_loss = loss_sum
 
         with torch.no_grad():
