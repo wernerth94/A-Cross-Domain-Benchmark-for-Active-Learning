@@ -342,6 +342,8 @@ Generally, the classification model can be trained in two ways. Either you reset
 In this work we use the fine-tuning method for raw datasets to save computation, while we use the from-scratch training for embedded dataset, since they have very small classifiers and this method generally produces better results.
 Our fine-tuning scheme always trains for at least one epoch and employs an aggressive early stopping after that.
 The early stopping has patience 0, so it will stop as soon as the validation loss does no longer decrease.
+Even though the use of a fully labeled validation set might be regarded as impractical, since such a set will never exist during deployment, we strongly advocate for using it to control the classifier training.
+In this work we use the validation set to optimize the hyperparameters of the classifier and reduce overfitting with early stopping the training process in every iteration.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -429,9 +431,13 @@ In Fig. \ref{fig:cd_diagrams} we report the rankings split by domain as well as 
 \section{Limitations and Future Work}
 No batch AL \\
 No learned algorithms \\
-No improved classifier training (semi-supervised, etc.)
+No SOTA classifier training (data augmentation, semi-supervised, etc.)
 
 \newpage
+
+\begin{ack}
+	Funded by the Lower Saxony Ministry of Science and Culture under grant number ZN3492 within the Lower Saxony “Vorab“ of the Volkswagen Foundation and supported by the Center for Digital Innovations (ZDIN).
+\end{ack}
 
 \bibliographystyle{plain}
 \bibliography{main.bib} 

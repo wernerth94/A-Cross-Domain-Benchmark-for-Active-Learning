@@ -68,7 +68,7 @@ class BALD(BaseAgent):
 
 class BatchBALD(BaseAgent):
 
-    def __init__(self, agent_seed, config, dropout_trials=5, batch_size=10):
+    def __init__(self, agent_seed, config, dropout_trials=5, batch_size=40):
         super().__init__(agent_seed, config)
         assert "current_run_info" in config and "encoded" in config["current_run_info"]
         self.dropout_trials = dropout_trials
@@ -89,7 +89,7 @@ class BatchBALD(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier: Module, optimizer: Optimizer,
-                      sample_size=100) -> list[int]:
+                      sample_size=200) -> list[int]:
 
         with torch.no_grad():
             sample_size = min(sample_size, len(x_unlabeled))

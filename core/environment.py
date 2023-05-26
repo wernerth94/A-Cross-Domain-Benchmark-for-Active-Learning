@@ -87,9 +87,10 @@ class ALGame(gym.Env):
             with torch.no_grad():
                 self._add_point_to_labeled_pool(a)
 
-            # fit classification model
-            reward = self.fit_classifier()
-
+            if self.fitting_mode == "finetuning":
+                reward = self.fit_classifier()
+        if self.fitting_mode == "from_scratch":
+                reward = self.fit_classifier()
         next_state = self.create_state()
         done = self.added_images >= self.budget
         truncated = False
