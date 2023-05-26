@@ -15,8 +15,8 @@ parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--agent", type=str, default="batchrandom")
-parser.add_argument("--dataset", type=str, default="mnist")
+parser.add_argument("--agent", type=str, default="random")
+parser.add_argument("--dataset", type=str, default="splice")
 parser.add_argument("--encoded", type=int, default=0)
 # parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=10)
@@ -76,7 +76,8 @@ while run_id < max_run_id:
             state, reward, done, truncated, info = env.step(action)
             iterator.set_postfix({"accuracy": env.accuracies[1][-1]})
             if done or truncated:
-                break # fail save; should not happen
+                # triggered when sampling batch_size is >1
+                break
 
     # collect results from all runs
     collect_results(base_path, "run_")

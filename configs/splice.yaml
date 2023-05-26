@@ -1,19 +1,28 @@
 # Normal Classification
 dataset:
-  budget: 400
+#  budget: 400
+  # Large Class. ablation
+  budget: 600
   initial_points_per_class: 1
   classifier_batch_size: 43
   validation_split: 0.2
 
 classifier:
   type: MLP
-  hidden: [24, 48, 48]
 #  hidden: [24, 12]
 
+  # Large Class. ablation
+  hidden: [24, 48, 48]
+
 optimizer:
-  type: NAdam
-  lr: 0.00121352609529121
-  weight_decay: 0.0000595501370565999
+#  type: NAdam
+#  lr: 0.00121352609529121
+#  weight_decay: 0.0000595501370565999
+
+  # Large Class. ablation
+  type: SGD
+  lr: 0.0861866000246704
+  weight_decay: 0.00000169225294586817
 
 # Embedded Classification
 dataset_embedded:
