@@ -55,6 +55,7 @@ for dataset_name in datasets:
         for f in [acc_file, loss_file]:
             if exists(f):
                 df = pd.read_csv(f, header=0, index_col=0)
-                if len(df) > budget:
+                # we also track the starting point where no points where added
+                if len(df) > budget + 1:
                     df = df[:budget]
                     df.to_csv(f)

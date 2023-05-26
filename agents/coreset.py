@@ -32,7 +32,7 @@ class Coreset_Greedy(BaseAgent):
             dist = pairwise_distances(candidates.detach().cpu(), centers.detach().cpu(), metric='euclidean')
             dist = np.min(dist, axis=1).reshape(-1, 1)
             dist = torch.from_numpy(dist)
-        return state_ids[torch.argmax(dist, dim=0)]
+        return state_ids[torch.argmax(dist, dim=0)].item()
 
     def _embed(self, x:Tensor, model:Module)->Tensor:
         with torch.no_grad():

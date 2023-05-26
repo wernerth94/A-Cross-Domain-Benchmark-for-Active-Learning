@@ -37,7 +37,7 @@ class Badge(BaseAgent):
 
         gradEmbedding = self._get_grad_embedding(x_unlabeled[state_ids], classifier, sample_size)
         chosen = self._init_centers(gradEmbedding, 1)[0]
-        return state_ids[chosen]
+        return state_ids[chosen].item()
 
 
     def _get_grad_embedding(self, X, model, sample_size):

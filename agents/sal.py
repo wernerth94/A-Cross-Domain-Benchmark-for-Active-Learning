@@ -189,7 +189,7 @@ class SAL(BaseAgent):
                 "info": Batch(),
             })
             result = self.agent(data)
-        return state_ids[torch.from_numpy(result.act)]
+        return state_ids[torch.from_numpy(result.act)].item()
 
     def get_meta_data(self)->str:
         s = super().get_meta_data()

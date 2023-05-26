@@ -1,3 +1,4 @@
+from typing import Union
 import copy
 import numpy as np
 import torch
@@ -45,6 +46,7 @@ class ALGame(gym.Env):
         self.action_space = gym.spaces.Discrete(len(dataset.x_unlabeled))
         self.spec = gym.envs.registration.EnvSpec("RlAl-v0", reward_threshold=np.inf, entry_point="ALGame")
 
+
     def reset(self, *args, **kwargs) -> list:
         with torch.no_grad():
             self.n_interactions = 0
@@ -59,6 +61,7 @@ class ALGame(gym.Env):
         self.initial_test_accuracy = self.current_val_accuracy
         return self.create_state()
 
+
     def create_state(self):
         # replacement_needed = len(self.x_unlabeled) < self.sample_size
         # self.state_ids = self.pool_rng.choice(len(self.x_unlabeled), self.sample_size, replace=replacement_needed)
@@ -70,21 +73,17 @@ class ALGame(gym.Env):
                  self.classifier, self.optimizer]
         return state
 
-    def step(self, action: int):
-        assert action >= 0 and action < len(self.x_unlabeled)
+
+    def step(self, action: Union[int, list[int]]):
+        if isinstance(action, int):
+            action = [action]
+
         with torch.no_grad():
-            self.n_interactions += 1
-            self.added_images += 1
-            # datapoint_id = self.state_ids[action]
-            datapoint_id = action
-            # keep track of the added images
-            self.per_class_instances[int(torch.argmax(self.y_unlabeled[datapoint_id]).cpu())] += 1
-            # add the point to the labeled set
-            self.x_labeled = torch.cat([self.x_labeled, self.x_unlabeled[datapoint_id:datapoint_id + 1]], dim=0)
-            self.y_labeled = torch.cat([self.y_labeled, self.y_unlabeled[datapoint_id:datapoint_id + 1]], dim=0)
-            # remove the point from the unlabeled set
-            self.x_unlabeled = torch.cat([self.x_unlabeled[:datapoint_id], self.x_unlabeled[datapoint_id + 1:]], dim=0)
-            self.y_unlabeled = torch.cat([self.y_unlabeled[:datapoint_id], self.y_unlabeled[datapoint_id + 1:]], dim=0)
+            self.n_interactions += len(action)
+            self.added_images += len(action)
+            action = sorted(action)[::-1] # add datapoints from last index to first
+            for a in action:
+                self._add_point_to_labeled_pool(a)
 
         # fit classification model
         reward = self.fit_classifier()
@@ -93,6 +92,7 @@ class ALGame(gym.Env):
         done = self.added_images >= self.budget
         truncated = False
         return next_state, reward, done, truncated, {}
+
 
     def _fit_classifier(self, epochs=50, from_scratch=False):
         if from_scratch:
@@ -146,6 +146,7 @@ class ALGame(gym.Env):
             self.current_val_accuracy = accuracy
         return reward
 
+
     def fit_classifier(self, epochs=100):
         if self.fitting_mode == "from_scratch":
             return self._fit_classifier(epochs, from_scratch=True)
@@ -156,12 +157,25 @@ class ALGame(gym.Env):
         else:
             raise ValueError(f"Fitting mode not recognized: {self.fitting_mode}")
 
+
+    def _add_point_to_labeled_pool(self, datapoint_id):
+        # keep track of the added images
+        self.per_class_instances[int(torch.argmax(self.y_unlabeled[datapoint_id]).cpu())] += 1
+        # add the point to the labeled set
+        self.x_labeled = torch.cat([self.x_labeled, self.x_unlabeled[datapoint_id:datapoint_id + 1]], dim=0)
+        self.y_labeled = torch.cat([self.y_labeled, self.y_unlabeled[datapoint_id:datapoint_id + 1]], dim=0)
+        # remove the point from the unlabeled set
+        self.x_unlabeled = torch.cat([self.x_unlabeled[:datapoint_id], self.x_unlabeled[datapoint_id + 1:]], dim=0)
+        self.y_unlabeled = torch.cat([self.y_unlabeled[:datapoint_id], self.y_unlabeled[datapoint_id + 1:]], dim=0)
+
+
     def reset_al_pool(self):
         self.x_labeled = self.dataset.x_labeled
         self.y_labeled = self.dataset.y_labeled
         self.x_unlabeled = self.dataset.x_unlabeled
         self.y_unlabeled = self.dataset.y_unlabeled
         self.per_class_instances = [self.dataset.initial_points_per_class] * self.dataset.n_classes
+
 
     def render(self, mode="human"):
         """
@@ -170,6 +184,7 @@ class ALGame(gym.Env):
         :return:
         """
         pass
+
 
     def get_meta_data(self) -> str:
         return f"{str(self)} \n"

@@ -28,7 +28,7 @@ class EarlyStopping:
             self.best_loss = loss_val
         return False
 
-def save_meta_data(logpath, agent, env, dataset, additional:dict=None):
+def save_meta_data(logpath, agent, env, dataset, config:dict):
     if not os.path.exists(logpath):
         os.makedirs(logpath, exist_ok=True)
     file = os.path.join(logpath, "meta.txt")
@@ -45,10 +45,10 @@ def save_meta_data(logpath, agent, env, dataset, additional:dict=None):
         if hasattr(env, "get_meta_data"):
             f.write("# Environment: \n")
             f.write(f"{env.get_meta_data()} \n\n")
-        if additional is not None:
-            f.write("# Other: \n")
-            for key, value in additional.items():
-                f.write(f"{key}: {value} \n")
+
+        f.write("# Config: \n")
+        for key, value in config.items():
+            f.write(f"{key}: {value} \n")
 
 
 def plot_mean_std_development(inpt:list, title:str, out_file:str=None):
@@ -125,54 +125,59 @@ def collect_results(base_path, folder_prefix):
 def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
     # Tabular
     name = name.lower()
-    if name == "splice":
-        return datasets.Splice
-    elif name == "dna":
-        return datasets.DNA
-    elif name == "usps":
-        return datasets.USPS
-    # Image
-    elif name == "cifar10":
-        return datasets.Cifar10
-    elif name == "mnist":
-        return datasets.Mnist
-    elif name == "fashionmnist":
-        return datasets.FashionMnist
-    # Text
-    elif name == "topv2":
-        return datasets.TopV2
-    elif name == "news":
-        return datasets.News
-    # Toy
-    elif name == 'threeclust':
-        return datasets.ThreeClust
-    elif name == 'divergingsin':
-        return datasets.DivergingSin
+    match name:
+        case "splice":
+            return datasets.Splice
+        case "dna":
+            return datasets.DNA
+        case "usps":
+            return datasets.USPS
+        # Image
+        case "cifar10":
+            return datasets.Cifar10
+        case "mnist":
+            return datasets.Mnist
+        case "fashionmnist":
+            return datasets.FashionMnist
+        # Text
+        case "topv2":
+            return datasets.TopV2
+        case "news":
+            return datasets.News
+        # Toy
+        case 'threeclust':
+            return datasets.ThreeClust
+        case 'divergingsin':
+            return datasets.DivergingSin
 
-    else:
-        raise ValueError(f"Dataset name '{name}' not recognized")
+        case _:
+            raise ValueError(f"Dataset name '{name}' not recognized")
 
 
 def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
     name = name.lower()
-    if name == "random":
-        return agents.RandomAgent
-    elif name == "entropy":
-        return agents.ShannonEntropy
-    elif name == "margin":
-        return agents.MarginScore
-    elif name == "coreset":
-        return agents.Coreset_Greedy
-    elif name == "bald":
-        return agents.BALD
-    elif name == "badge":
-        return agents.Badge
-    elif name == "sal":
-        return agents.SAL
-    elif name == "typiclust":
-        return agents.TypiClust
-    else:
-        raise ValueError(f"Agent name '{name}' not recognized")
+    match name:
+        case "random":
+            return agents.RandomAgent
+        case "entropy":
+            return agents.ShannonEntropy
+        case "margin":
+            return agents.MarginScore
+        case "coreset":
+            return agents.Coreset_Greedy
+        case "bald":
+            return agents.BALD
+        case "badge":
+            return agents.Badge
+        case "sal":
+            return agents.SAL
+        case "typiclust":
+            return agents.TypiClust
+        # Batch Implementations
+        case "batchrandom":
+            return agents.BatchRandomAgent
+        case _:
+            raise ValueError(f"Agent name '{name}' not recognized")
 
 
 if __name__ == '__main__':

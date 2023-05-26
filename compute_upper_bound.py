@@ -35,7 +35,7 @@ while run_id < max_run_id:
     log_path = os.path.join(base_path, f"run_{run_id}")
 
     print(f"starting run {run_id}")
-    save_meta_data(log_path, None, None, dataset)
+    save_meta_data(log_path, None, None, dataset, config)
 
     # some convoluted saving to make it compatible with collect_results
     # and to be consistent with logging of other runs

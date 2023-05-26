@@ -15,8 +15,8 @@ parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--agent", type=str, default="typiclust")
-parser.add_argument("--dataset", type=str, default="splice")
+parser.add_argument("--agent", type=str, default="batchrandom")
+parser.add_argument("--dataset", type=str, default="mnist")
 parser.add_argument("--encoded", type=int, default=0)
 # parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=10)
@@ -73,12 +73,12 @@ while run_id < max_run_id:
         iterator = tqdm(range(env.env.budget), miniters=2)
         for i in iterator:
             action = agent.predict(*state)
-            state, reward, done, truncated, info = env.step(action.item())
+            state, reward, done, truncated, info = env.step(action)
             iterator.set_postfix({"accuracy": env.accuracies[1][-1]})
             if done or truncated:
                 break # fail save; should not happen
 
     # collect results from all runs
     collect_results(base_path, "run_")
-    save_meta_data(log_path, agent, env, dataset)
+    save_meta_data(log_path, agent, env, dataset, config)
     run_id += 1

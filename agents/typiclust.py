@@ -57,7 +57,7 @@ class TypiClust(BaseAgent):
             idx = indices[typicality.argmax()]
         else:
             idx = self.agent_rng.choice(len(state_ids))
-        return state_ids[idx]
+        return state_ids[idx].item()
 
 
     def _get_nn(self, features:np.ndarray, num_neighbors:int):

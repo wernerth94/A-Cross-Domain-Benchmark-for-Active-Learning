@@ -64,4 +64,4 @@ class BALD(BaseAgent):
 
             u_x = g_x - f_x
 
-        return state_ids[torch.argmax(u_x, dim=0)]
+        return state_ids[torch.argmax(u_x, dim=0)].item()

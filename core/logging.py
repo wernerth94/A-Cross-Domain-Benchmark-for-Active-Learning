@@ -1,5 +1,7 @@
 from typing import Tuple
 import os
+
+import numpy as np
 import torch
 import pandas as pd
 from core.environment import ALGame
@@ -45,12 +47,19 @@ class EnvironmentLogger:
     def reset(self, *args, **kwargs)->list:
         return_values = self.env.reset(*args, **kwargs)
         self.current_run += 1
+        self.current_timestep = 0
         self.accuracies[self.current_run] = [self.env.current_val_accuracy]
         self.losses[self.current_run] = [self.env.current_val_loss]
         return return_values
 
+
     def step(self, *args, **kwargs):
         return_values = self.env.step(*args, **kwargs)
+        while self.current_timestep < self.env.added_images - 1:
+            self.accuracies[self.current_run].append(np.NaN)
+            self.losses[self.current_run].append(np.NaN)
+            self.current_timestep += 1
         self.accuracies[self.current_run].append(self.env.current_val_accuracy)
         self.losses[self.current_run].append(self.env.current_val_loss)
+        self.current_timestep += 1
         return return_values
