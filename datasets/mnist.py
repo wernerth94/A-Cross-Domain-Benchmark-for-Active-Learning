@@ -7,10 +7,7 @@ from core.data import BaseDataset, postprocess_torch_dataset, convert_to_channel
 class Mnist(BaseDataset):
     def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
                  data_file="mnist_al.pt",):
-        # fitting_mode = "from_scratch" if encoded else "finetuning"
-        fitting_mode = "from_scratch"
-        super().__init__(cache_folder, config, pool_rng, encoded,
-                         data_file, fitting_mode)
+        super().__init__(cache_folder, config, pool_rng, encoded, data_file)
 
 
     def _download_data(self, test_data_fraction=0.5):

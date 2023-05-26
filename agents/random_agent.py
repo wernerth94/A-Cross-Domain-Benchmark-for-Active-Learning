@@ -22,6 +22,17 @@ class BatchRandomAgent(BaseAgent):
         super().__init__(agent_seed, config)
         self.batch_size = batch_size
 
+
+    @classmethod
+    def inject_config(cls, config:dict):
+        """
+        Batch AL mode works better with from_scratch training
+        The finetuning approach seemingly does have enough iterations to work reliably
+        """
+        config["dataset"]["classifier_fitting_mode"] = "from_scratch"
+        config["dataset_embedded"]["classifier_fitting_mode"] = "from_scratch"
+
+
     def predict(self, x_unlabeled: Tensor,
                       x_labeled: Tensor, y_labeled: Tensor,
                       per_class_instances: dict,

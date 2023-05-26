@@ -12,9 +12,7 @@ class SynthData(BaseDataset):
                  data_file=None, dataset='ThreeClust'):
         assert not encoded, "This dataset does not support encodings"
         self.dataset = dataset
-        fitting_mode = "from_scratch" if encoded else "finetuning"
-        super().__init__(cache_folder, config, pool_rng, encoded,
-                         data_file, fitting_mode)
+        super().__init__(cache_folder, config, pool_rng, encoded, data_file)
 
 
 

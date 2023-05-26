@@ -1,5 +1,6 @@
 dataset:
   budget: 400
+  classifier_fitting_mode: finetuning
   initial_points_per_class: 1
   classifier_batch_size: 64
   validation_split: 0.04
@@ -16,6 +17,7 @@ dataset_embedded:
   encoder_checkpoint: TODO
 #  encoder_checkpoint: encoder_checkpoints/fashion_mnist_17.04/model_seed1.pth.tar
   budget: 500
+  classifier_fitting_mode: from_scratch
   initial_points_per_class: 1
   classifier_batch_size: 64
 

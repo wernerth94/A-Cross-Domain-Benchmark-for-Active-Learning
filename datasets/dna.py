@@ -14,9 +14,7 @@ class DNA(BaseDataset):
                  data_file="dna_al.pt"):
         self.train_file = os.path.join(cache_folder, "dna_train.txt")
         self.test_file = os.path.join(cache_folder, "dna_test.txt")
-        fitting_mode = "from_scratch" if encoded else "finetuning"
-        super().__init__(cache_folder, config, pool_rng, encoded,
-                         data_file, fitting_mode)
+        super().__init__(cache_folder, config, pool_rng, encoded, data_file)
 
 
     def _download_data(self, target_to_one_hot=True):

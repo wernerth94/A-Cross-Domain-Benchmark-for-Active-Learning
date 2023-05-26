@@ -22,9 +22,7 @@ class TopV2(BaseDataset):
         self.raw_train_file = os.path.join(cache_folder, "topv2_train.txt")
         self.raw_test_file = os.path.join(cache_folder, "topv2_test.txt")
         self.embedding_data_file = os.path.join(cache_folder, "topv2_al_embeddings.pt")
-        fitting_mode = "from_scratch" if encoded else "finetuning"
-        super().__init__(cache_folder, config, pool_rng, encoded,
-                         data_file, fitting_mode)
+        super().__init__(cache_folder, config, pool_rng, encoded, data_file)
 
 
     def _download_data(self, target_to_one_hot=True):

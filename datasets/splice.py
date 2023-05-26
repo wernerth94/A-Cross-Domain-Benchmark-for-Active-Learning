@@ -14,9 +14,7 @@ class Splice(BaseDataset):
                  data_file="splice_al.pt"):
         self.raw_train_file = os.path.join(cache_folder, "splice_train.txt")
         self.raw_test_file = os.path.join(cache_folder, "splice_test.txt")
-        fitting_mode = "from_scratch" if encoded else "finetuning"
-        super().__init__(cache_folder, config, pool_rng, encoded,
-                         data_file, fitting_mode)
+        super().__init__(cache_folder, config, pool_rng, encoded, data_file)
 
 
     def _download_data(self, target_to_one_hot=True):

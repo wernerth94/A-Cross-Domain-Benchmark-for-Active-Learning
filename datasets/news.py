@@ -25,9 +25,7 @@ class News(BaseDataset):
         self.raw_train_file = os.path.join(cache_folder, "news_train.txt")
         self.raw_test_file = os.path.join(cache_folder, "news_test.txt")
         self.embedding_data_file = os.path.join(cache_folder, "news_al_embeddings.pt")
-        fitting_mode = "from_scratch" if encoded else "finetuning"
-        super().__init__(cache_folder, config, pool_rng, encoded,
-                         data_file, fitting_mode)
+        super().__init__(cache_folder, config, pool_rng, encoded, data_file)
 
 
     def _download_data(self, target_to_one_hot=True, max_sentence_len=80):

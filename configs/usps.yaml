@@ -1,6 +1,7 @@
 # Normal Classification
 dataset:
   budget: 400
+  classifier_fitting_mode: finetuning
   initial_points_per_class: 1
   classifier_batch_size: 43
   validation_split: 0.2
@@ -19,6 +20,7 @@ optimizer:
 dataset_embedded:
   encoder_checkpoint: encoder_checkpoints/usps_31.03/model_seed1.pth.tar
   budget: 600
+  classifier_fitting_mode: from_scratch
   initial_points_per_class: 1
   classifier_batch_size: 64
 

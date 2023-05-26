@@ -1,6 +1,7 @@
 dataset:
   domain: alarm
   budget: 125
+  classifier_fitting_mode: finetuning
   initial_points_per_class: 1
   classifier_batch_size: 64
   validation_split: 0.25
@@ -14,5 +15,3 @@ optimizer:
   lr: 0.00155412888113029
   weight_decay: 1.77805840656653E-07
 
-dataset_embedded:
-  encoder_checkpoint: "Not supported"

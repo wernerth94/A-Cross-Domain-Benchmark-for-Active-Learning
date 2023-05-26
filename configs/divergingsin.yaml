@@ -1,6 +1,7 @@
 # Normal Classification
 dataset:
   budget: 50
+  classifier_fitting_mode: from_scratch
   initial_points_per_class: 1
   classifier_batch_size: 32
   validation_split: 0.2
@@ -14,6 +15,3 @@ optimizer:
   lr: 0.001
   weight_decay: 0.0
 
-
-dataset_embedded:
-  encoder_checkpoint: NotSupported

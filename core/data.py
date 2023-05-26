@@ -22,10 +22,8 @@ class BaseDataset(ABC):
                  pool_rng: np.random.Generator,
                  encoded: bool,
                  data_file: str,
-                 class_fitting_mode: str = "finetuning",
                  device=None):
 
-        assert class_fitting_mode in ["from_scratch", "finetuning"], "Unkown fitting mode"
         if device is None:
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         else:
@@ -33,18 +31,21 @@ class BaseDataset(ABC):
         self.config = config
         self.encoded = encoded
         self.pool_rng = pool_rng
-        self.class_fitting_mode = class_fitting_mode
         self.data_file = data_file
         self.cache_folder = cache_folder
-        self.encoder_model_checkpoint = config["dataset_embedded"]["encoder_checkpoint"]
         if encoded:
+            self.encoder_model_checkpoint = config["dataset_embedded"]["encoder_checkpoint"]
             self.budget = config["dataset_embedded"]["budget"]
             self.initial_points_per_class = config["dataset_embedded"]["initial_points_per_class"]
             self.classifier_batch_size = config["dataset_embedded"]["classifier_batch_size"]
+            self.class_fitting_mode = config["dataset_embedded"]["classifier_fitting_mode"]
         else:
+            self.encoder_model_checkpoint = None
             self.budget = config["dataset"]["budget"]
             self.initial_points_per_class = config["dataset"]["initial_points_per_class"]
             self.classifier_batch_size = config["dataset"]["classifier_batch_size"]
+            self.class_fitting_mode = config["dataset"]["classifier_fitting_mode"]
+        assert self.class_fitting_mode in ["from_scratch", "finetuning"], "Unkown fitting mode"
 
         self.name = str(self.__class__).split('.')[-1][:-2]
         if encoded:
