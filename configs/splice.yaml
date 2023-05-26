@@ -7,7 +7,8 @@ dataset:
 
 classifier:
   type: MLP
-  hidden: [24, 12]
+  hidden: [24, 48, 48]
+#  hidden: [24, 12]
 
 optimizer:
   type: NAdam

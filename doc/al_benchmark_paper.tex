@@ -262,13 +262,13 @@ To combat is uncertain evaluation, we propose to repeat every experiment 50 time
 \subsection{Reproducibility}\label{sec:reproducibility}
 {\color{red} Version: 1.0}\\
 A big focus in this work is to provide an experimental setup that is fully reproducible independent of the dataset, classification model or AL algorithm used.
-In our opinion, an evaluation on one dataset with a given seed should always be done on the same validation split as well as using the same random state for all included systems like the mini batch sampler for the classifier model training.
+Given a seed, an evaluation on one dataset should always be done on the same validation split as well as the same random state for all included systems, like the mini batch sampler for model training or the initialization for the classifier itself.
 Even though different AL algorithms will pick different samples, making them unavailable for sampling in earlier or later batches, the theoretical decision tree for every possible choice in every iteration $i$ should stay the same.
-Since every possible trajectory cannot be precomputed and stored to disk, we need to resort to seeding the evaluation.
+Since every possible trajectory cannot be precomputed and stored to disk, we need to resort to seeding.
 The default choice of setting a global seed at the start of the experiment is not sufficient here, since a single additional random draw from the random number generator completely changes the behavior of all other systems.
-This additional random number might be drawn during the initialization of the classification model, the AL algorithm, or even during every AL iteration if $\Omega$ is stochastic.
-This problem also applies to the initialization of the classification model $\theta$ and the initialization and querying of $\Omega$.
-The desired control over all these processes can only be archived by assigning a separate random number generator to all these processes.
+This additional random number might be drawn during the initialization of the classification model or the AL algorithm, or even during every AL iteration if $\Omega$ is stochastic.
+%This problem also applies to the initialization of the classification model $\theta$ and the initialization and querying of $\Omega$.
+The desired control only be archived by assigning a separate random number generator to all these processes.
 To the best of our knowledge, we are the first work that discusses this issue and proposes a solution for it.
 We hypothesize that the insufficient setup with global seeds contributes to the on-going problem of inconsistent results of AL algorithms in different papers. \\ [1mm]
 In summary, we introduce three different seeds: $s_\Omega$ for the acquisition function, $s_\mathcal{D}$ for dataset splitting and mini batch sampling and $s_\theta$ for model initialization and sampling of dropout masks.
@@ -303,23 +303,25 @@ However, the algorithm may not incorporate external information like other datas
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Sampling Strategies}\label{sec:sampling_strategies}
 We selected AL algorithms that have good performances reported by multiple different sources.
-To ensure a fair comparison we fixed the training process of our classification model as well as the set of available information for the algorithm and selected only those that can work under these restrictions:
-\paragraph{Uncertainty Sampling} 
-Tries to find the sample that the classifier is most uncertain about. For our benchmark we use entropy and margin (a.k.a. best-vs-second-best) sampling.
-\paragraph{BALD \cite{kirsch2019batchbald}}
-Applies the query-by-committee strategy of model ensembles to a single model by interpreting the model's parameters as distributions and then sample multiple outputs from them via Monte-Carlo dropout.
-\paragraph{BADGE \cite{ashdeep}} Uses gradient embeddings of unlabeled points to select samples where the classifier is expected to change a lot. The higher the magnitude of the gradient the higher is the expected improvement in model performance.
-\paragraph{Coreset \cite{sener2017active}}
+To ensure a fair comparison we fixed the training process of our classification model as well as the set of available information for the algorithm and selected only those that can work under these restrictions:\\
+\textbf{Uncertainty Sampling} 
+Tries to find the sample that the classifier is most uncertain about. For our benchmark we use entropy and margin (a.k.a. best-vs-second-best) sampling.\\
+\textbf{BALD \cite{kirsch2019batchbald}}
+Applies the query-by-committee strategy of model ensembles to a single model by interpreting the model's parameters as distributions and then sample multiple outputs from them via Monte-Carlo dropout.\\
+\textbf{BADGE \cite{ashdeep}} Uses gradient embeddings of unlabeled points to select samples where the classifier is expected to change a lot. The higher the magnitude of the gradient the higher is the expected improvement in model performance.\\
+\textbf{Coreset \cite{sener2017active}}
 Employs K-Means clustering to try to cover all {\color{red}modalities (is this the right word?)} that are observed in the data.
 Selects the unlabeled sample that is the furthest away from all cluster centers.
-In this work we use the greedy variant of Coreset and we also encode the data with the current classifier $\theta_i$ before clustering.
-\paragraph{TypiClust}
+Clustering is done in a semantically meaningful space by encoding the data with the current classifier $\theta_i$.
+In this work we use the greedy variant of Coreset.\\
+\textbf{TypiClust \cite{hacohen2022active}}
 Relies on clustering similar to Coreset but proposes a new measure called "Typicality" to select unlabeled centers.
 Tries to select points that are in the densest regions of clusters that do not contain labeled samples yet.
-For this work we also use the current classifier $\theta_i$ to encode data if necessary (raw images or text).
+Clustering is done in a semantically meaningful space by encoding the data with the current classifier $\theta_i$.
+It has to be pointed out that TypiClust was designed for low-budget scenarios, but we think it is still worthwhile to test and compare this algorithm with practically relevant budgets.
 %
 \subsubsection{Honorable Mentions}
-\paragraph{Learning Loss for AL}
+\textbf{Learning Loss for AL}
 Introduces an updated training of the classification model with an auxiliary loss and therefore cannot be compared fairly against classification models without this boosted training regime.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
