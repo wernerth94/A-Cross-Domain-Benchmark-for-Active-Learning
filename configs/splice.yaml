@@ -2,7 +2,7 @@
 dataset:
 #  budget: 400
   # Large Class. ablation
-  budget: 600
+  budget: 400
   classifier_fitting_mode: finetuning
   initial_points_per_class: 1
   classifier_batch_size: 43
