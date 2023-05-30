@@ -7,28 +7,25 @@
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{algorithm}
-\usepackage{algpseudocode}
+\usepackage[noend]{algpseudocode}
 \usepackage{neurips_data_2023}
 
 \title{Towards Comparable Active Learning}
 \author{%
 	Thorben Werner 
-	\thanks{Information Systems and Machine Learning Lab (ISMLL)} 
+	\thanks{Institute of Computer Science - Information Systems and Machine Learning Lab (ISMLL)} 
 	\\
-	Institute of Computer Science\\
 	University of Hildesheim\\
-	Universitätsplatz 1, 31141 Hildesheim \\
+	Universitätsplatz 1\, 31141 Hildesheim \\
 	\texttt{werner@ismll.de} \\
 	% examples of more authors
 	\And
 	Johannes Burchert$^*$ \\
-	Institute of Computer Science\\
 	University of Hildesheim\\
 	Universitätsplatz 1, 31141 Hildesheim \\
 	\texttt{burchert@ismll.de} \\
 	\AND
 	Prof. Lars Schmidt-Thieme$^*$ \\
-	Institute of Computer Science\\
 	University of Hildesheim\\
 	Universitätsplatz 1, 31141 Hildesheim \\
 	\texttt{schmidt-thieme@ismll.uni-hildesheim.de} \\
@@ -53,8 +50,8 @@
 	In this paper we address the issue of inconsistent results in active learning literature.
 	Authors of previous papers are constantly reporting significant performance improvements in their original work, while subsequent literature fails to reproduce those results. This inconsistency leads to a chaotic landscape of AL algorithms.
 	We propose the first AL benchmark that tests algorithms in all three major domains of tabular, image and text data.
-	Furthermore, we discuss a central problem for reproducing AL experiments with the default seeding setup that depends on a single seed per experiment.
-	...
+	Furthermore, we discuss overlooked problems for reproducing AL experiments with the default seeding setup that depends on a single seed per experiment and provide evidence for the correct amount of repetitions for AL algorithms that reliably converge to the true median performance.
+	We report empirical results for 6 algorithms on 7 datasets and aggregate them into a ranking of AL algorithms via Critical-Difference Diagrams.
 \end{abstract}
 
 \section{Introduction}
@@ -65,9 +62,7 @@ On top of providing a principled way to labeled unlabeled datasets, active learn
 Both approaches are at their core orthogonal and can freely be combined and therefore we should continue our research efforts for both approaches. \\
 Among others, the authors of \cite{zhou2021towards} have pointed out severe inconsistencies in results of AL papers in recent years. 
 In their supplementary materials they conducted a meta analysis of reported results of several different AL algorithms and found that all considered algorithms only provided significant lifts in their own original papers, while all following literature reported performances no better that uncertainty sampling, or in some cases no better than random sampling for the same algorithm.
-The result of these inconsistencies is a chaotic landscape of AL algorithms where every paper claims to archive state-of-the-art results by significantly outperforming everyone else, while the vast majority of results proves to be non-reproducible. \\ [1mm]
-%
-To allow comparison between 
+The result of these inconsistencies is a chaotic landscape of AL algorithms where every paper claims to archive state-of-the-art results by significantly outperforming everyone else, while the vast majority of results proves to be non-reproducible.
 
 \subsection{Contributions}
 \begin{enumerate}
@@ -147,65 +142,36 @@ We employ the normalized area under the accuracy curve (AUC):
 \end{equation}
 Where $\hat y_i$ is the retrained classification model after the i-\textit{th} instance was selected.
 
-\begin{minipage}{0.49\linewidth}
+\begin{minipage}{0.4\linewidth}
 	\begin{algorithm}[H]
 		\caption{Oracle}\label{alg:oracle}
 		\begin{algorithmic}[1]
-			\Require $\mathcal{U}$ \Comment{Unlabeled Pool}
-			\Require $\tau$ \Comment{Unlabeled Sample Size}
-			\State $\mathcal{L}^{(1)} \gets \operatorname{seed}(\mathcal{U})$  %\Comment{Create the initial labeled set}
-			\State $\mathcal{U}^{(1)} \gets \mathcal{U} \setminus \mathcal{L}^{(1)}$
-			\For{$i := 1 \ldots B$} 
-			\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i)})$  %\Comment{$\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
+			\Ensure Retrain, margin
+			\Require $\mathcal{U}^{(i)}, \mathcal{L}^{(i)}, \tau, \hat y_\theta$ 
+			\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i)})$ 
 			\State $u^{(i)} \underset{\tau}{\sim} \text{unif}(1:|\mathcal{U}^{(i)}|)$
-			\State $r* \gets 0$
-			\For{$j := 1 \ldots \tau$} %\Comment{Testing every unlabeled point}
-			\State $y^{(j)} \gets \operatorname{label}(u^{(i)}_{j})$
-			\State $\mathcal{L}^{(j)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_j, y^{(j)})\}$
-			\State $\text{acc}^{(j)} \gets \operatorname{Retrain}(\mathcal{L}^{(j)})$  
-			\State $r^{(j)} \gets \text{acc}^{(j)} - \text{acc}^{(i)}$
-			\If{$r^{(j)} > r^*$} %\Comment{Select point with largest increase in performance}
-			\State $r* \gets r^{(j)}$
-			\State $j* \gets j$
+			\State $r^* \gets 0$
+			\For{$t := 1 \ldots \tau$}
+			\State $\mathcal{K} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_t, y_t)\}$
+			\State $\text{acc} \gets \operatorname{Retrain}(\mathcal{K}, \hat y_\theta)$  
+			\State $r \gets \text{acc} - \text{acc}^{(i)}$
+			\If{$r > r^*$} 
+			\State $r^* \gets r$
+			\State $t^* \gets t$
 			\EndIf  
-			\EndFor
 			\If{$r^* = 0$}
-			\State $j* \gets \operatorname{margin}(u^{(i)}, \hat y_\theta)$
+			\State $t^* \gets \operatorname{margin}(u^{(i)}, \hat y_\theta)$
 			\EndIf
-			\State $y^{(i)} \gets \operatorname{label}(u^{(i)}_{j*})$
-			\State $\mathcal{L}^{(i+1)} \gets \mathcal{L}^{(i)} \cup \{(u^{(i)}_{j*}, y^{(i)})\}$
-			\State $\mathcal{U}^{(i+1)} \gets \mathcal{U}^{(i)} \setminus \{u^{(i)}_{j*}\}$
 			\EndFor
-			\State
-			\Return $\frac{1}{B} \sum_{i=1}^{B} \text{acc}^{(i)}$
+			\Return $t^*$
 		\end{algorithmic}
 	\end{algorithm}
 \end{minipage}
 \hspace{3mm}
-\begin{minipage}{0.5\linewidth}
-	\begin{algorithm}[H]
-		\caption{Retrain}\label{alg:retrain}
-		\begin{algorithmic}[1]
-			\Require $\mathcal{L}$ \Comment{Labeled Pool}
-			\Require $\mathcal{D}_\text{val}$ \Comment{Validation Data}
-			\Require $\mathcal{D}_\text{test}$ \Comment{Test Data}
-			\Require $\hat y_\theta$ \Comment{Class. Model}
-			\Require $e^\text{max}$ \Comment{Maximum Epochs}
-			\State $\text{loss}^* \gets \infty$
-			\For{$i := 1 \ldots e^{\text{max}}$}
-			\State $\theta_{i+1} \gets \theta_i - \eta \nabla_\theta \ell(\mathcal{L}, \hat y_{\theta})$
-			\State $\text{loss}_i \gets \ell(\mathcal{D}^\text{val}, \hat y_{\theta})$
-			\If{$\text{loss}_i < \text{loss}^*$}
-			\State $\text{loss}^* \gets \text{loss}_i$
-			\Else
-			\State Break
-			\EndIf
-			\EndFor
-			\State
-			\Return Acc($\mathcal{D}^\text{test}, \hat y_{\theta}$)
-		\end{algorithmic}
-	\end{algorithm}
-	In Alg. \ref{alg:oracle} $\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{D}_\text{test}, \hat y_\theta, e^\text{max})$, $\operatorname{label}(u^{(i)}_{j})$ recovers the label of instance $u^{(i)}_{j}$ and $\operatorname{margin}(u^{(i)}, \hat y_\theta)$ applies margin sampling to select as a fallback, when the oracle has not found another option that induces a positive change in classification performance.
+\begin{minipage}{0.59\linewidth}
+	In Alg. \ref{alg:oracle} $\operatorname{Retrain}(\mathcal{L}^{(i)}, \hat y_\theta)$ trains the classification model $\hat y_\theta$ and returns the accuracy on the test set $\mathcal{D}_\text{test}$. \\ 
+	$y_t$ is shorthand for the corresponding label of $u^{(i)}_{t}$ that can be recovered from the dataset labels. \\
+	When the oracle does not find a sample with positive change in classification performance ($r^* = 0$), it applies margin sampling as a fallback ($\operatorname{margin}(u^{(i)}, \hat y_\theta)$).
 \end{minipage}
 
 
@@ -354,31 +320,30 @@ In this work we use the validation set to optimize the hyperparameters of the cl
 {\color{red} Version: 1.0}\\
 For all our datasets we use the pre-defined train / test splits, if given. 
 In the remaining cases, we define test sets upfront and store them into separate files to keep them fixed across all experiments.
-The validation set is split during experiment-time and depends on the dataset-seed.
-
-\paragraph{Tabular}
+The validation set is split during experiment-time and depends on the dataset-seed.\\
+\textbf{Tabular:}
 We use \textbf{Splice}, \textbf{DNA} and \textbf{USPS} from LibSVMTools \cite{libsvmtools}.
-All three datasets are normalized between [0, 1].
-
-\paragraph{Image}
+All three datasets are normalized between [0, 1]. \\
+\textbf{Image:}
 We use \textbf{FashionMNIST} \cite{xiao2017fashion} and \textbf{Cifar10} \cite{krizhevsky2009learning}.
-Both datasets are normalized according to their standard protocols. 
-
-\paragraph{Text}
+Both datasets are normalized according to their standard protocols. \\
+\textbf{Text:}
 We use \textbf{News Category} \cite{misra2022news} and \textbf{TopV2} \cite{chen-etal-2020-low-resource}.
 For News Category we use  the 15 most common categories as indicated by its Kaggle site.
 We additionally drop sentences above 80 words to reduce the needed padding (retaining 99,86\% of the data).
 For TopV2, we are only using the "alarm" domain.
 Both datasets are encoded with pre-trained GloVe embeddings \cite{pennington2014glove}.
-Since neither dataset provided a fixed test set, we randomly split 7000 datapoints into a test set. \\ [3mm]
+Since neither dataset provided a fixed test set, we randomly split 7000 datapoints into a test set. \\ [1mm]
 %
 We would like to point out that these datasets can be considered "toy-datasets" and therefore not relevant for practical purposes.
 This might be true if we aimed to develop novel classification models on these datasets, however we are solely focused on comparing different AL algorithms in this paper.
-Our core assumption is that a well-performing algorithm in our benchmark will transfer well into more practical use-cases. \\ [1mm]
+Our core assumption is that a well-performing algorithm in our benchmark will also transfer into more practical use-cases. \\ [1mm]
 Adapting the experimental setting from \cite{hacohen2022active} we offer all our datasets in the raw setting as well as pre-encoded by a fixed embedding model that was trained by unsupervised contrastive learning. 
 The text datasets are an exception, as they are only offered in their encoded form.
-The pre-encoded datasets offer multiple advantages in that they require smaller classification models (i.e. small MLPs) and in general much less sampled datapoints to archive close to upper bound performance (measured with the full dataset).
-They unify experimental setups for different datasets and therefore make them much more comparable.
+The pre-encoded datasets enable us to test our single-sample algorithms on more complex datasets like Cifar10 and FashionMnist without the need of sampling $>2000$ datapoints before we can reach our upper bound performance.
+The embedding model was trained with the SimCLR \cite{chen2020simple} algorithm. 
+For Cifar10 we adapt the reported hyperparameters from \cite{hacohen2022active} and for the tabular datasets we use random search to optimize the hyperparameters.
+The quality of embeddings during pretext training was measured after each epoch by attaching a linear classification head and evaluating this classifier for test accuracy, mirroring our AL setup for embedded datasets.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Results}
@@ -424,14 +389,19 @@ From Fig. \ref{fig:eval_vector} we notice drastically different qualities for th
 We would like to highlight that both datasets are tabular from the medical domain with similar number of features and classes, yet we see that i.e. BALD is the best algorithm for Splice and the worst algorithm for DNA.
 These inconsistencies are present between the datasets of all our tested domains, further highlighting the difficulties for comparing AL algorithms in terms of average performance.
 In order to provide a meaningful analysis of which algorithm can be expected to perform best on average we ranked the algorithm for each dataset based on their median AUC and displayed these rankings in critical difference diagrams \cite{IsmailFawaz2018deep}.
-In Fig. \ref{fig:cd_diagrams} we report the rankings split by domain as well as across all domains (excluding the toydata).
+In Fig. \ref{fig:cd_diagrams} we report the rankings split by domain as well as across all domains (excluding the toydata). \\ [2mm]
+%
+BALD performs bad with linear classifiers since they are trained without dropout and cannot cope well with missing inputs. \\
+TypiClust is better with embedded data not only due to lower budgets. On other datasets it is not able to outperform other algorithms in early stages
+
 
 \section{Conclusion}
 
 \section{Limitations and Future Work}
 No batch AL \\
 No learned algorithms \\
-No SOTA classifier training (data augmentation, semi-supervised, etc.)
+No SOTA classifier training (data augmentation, semi-supervised, etc.) \\
+SimCRL as Pretext task works better for images
 
 \newpage
 
@@ -554,6 +524,29 @@ No SOTA classifier training (data augmentation, semi-supervised, etc.)
 		\EndFor
 		\State
 		\Return $\frac{1}{B} \sum_{i=1}^{B} \text{acc}^{(i)}$
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+	\caption{Retrain}\label{alg:retrain}
+	\begin{algorithmic}[1]
+		\Require $\mathcal{L}$ \Comment{Labeled Pool}
+		\Require $\mathcal{D}_\text{val}$ \Comment{Validation Data}
+		\Require $\mathcal{D}_\text{test}$ \Comment{Test Data}
+		\Require $\hat y_\theta$ \Comment{Class. Model}
+		\Require $e^\text{max}$ \Comment{Maximum Epochs}
+		\State $\text{loss}^* \gets \infty$
+		\For{$i := 1 \ldots e^{\text{max}}$}
+		\State $\theta_{i+1} \gets \theta_i - \eta \nabla_\theta \ell(\mathcal{L}, \hat y_{\theta})$
+		\State $\text{loss}_i \gets \ell(\mathcal{D}^\text{val}, \hat y_{\theta})$
+		\If{$\text{loss}_i < \text{loss}^*$}
+		\State $\text{loss}^* \gets \text{loss}_i$
+		\Else
+		\State Break
+		\EndIf
+		\EndFor
+		\State
+		\Return Acc($\mathcal{D}^\text{test}, \hat y_{\theta}$)
 	\end{algorithmic}
 \end{algorithm}
 

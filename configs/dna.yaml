@@ -13,9 +13,12 @@ classifier:
   hidden: [24, 48, 48]
 
 optimizer:
-  type: SGD
-  lr: 0.0338268474976409
-  weight_decay: 1.81626820748159E-06
+  type: Adam
+  lr: 0.0124621073251144
+  weight_decay: 0.000714770463686342
+#  type: SGD
+#  lr: 0.0338268474976409
+#  weight_decay: 1.81626820748159E-06
 
 dataset_embedded:
   encoder_checkpoint: encoder_checkpoints/dna_31.03/model_seed1.pth.tar
