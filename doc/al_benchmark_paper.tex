@@ -312,21 +312,23 @@ Introduces an updated training of the classification model with an auxiliary los
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Choosing the Classifier}\label{sec:choosing_the_classifier}
 Traditionally, the classifier is chosen per dataset so that it is capable of solving the dataset close to the SOTA performance reported in the literature.
-Similar to our hypothesis in section \ref{sec:evaluation} we hypothesize that AL algorithms will perform similarly on small classifiers and more complex ones, so that the overall ranking of algorithms stays the same.
-{\color{red} TODO: Transform this into full hypothesis incl. formatting?}\\
-On the basis of this hypothesis we opt to use smaller classifiers that still solve the dataset to a reasonable degree.
-Smaller classifiers also require fewer labeled datapoints to acquire performance close to the upper bound.
+Since we are not interested in archiving a new SOTA in any classification problem, we opt to use smaller classifiers for the following reasons:
+Smaller classifiers generally (i) exhibit more stable training behavior and (ii) on average require less sampled datapoints to reach the their upper bound performance on the full dataset.
 For every dataset the chosen architecture's hyperparameters are optimized by to archive maximum upper bound performance.
+One desired characteristic of small classifiers is that the ranking of AL algorithms should stay the same when switching to larger models.
+A small analysis of this behavior can be found in Appendix \ref{app:classifier_size}.
+We found that the ranking of AL algorithms unfortunately does change, but we did not observe systematics that benefit one or few specific algorithms.
+We therefore rely on the different data domains to provide classification models of different sizes and archetypes to cover all of the use-cases.
 For an overview of architectures and hyperparameters please refer to Appendix \ref{app:hyperparameters}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Training the Classifier}\label{sec:training_the_classifier}
-Generally, the classification model can be trained in two ways. Either you reset the parameters after each AL iteration and train the classifier from scratch with the updated labeled set $\mathcal{L}^{(i)}$, or you retain the previous state and only fine-tune the classifier on $\mathcal{L}^{(i)}$ for a reduced number of epochs.
+The classification model can be trained in two ways. Either you reset the parameters after each AL iteration and train the classifier from scratch with the updated labeled set $\mathcal{L}^{(i)}$, or you retain the previous state and only fine-tune the classifier on $\mathcal{L}^{(i)}$ for a reduced number of epochs.
 In this work we use the fine-tuning method for raw datasets to save computation, while we use the from-scratch training for embedded dataset, since they have very small classifiers and this method generally produces better results.
 Our fine-tuning scheme always trains for at least one epoch and employs an aggressive early stopping after that.
 The early stopping has patience 0, so it will stop as soon as the validation loss does no longer decrease.
-Even though the use of a fully labeled validation set might be regarded as impractical, since such a set will never exist during deployment, we strongly advocate for using it to control the classifier training.
+Even though the use of a fully labeled validation set might be regarded as impractical, since such a set will never exist during deployment, we strongly advocate for using it in benchmarks to control the classifier training.
 In this work we use the validation set to optimize the hyperparameters of the classifier and reduce overfitting with early stopping the training process in every iteration.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -347,13 +349,13 @@ Both datasets are normalized according to their standard protocols. \\
 \textbf{Text:}
 We use \textbf{News Category} \cite{misra2022news} and \textbf{TopV2} \cite{chen-etal-2020-low-resource}.
 For News Category we use  the 15 most common categories as indicated by its Kaggle site.
-We additionally drop sentences above 80 words to reduce the needed padding (retaining 99,86\% of the data).
+We additionally drop sentences above 80 words to reduce the padding needed (retaining 99,86\% of the data).
 For TopV2, we are only using the "alarm" domain.
-Both datasets are encoded with pre-trained GloVe embeddings \cite{pennington2014glove}.
+Both datasets are encoded with pre-trained GloVe (Common Crawl 840B Tokens) embeddings \cite{pennington2014glove}.
 Since neither dataset provided a fixed test set, we randomly split 7000 datapoints into a test set. \\ [1mm]
 %
 We would like to point out that these datasets can be considered "toy-datasets" and therefore not relevant for practical purposes.
-This might be true if we aimed to develop novel classification models on these datasets, however we are solely focused on comparing different AL algorithms in this paper.
+This might be true if we aimed to develop novel classification models on these datasets, however, similar to our argumentation for picking smaller classifiers, we are solely focused on comparing different AL algorithms in this paper.
 Our core assumption is that a well-performing algorithm in our benchmark will also transfer into more practical use-cases. \\ [1mm]
 Adapting the experimental setting from \cite{hacohen2022active} we offer all our datasets in the raw setting as well as pre-encoded by a fixed embedding model that was trained by unsupervised contrastive learning. 
 The text datasets are an exception, as they are only offered in their encoded form.
@@ -386,8 +388,9 @@ The quality of embeddings during pretext training was measured after each epoch 
 %
 \begin{figure}
 	\centering
+	\includegraphics[width=0.49\linewidth]{img/eval_splice}
+	\hspace{1mm}
 	\includegraphics[width=0.49\linewidth]{img/eval_dna}
-	\includegraphics[width=0.49\linewidth]{img/eval_splice.png}
 	\caption{Results for all algorithms on Splice and DNA, both from the tabular domain. Even within one domain, the performance of the same algorithm can vary drastically.}
 	\label{fig:eval_vector}
 \end{figure}
@@ -512,7 +515,7 @@ SimCRL as Pretext task works better for images
 	\label{tab:architectures}
 \end{table}
 
-\section{Comparison of Different Classifier Sizes}
+\section{Comparison of Different Classifier Sizes}\label{app:classifier_size}
 We tested two different classifier sizes in Splice and DNA:
 \begin{itemize}
 	\item Small: [24, 12] (2400 parameters)
