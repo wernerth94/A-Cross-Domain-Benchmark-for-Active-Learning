@@ -48,11 +48,12 @@
 
 \begin{abstract}
 	%Active Learning (AL) is a technique used in machine learning to improve data efficiency by selecting the most informative samples for annotation. 
-	In this paper we address the issue of inconsistent results in active learning literature.
-	Authors of previous papers are constantly reporting significant performance improvements, while subsequent literature fails to reproduce those results. This inconsistency leads to a chaotic landscape of AL algorithms.
-	We propose the first AL benchmark that tests algorithms in three major domains of tabular, image and text data.
-	Furthermore, we discuss overlooked problems for reproducing AL experiments with the default seeding setup that depends on a single seed per experiment and provide evidence for the correct amount of repetitions for AL algorithms that reliably converge to the true median performance.
-	We report empirical results for 6 algorithms on 7 datasets and aggregate them into a ranking of AL algorithms via Critical-Difference Diagrams.
+	In this paper we address the issue of inconsistent results in active learning (AL) literature.
+	Previous papers are constantly reporting significant performance improvements, while subsequent literature fails to reproduce those results. This inconsistency leads to a chaotic landscape of AL algorithms.
+	To the best of our knowledge, we propose the first AL benchmark that tests algorithms in 3 major domains; Tabular, Image and Text.
+	Furthermore, we discuss overlooked problems for reproducing AL experiments that can lead to unfair comparisons and increased variance in the results.
+	We propose a framework for choosing hyperparameters of AL setups and accurately controlling the experiments.
+	Using this framework, we report empirical results for 6 algorithms on 7 datasets and aggregate them into a domain-specific ranking of AL algorithms.
 \end{abstract}
 
 \section{Introduction}
@@ -66,10 +67,47 @@ The result of these inconsistencies is a chaotic landscape of AL algorithms wher
 
 \subsection{Contributions}
 \begin{enumerate}
-	\item Evaluation of Active Learning algorithms on datasets from 4 different domains, including synthetic data that highlights principled shortcomings of existing approaches.
+	\item Evaluation of Active Learning algorithms on datasets from 3 different domains, including synthetic data that highlights principled shortcomings of existing approaches.
 	\item Novel experimental protocol for seeding the experiment with 3 different seeds to allow full control and reproducibility and analysis of how many restarts are required to converge to the true median performance reliably.
 	\item Simple algorithm for an Oracle-Curve that can be constructed greedily and does not rely on search.
 \end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{(From Vijaya) Problem Description}
+Given $n = l+u$ data points with $l \in \mathbb{N}$ many labeled examples $\mathcal{L} = \{(x_1, y_1),\ldots, (x_l,y_l)\}$, $u \in \mathbb{N}$ many unlabeled examples $\mathcal{U} = \{x_{l+1},\ldots,x_{n}\}$, a budget $\mathbb{N} \ni b \le u$ and an annotator $A: \mathbb{R}^M \to \mathbb{R}^C$ that can label $x$. We call $x \in \mathbb{R}^M$, $y \in \mathbb{R}^C$ predictors and labels respectively where $(x,y)$ are drawn from an unknown distribution $\rho$. 
+Find an acquisition function $F: \mathcal{U},\mathcal{L}, b \mapsto \mathcal{U}_b$ that selects $b$ many examples from $\mathcal{U}$ such that $\mathcal{U}_b \subseteq \mathcal{U}$, $|\mathcal{U}_b|=b$ for labeling and the expected loss $\ell: \mathbb{R}^C \times \mathbb{R}^C \to \mathbb{R}$ (cross entropy loss) of the machine learning algorithm $\hat{y}$ (ex. classification) trained on $\mathcal{L} \cup \{\left(x, A(x)\right) \mid x \in \mathcal{U}_b\}$ is minimal: 
+$$\min \quad \mathbb{E}_{(x,y) \sim \rho} \ell(y, \hat{y}(x))$$
+Finding the optimal subset $\mathcal{U}_b$ is a combinatorial problem that is computationally not feasible for large $b$, so we allow sequential construction of the subset as a relaxation of the problem.
+%To construct the active learning setting from a labeled dataset $\mathcal{D} = \{(x_1, y_1),\ldots, (x_n,y_n)\}$, we first split it into $\mathcal{D}_\text{train}$, $\mathcal{D}_\text{val}$ and $\mathcal{D}_\text{test}$ and then suppress the labels of $\mathcal{D}_\text{train}$ to form the unlabeled pool $\mathcal{U}$ and form and initial labeled pool by uniformly sampling $k$ number of instances per class, removing them from $\mathcal{U}$ and recovering their label $\mathcal{L} := \{(x_1, A(x_1)),\ldots, (x_{k*C},A(x_{k*C}))\} \quad s.t. \quad \mathcal{U} \cap \mathcal{L} = \emptyset$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{(From Lars) Problem Description}
+Given two spaces $\mathcal{X}:=\mathcal{R}^M$ and $\mathcal{Y}:=\mathcal{R}^C$, a sample $\mathcal{D}_1,\ldots,\mathcal{D}_N \subseteq (\mathcal{X}\times \mathcal{Y})^*$ of sequences of pairs $(x,y)$  from an unknown distribution $p$ called datasets and a number $B\in\mathcal{N}$ with $B < |\mathcal{D}|$. \\
+Given two functions $\ell:\mathcal{Y}\times \mathcal{Y}\rightarrow \mathcal{R}$ called loss, and $A: (\mathcal{X} \times \mathcal{Y})^* \times \mathcal{X}^* \rightarrow \mathcal{Y}^{\mathcal{X}}$ called learning algorithm, find a function
+\begin{align*}
+	a: (\mathcal{X}\times \mathcal{Y})^* \times \mathcal{X}^* \rightarrow \{0,1\}^*
+\end{align*}
+called acquisition function, s.t. the expected loss of a model learned on all predictors plus $B$ acquired targets is minimal.
+%\begin{align*}
+%	\mathbb{E}_{\mathcal{D}\text{train},\mathcal{D}\text{test}\sim p}   &
+%	% \frac{1}{|\mathcal{D}\text{test}|} \sum_{(x,y)\in\mathcal{D}\text{test}}
+%	% \operatorname{avg} \{
+%	%  \ell(y, \hat y(x)) \mid (x,y)\in\mathcal{D}\text{test} \}
+%	\operatorname{avg}\limits_{(x,y)\in\mathcal{D}\text{test}}
+%	\ell(y, \hat y(x)) 
+%	\\
+%	\text{with }
+%	\hat y:= & A( (\mathcal{D}\text{train}_{n_1},\ldots,\mathcal{D}\text{train}_{n_B}), \mathcal{D}\text{train}|_{\mathcal{X}})
+%	\\ 
+%	n_b := & \text{index}( a( (\mathcal{D}\text{train}_{n_1},\ldots,\mathcal{D}\text{train}_{n_{b-1}}), \mathcal{D}\text{train}|_{\mathcal{X}}) ),
+%	\quad b\in 1{:}B
+%\end{align*}
+%(\textit{We would need to switch from lowest expected loss to highest AUC}) \\
+Even though the acquisition function in principle could output the full subset of $\mathcal{D}_\text{train}$, the combinatorial problem is computationally not feasible for large $B$ and we allow sequential construction of the subset as a relaxation of the problem. \\
+%
+%To construct the active learning setting from existing labeled datasets, we first split it into $\mathcal{D}_\text{train}$, $\mathcal{D}_\text{val}$ and $\mathcal{D}_\text{test}$ and then suppress the labels $\mathcal{Y}$ of $\mathcal{D}_\text{train}$ to form the unlabeled pool $\mathcal{U} := \mathcal{X}^*$ and form and initial labeled pool by uniformly sampling $k$ number of instances per class from $\mathcal{U}$ and recovering their label $\mathcal{L} := (\mathcal{X}, \mathcal{Y})^{k*C}$. 
+
 
 
 
@@ -93,7 +131,7 @@ Table \ref{tab:benchmark_comparison} shows a feature comparison between our prop
 		Hu et al. \cite{hu2021towards} & batch & 5 & 2 & 13 & - \\
 		Li et al. \cite{li2022empirical} & batch & 5 & 1 & 13 & - \\
 		Zhou et al. \cite{zhou2021towards} & batch & 3 & 2 & 2 & \checkmark \\
-		\textbf{Ours} & single & 9 & 4 & 6 & \checkmark 
+		\textbf{Ours} & single & 7 & 3 & 6 & \checkmark 
 	\end{tabular}
 	\caption{Comparison of our benchmark with the existing literature}
 	\label{tab:benchmark_comparison}
@@ -108,51 +146,6 @@ Table \ref{tab:benchmark_comparison} shows a feature comparison between our prop
 %\end{itemize}
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Problem Description}
-Given two spaces $\mathcal{X}:=\mathbb{R}^M$ and $\mathcal{Y}:=\mathbb{R}^C$ where a samples is drawn from an unknown data distribution $(x, y) \sim p$ with $x \in \mathcal{X}, y \in \mathcal{Y}$.
-We call $\mathcal{L} := \{ (x, y) \}^*$ the labeled pool and $\mathcal{U} := \{ x \}^*$ the unlabeled pool.
-Their domains are $\Omega := \mathbb{R}^M \times \mathbb{R}^C$ and $\Lambda := \mathbb{R}^M$ respectively. \\
-A function $\hat y: \mathcal{X} \rightarrow \mathcal{Y}$ is called a classifier and a function $\ell: \mathcal{Y} \rightarrow \mathcal{Y}$ is called a loss.
-Given a scalar $B := \mathbb{R}; \hspace{1mm} B < |\mathcal{U}|$ called budget, we want to find an acquisition function $a: \Omega \times \Lambda \mapsto \mathcal{U}^B$ that creates a subset of $\mathcal{U}$ so that the expected loss on our data is minimal.
-$$
-\underset{(x,y)\sim p}{\mathbb{E}} \ell(y, \hat y(x))
-$$
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Lars' Problem Description}
-Given two spaces $\mathcal{X}:=\mathcal{R}^M$ and $\mathcal{Y}:=\mathcal{R}^C$, a sample $\mathcal{D}_1,\ldots,\mathcal{D}_N \subseteq (\mathcal{X}\times \mathcal{Y})^*$ of sequences of pairs $(x,y)$  from an unknown distribution $p$ called datasets and a number $B\in\mathcal{N}$ with $B < |\mathcal{D}|$. \\
-Given two functions $\ell:\mathcal{Y}\times \mathcal{Y}\rightarrow \mathcal{R}$ called loss, and $A: (\mathcal{X} \times \mathcal{Y})^* \times \mathcal{X}^* \rightarrow \mathcal{Y}^{\mathcal{X}}$ called learning algorithm, find a function
-\begin{align*}
-	a: (\mathcal{X}\times \mathcal{Y})^* \times \mathcal{X}^* \rightarrow \{0,1\}^*
-\end{align*}
-called acquisition function, s.t. the expected loss of a model learned on all predictors plus $B$ acquired targets is minimal.
-\begin{align*}
-	\mathbb{E}_{\mathcal{D}\text{train},\mathcal{D}\text{test}\sim p}   &
-	% \frac{1}{|\mathcal{D}\text{test}|} \sum_{(x,y)\in\mathcal{D}\text{test}}
-	% \operatorname{avg} \{
-	%  \ell(y, \hat y(x)) \mid (x,y)\in\mathcal{D}\text{test} \}
-	\operatorname{avg}\limits_{(x,y)\in\mathcal{D}\text{test}}
-	\ell(y, \hat y(x)) 
-	\\
-	\text{with }
-	\hat y:= & A( (\mathcal{D}\text{train}_{n_1},\ldots,\mathcal{D}\text{train}_{n_B}), \mathcal{D}\text{train}|_{\mathcal{X}})
-	\\ 
-	n_b := & \text{index}( a( (\mathcal{D}\text{train}_{n_1},\ldots,\mathcal{D}\text{train}_{n_{b-1}}), \mathcal{D}\text{train}|_{\mathcal{X}}) ),
-	\quad b\in 1{:}B
-\end{align*}
-%(\textit{We would need to switch from lowest expected loss to highest AUC}) \\
-Even though the acquisition function in principle could output the full subset of $\mathcal{D}_\text{train}$, the combinatorial problem is computationally not feasible and we allow sequential construction of the subset as a relaxation of the problem. \\
-%
-To construct the active learning setting from existing labeled datasets, we first split it into $\mathcal{D}_\text{train}$, $\mathcal{D}_\text{val}$ and $\mathcal{D}_\text{test}$ and then suppress the labels $\mathcal{Y}$ of $\mathcal{D}_\text{train}$ to form the unlabeled pool $\mathcal{U} := \mathcal{X}^*$ and form and initial labeled pool by uniformly sampling $k$ number of instances per class from $\mathcal{U}$ and recovering their label $\mathcal{L} := (\mathcal{X}, \mathcal{Y})^{k*C}$. \\
-%
-Following \cite{zhou2021towards}, the quality of an active learning algorithm is evaluated by an "anytime" protocol that incorporates classification performance at every iteration, not just the final performance after the budget is exhausted.
-We employ the normalized area under the accuracy curve (AUC):
-\begin{equation}\label{eq:auc}
-	\operatorname{auc}(\mathcal{D}_{test}, \hat y, B) := \frac{1}{B} \sum_{i=1}^{B} \operatorname{Acc}(\mathcal{D}_{test}, \hat y_i)
-\end{equation}
-Where $\hat y_i$ is the retrained classification model after the i-\textit{th} instance was selected.
 
 
 
@@ -173,7 +166,7 @@ This benchmark includes Shannon-Entropy sampling \cite{wang2014new}, margin samp
 %
 Some previous work also aimed to provide a benchmark suite for active learning:
 The authors of \cite{beck2021effective} and \cite{li2022empirical} both focus on active learning in the image domain.
-While \cite{beck2021effective} discuss a new metric to measure AL performance, which they call "Label Efficiency" and provide experiments on many common configurations of data preparation, model training and other hyperparameters, \cite{li2022empirical} focuses on combined approaches of AL and semi-supervised learning to aid model training.
+While \cite{beck2021effective} discuss a new metric to measure AL performance, which they call ``Label Efficiency'' and provide experiments on many common configurations of data preparation, model training and other hyperparameters, \cite{li2022empirical} focuses on combined approaches of AL and semi-supervised learning to aid model training.
 The authors of \cite{hu2021towards} study models that are learned with AL techniques in the image and text domain.
 They test for several different properties of the models including robustness, response to compression techniques and final performance.
 
@@ -185,8 +178,14 @@ They test for several different properties of the models including robustness, r
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Evaluation}\label{sec:evaluation}
-We compare different AL algorithms based on their median AUC score (Eq. \ref{eq:auc}) across multiple restarts of the experiment.
-Each restart will retain the train/test split (often given by the dataset itself), but introduces a new validation split to mimic the leave-one-out protocol for cross-validation.
+Following \cite{zhou2021towards}, the quality of an active learning algorithm is evaluated by an "anytime" protocol that incorporates classification performance at every iteration, not just the final performance after the budget is exhausted.
+We employ the normalized area under the accuracy curve (AUC):
+\begin{equation}\label{eq:auc}
+	\operatorname{AUC}(\mathcal{D}_{test}, \hat y, B) := \frac{1}{B} \sum_{i=1}^{B} \operatorname{Acc}(\mathcal{D}_{test}, \hat y_i)
+\end{equation}
+where $\hat y_i$ is the (re-)trained classification model after the i-\textit{th} iteration.
+To mimic the leave-one-out protocol for cross-validation we will restart each experiment multiple times.
+Each restart will retain the train/test split (often given by the dataset itself), but introduces a new validation split.
 The AUC incorporates performance in early stages (low budget) as well as capabilities to push the classifier in later stages (high budget).
 A good AL algorithm should be able to perform well in both scenarios. \\ [1mm]
 Since AUC is dependent on the chosen budget, we need a general rule on how to set this hyperparameter that does not inherently benefit a subset of algorithms.
@@ -194,23 +193,30 @@ In this work, we choose the budget per dataset to be the first point at which an
 Even though we would like to propose a single percentage value for all datasets, we found that different data modalities and use cases need different percentages to produce sensible budgets.
 We propose the following values: \textbf{Tabular}: 99\%, \textbf{Image}: 90\% and \textbf{Text}: 95\%. \\ [1mm]
 Additionally, we provide evidence in Fig. \ref{fig:restarts} that previous works have not evaluated their experiments with a sufficient number of restarts.
-To create Fig. \ref{fig:restarts} we used all our 50 runs from the margin/random sampling algorithm on the splice dataset.
+To create Fig. \ref{fig:restarts} we used 50 restarts from the margin/random sampling algorithm on the splice dataset.
 From these 50 runs we uniformly sampled subsets of runs and calculated the median AUC for this subset.
-One AUC value like this corresponds to one cross-validated experiment sampled from the distribution of experiments that are restarted exactly this many times.
+One of these median AUC values corresponds to one cross-validated experiment sampled from the distribution of experiments that are restarted exactly this many times.
 To create one slice in Fig. \ref{fig:restarts}, we drew 50 samples from this distribution.
 Each box-plot represents the variance of an evaluation if conducted with the respective number of restarts.
-We can clearly observe that low repetitions ($<10$) provide an uncertain evaluation where lucky and unlucky draws of the same experiment give drastically different median AUC values.
+We can observe that low repetitions ($<10$) provide an uncertain evaluation where lucky and unlucky draws of the same experiment give drastically different median AUC values.
 \begin{figure}
 	\centering
 	\includegraphics[width=\linewidth]{img/ablation_restarts.png}
 	\caption{Random draws from an experimental distribution on the Splice datasets with different numbers of repetitions. Each point on the Y-axis represents a cross-validated result that could have been reported in a paper. This analysis shows the drastic differences in performance one could observe even when repeating an experiment 2-10 times.}
 	\label{fig:restarts}
 \end{figure}
-To combat is uncertain evaluation, we propose to repeat every experiment 50 times, to arrive at the true median AUC for each algorithm.
+To reliably arrive at the true median AUC, we propose to repeat every experiment 50 times, as only $>42$ repitions don't produce outliers anymore (as indicated by the rightmost columns in Fig \ref{fig:restarts}).
+One way to reduce the number of necessary repetitions is to reduce the amount of variance in the experiment through specialized seeding (discussed in the next section).
+We ultimately decided in favor of high variance and high number of repetitions as the high variance accurately reflects real world applications of AL.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Reproducibility}\label{sec:reproducibility}
 A big focus in this work is to provide an experimental setup that is fully reproducible independent of the dataset, classification model or AL algorithm used.
+For a fair comparison of two AL algorithms, both algorithms should receive equal starting conditions in terms of train / validation split, initialization of classifier and even the state of minor systems like the optimizer of mini-batch sampler.
+Even though some implementations might have their own solution to some of these problems, to the best of our knowledge 
+
+%Decided against a fixed time budget
 Given a seed, an evaluation on one dataset should always be done on the same validation split as well as the same random state for all included systems, like the mini batch sampler for model training or the initialization for the classifier itself.
 Even though different AL algorithms will pick different samples, making them unavailable for sampling in earlier or later batches, the theoretical decision tree for every possible choice in every iteration $i$ should stay the same.
 Since every possible trajectory cannot be precomputed and stored to disk, we need to resort to seeding.
@@ -226,8 +232,8 @@ Unless stated otherwise, we will keep $s_\Omega$ fixed for restarts of the same 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Oracle}\label{sec:oracle}
-Posing active learning as a sequence ordering problem, the oracle sequence for a given combination of dataset, model and training procedure would be the sequence that induces the highest AUC score for a given budget.
-However, since this combinatorial problem is not solvable for realistic datasets, previous works have proposed approximations to this oracle sequence.
+Posing active learning as a combinatorial problem, the oracle set $\mathcal{U}_b$ for a given dataset, model and training procedure would be the set that induces the highest AUC score for a given budget.
+However, since this problem is not solvable for realistic datasets, previous works have proposed approximations to this oracle sequence.
 \cite{zhou2021towards} has used simulated annealing to search for the optimal sequence and used the best  solution found after a fixed time budget. 
 Even though their reported performance curves display a significant lift over all other algorithms, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs).
 \begin{minipage}{0.47\textwidth}
@@ -263,9 +269,9 @@ Even though their reported performance curves display a significant lift over al
 	\end{figure}
 \end{minipage} \\[2mm]
 In this paper we propose a greedy oracle algorithm that constructs an approximation of the optimal sequence in an iterative fashion.
-Our oracle simply tests every data point in the provided sample of unlabeled points by fitting the classifier and directly measuring the resulting validation performance.
-The point with the best validation performance is selected and added to the labeled pool for that iteration.
-We noticed that this oracle is overfitting on the validation set, resulting in stagnating or even decreasing performance curves in later AL iterations.
+Our oracle simply evaluated every data point in the provided sample of unlabeled points by fitting the classifier and directly measuring the resulting test performance.
+The point with the best test performance is selected and added to the labeled pool for that iteration.
+We noticed that this oracle is overfitting on the test set, resulting in stagnating or even decreasing performance curves in later AL iterations.
 To circumvent this problem, we introduced margin sampling as a fallback option for the oracle.
 Whenever the oracle does not find an unlabeled point that results in an increase in performance (indicating an overfitting position), it defaults to margin sampling in that iteration.
 The pseudocode for our oracle can be found in Alg. \ref{alg:oracle}.
@@ -382,8 +388,7 @@ The quality of embeddings during pretext training was measured after each epoch 
 		Badge           & 0.807 +- 0.01 & 0.769 +- 0.06 & 0.797 +- 0.02 \\
 		BALD            & 0.811 +- 0.01 & 0.743 +- 0.04 & 0.717 +- 0.05
 	\end{tabular}
-	\caption{AUC values for all algorithms on the tabular datasets. Higher is better.
-	{\color{red}Is the STD even helping us here? Since we repeated 50 times, we can use the values as "true medians"} }
+	\caption{Median AUC values and standard deviation for all algorithms on the tabular datasets. Higher is better.}
 \end{table}
 %
 \begin{figure}
