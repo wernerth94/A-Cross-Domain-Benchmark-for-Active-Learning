@@ -39,7 +39,7 @@ class SynthData(BaseDataset):
         return np.concatenate((data_pos, data_neg), axis=0)
 
 
-    def createDivergingSin(self, n_samples=100, divergence_factor=0.5, sin_freq=2, cov=0.3):
+    def createDivergingSin(self, n_samples=1000, divergence_factor=0.5, sin_freq=2, cov=0.3):
 
         x = np.linspace(0, 10, n_samples)
         sin_curve = np.sin(sin_freq*x)
