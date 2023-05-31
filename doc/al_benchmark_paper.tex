@@ -512,6 +512,29 @@ SimCRL as Pretext task works better for images
 	\label{tab:architectures}
 \end{table}
 
+\section{Comparison of Different Classifier Sizes}
+We tested two different classifier sizes in Splice and DNA:
+\begin{itemize}
+	\item Small: [24, 12] (2400 parameters)
+	\item Big: [24, 48, 48] (5700 parameters)
+\end{itemize}
+\begin{figure}
+	\centering
+	\includegraphics[width=0.49\linewidth]{img/supp_dna_small.png}
+	\includegraphics[width=0.49\linewidth]{img/supp_dna_big.png}
+	\includegraphics[width=0.49\linewidth]{img/supp_micro_dna_small.png}
+	\includegraphics[width=0.49\linewidth]{img/supp_micro_dna_big.png}
+	\caption{Comparison of small and big classifiers for the DNA dataset}
+\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[width=0.49\linewidth]{img/supp_splice_small.png}
+	\includegraphics[width=0.49\linewidth]{img/supp_splice_big.png}
+	\includegraphics[width=0.49\linewidth]{img/supp_micro_splice_small.png}
+	\includegraphics[width=0.49\linewidth]{img/supp_micro_splice_big.png}
+	\caption{Comparison of small and big classifiers for the Splice dataset}
+\end{figure}
+
 
 \section{Comparison of different sample sizes}
 \begin{figure}[H]

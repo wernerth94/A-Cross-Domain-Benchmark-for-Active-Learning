@@ -7,10 +7,10 @@ dataset:
 
 classifier:
   type: MLP
-#  hidden: [24, 12]
+  hidden: [24, 12]
 
   # Large Class. ablation
-  hidden: [24, 48, 48]
+#  hidden: [24, 48, 48]
 
 optimizer:
   type: Adam

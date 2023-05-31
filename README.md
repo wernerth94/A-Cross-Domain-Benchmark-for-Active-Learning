@@ -1,6 +1,8 @@
 # Active Learning Benchmark
 
 ## Dependencies
+Python >= 3.10
+
 - tianshou
 - gym
 - torchvision
