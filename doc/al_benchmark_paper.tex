@@ -78,7 +78,7 @@ The result of these inconsistencies is a chaotic landscape of AL algorithms wher
 Given $n = l+u$ data points with $l \in \mathbb{N}$ many labeled examples $\mathcal{L} = \{(x_1, y_1),\ldots, (x_l,y_l)\}$, $u \in \mathbb{N}$ many unlabeled examples $\mathcal{U} = \{x_{l+1},\ldots,x_{n}\}$, a budget $\mathbb{N} \ni b \le u$ and an annotator $A: \mathbb{R}^M \to \mathbb{R}^C$ that can label $x$. We call $x \in \mathbb{R}^M$, $y \in \mathbb{R}^C$ predictors and labels respectively where $(x,y)$ are drawn from an unknown distribution $\rho$. 
 Find an acquisition function $F: \mathcal{U},\mathcal{L}, b \mapsto \mathcal{U}_b$ that selects $b$ many examples from $\mathcal{U}$ such that $\mathcal{U}_b \subseteq \mathcal{U}$, $|\mathcal{U}_b|=b$ for labeling and the expected loss $\ell: \mathbb{R}^C \times \mathbb{R}^C \to \mathbb{R}$ (cross entropy loss) of the machine learning algorithm $\hat{y}$ (ex. classification) trained on $\mathcal{L} \cup \{\left(x, A(x)\right) \mid x \in \mathcal{U}_b\}$ is minimal: 
 $$\min \quad \mathbb{E}_{(x,y) \sim \rho} \ell(y, \hat{y}(x))$$
-Finding the optimal subset $\mathcal{U}_b$ is a combinatorial problem that is computationally not feasible for large $b$, so we allow sequential construction of the subset as a relaxation of the problem.
+Finding the optimal subset $\mathcal{U}_b$ is a combinatorial problem that is computationally not feasible for large $b$, so we allow sequential construction of the subset.
 %To construct the active learning setting from a labeled dataset $\mathcal{D} = \{(x_1, y_1),\ldots, (x_n,y_n)\}$, we first split it into $\mathcal{D}_\text{train}$, $\mathcal{D}_\text{val}$ and $\mathcal{D}_\text{test}$ and then suppress the labels of $\mathcal{D}_\text{train}$ to form the unlabeled pool $\mathcal{U}$ and form and initial labeled pool by uniformly sampling $k$ number of instances per class, removing them from $\mathcal{U}$ and recovering their label $\mathcal{L} := \{(x_1, A(x_1)),\ldots, (x_{k*C},A(x_{k*C}))\} \quad s.t. \quad \mathcal{U} \cap \mathcal{L} = \emptyset$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -104,7 +104,7 @@ called acquisition function, s.t. the expected loss of a model learned on all pr
 %	\quad b\in 1{:}B
 %\end{align*}
 %(\textit{We would need to switch from lowest expected loss to highest AUC}) \\
-Even though the acquisition function in principle could output the full subset of $\mathcal{D}_\text{train}$, the combinatorial problem is computationally not feasible for large $B$ and we allow sequential construction of the subset as a relaxation of the problem. \\
+Even though the acquisition function in principle could output the full subset of $\mathcal{D}_\text{train}$, the combinatorial problem is computationally not feasible for large $B$ and we allow sequential construction of the subset. \\
 %
 %To construct the active learning setting from existing labeled datasets, we first split it into $\mathcal{D}_\text{train}$, $\mathcal{D}_\text{val}$ and $\mathcal{D}_\text{test}$ and then suppress the labels $\mathcal{Y}$ of $\mathcal{D}_\text{train}$ to form the unlabeled pool $\mathcal{U} := \mathcal{X}^*$ and form and initial labeled pool by uniformly sampling $k$ number of instances per class from $\mathcal{U}$ and recovering their label $\mathcal{L} := (\mathcal{X}, \mathcal{Y})^{k*C}$. 
 
@@ -125,7 +125,7 @@ Table \ref{tab:benchmark_comparison} shows a feature comparison between our prop
 \begin{table}[h]
 	\centering
 	\begin{tabular}{l | c c c c c}
-		Paper & Sampling & \# Datasets & Domains & Algorithms & Oracle \\
+		Paper & Sampling & \#Datasets & \#Domains & \#Algorithms & Oracle \\
 		\hline
 		Beck et al. \cite{beck2021effective} & batch & 4 & 1 & 7 & - \\
 		Hu et al. \cite{hu2021towards} & batch & 5 & 2 & 13 & - \\
@@ -133,7 +133,7 @@ Table \ref{tab:benchmark_comparison} shows a feature comparison between our prop
 		Zhou et al. \cite{zhou2021towards} & batch & 3 & 2 & 2 & \checkmark \\
 		\textbf{Ours} & single & 7 & 3 & 6 & \checkmark 
 	\end{tabular}
-	\caption{Comparison of our benchmark with the existing literature}
+	\caption{Comparison of our benchmark with the existing literature. Oracle curves serve as an approximation of the best possible AL algorithm.}
 	\label{tab:benchmark_comparison}
 \end{table}
 
@@ -146,14 +146,17 @@ Table \ref{tab:benchmark_comparison} shows a feature comparison between our prop
 %\end{itemize}
 
 
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Related Work}
 {\color{red} Version: Braindump}\\
+\begin{wrapfigure}{r}{0.5\textwidth}
+	\centering
+	\includegraphics[width=\linewidth]{img/ablation_bald}
+	\caption{Shows a reproduction of the performance analysis of BALD from the original authors \cite{gal2017deep} in comparison to entropy sampling and an adaptation of BALD for batch AL \cite{kirsch2019batchbald} with a batch size of 40.}
+	\label{fig:ablation_bald}
+\end{wrapfigure}
 Many different algorithms have been proposed for active learning. 
 In this work we focus on those approaches that have shown consistent results over the years as well as some of the new approaches.
 AL algorithms can be categorized into two classes: Geometric approaches and uncertainty-based approaches.
@@ -187,8 +190,9 @@ where $\hat y_i$ is the (re-)trained classification model after the i-\textit{th
 To mimic the leave-one-out protocol for cross-validation we will restart each experiment multiple times.
 Each restart will retain the train/test split (often given by the dataset itself), but introduces a new validation split.
 The AUC incorporates performance in early stages (low budget) as well as capabilities to push the classifier in later stages (high budget).
-A good AL algorithm should be able to perform well in both scenarios. \\ [1mm]
-Since AUC is dependent on the chosen budget, we need a general rule on how to set this hyperparameter that does not inherently benefit a subset of algorithms.
+A good AL algorithm should be able to perform well in both scenarios. 
+Since AL has high variance and is prone to outliers, we propose to report median AUC instead of mean AUC values. \\ [1mm]
+The AUC is dependent on the chosen budget, so we need a general rule on how to set this hyperparameter that does not inherently benefit a subset of algorithms.
 In this work, we choose the budget per dataset to be the first point at which any algorithm (except oracle) manages to reach a percentage of the upper bound performance measured on the full dataset.
 Even though we would like to propose a single percentage value for all datasets, we found that different data modalities and use cases need different percentages to produce sensible budgets.
 We propose the following values: \textbf{Tabular}: 99\%, \textbf{Image}: 90\% and \textbf{Text}: 95\%. \\ [1mm]
@@ -213,22 +217,19 @@ We ultimately decided in favor of high variance and high number of repetitions a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Reproducibility}\label{sec:reproducibility}
 A big focus in this work is to provide an experimental setup that is fully reproducible independent of the dataset, classification model or AL algorithm used.
-For a fair comparison of two AL algorithms, both algorithms should receive equal starting conditions in terms of train / validation split, initialization of classifier and even the state of minor systems like the optimizer of mini-batch sampler.
-Even though some implementations might have their own solution to some of these problems, to the best of our knowledge 
-
-%Decided against a fixed time budget
-Given a seed, an evaluation on one dataset should always be done on the same validation split as well as the same random state for all included systems, like the mini batch sampler for model training or the initialization for the classifier itself.
-Even though different AL algorithms will pick different samples, making them unavailable for sampling in earlier or later batches, the theoretical decision tree for every possible choice in every iteration $i$ should stay the same.
-Since every possible trajectory cannot be precomputed and stored to disk, we need to resort to seeding.
-The default choice of setting a global seed at the start of the experiment is not sufficient here, since a single additional random draw from the random number generator completely changes the behavior of all other systems.
-This additional random number might be drawn during the initialization of the classification model or the AL algorithm, or even during every AL iteration if $\Omega$ is stochastic.
-%This problem also applies to the initialization of the classification model $\theta$ and the initialization and querying of $\Omega$.
-The desired control only be archived by assigning a separate random number generator to all these processes.
-To the best of our knowledge, we are the first work that discusses this issue and proposes a solution for it.
+For a fair comparison of two AL algorithms, both algorithms should receive equal starting conditions in terms of train / validation split, initialization of classifier and even the state of minor systems like the optimizer or mini-batch sampler.
+Even though some implementations might have their own solution to some of these problems, to the best of our knowledge no previous work has discussed this topic in detail.
+At the core of this problem is the seeding utility in PyTorch, Tensorflow and other framework, whose default choice is a single global seed.
+Since many system draw random numbers from this seed all of them influence each other to a point where a single additional draw can completely change the model initialization or data split, depending on the order in the implementation.
+Even though you could find workarounds like re-setting the seed multiple times, this problem also extends to every AL iteration and the systems within.
+We propose an implementation that creates a separate Random Number Generator (RNG) for each of these systems to ensure equal testing conditions even when the AL algorithm, dataset or classifier changes.
 We hypothesize that the insufficient setup with global seeds contributes to the on-going problem of inconsistent results of AL algorithms in different papers. \\ [1mm]
-In summary, we introduce three different seeds: $s_\Omega$ for the acquisition function, $s_\mathcal{D}$ for dataset splitting and mini batch sampling and $s_\theta$ for model initialization and sampling of dropout masks.
+In summary, we introduce three different seeds: $s_\Omega$ for the AL algorithm, $s_\mathcal{D}$ for dataset splitting and mini batch sampling and $s_\theta$ for model initialization and sampling of dropout masks.
 Unless stated otherwise, we will keep $s_\Omega$ fixed for restarts of the same experiment, while $s_\mathcal{D}$ and $s_\theta$ are incremented by 1 between restarts to introduce stochasticity into our framework.
-% This seeding setup enables a reproduction of the oracle curve even when the classifier or AL algorithm is different.
+Some algorithms require a subsample to be drawn from $\mathcal{U}$ in order to reduce the computational cost in each iteration, while others need access to the full unlabeled pool (i.e. for effective clustering).
+If a subsample is required, it will be drawn from $s_\Omega$ and therefore will not influence other systems in the experiments.
+For each algorithm, we decided if subsampling is required based on our available hardware, but decided against setting a fixed time limit per experiment, since this would introduce unnecessary complexity into the benchmark.
+An overview of selected hyperparameters per AL algorithm can be found in Appendix \ref{app:agent_hyperparameters}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Oracle}\label{sec:oracle}
@@ -236,38 +237,28 @@ Posing active learning as a combinatorial problem, the oracle set $\mathcal{U}_b
 However, since this problem is not solvable for realistic datasets, previous works have proposed approximations to this oracle sequence.
 \cite{zhou2021towards} has used simulated annealing to search for the optimal sequence and used the best  solution found after a fixed time budget. 
 Even though their reported performance curves display a significant lift over all other algorithms, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs).
-\begin{minipage}{0.47\textwidth}
-	\begin{algorithm}[H]
-		\caption{Oracle}\label{alg:oracle}
-		\begin{algorithmic}[1]
-			\Require $\mathcal{U}, \mathcal{L}, \mathcal{Y}, \mathcal{D}_\text{test}$ Train, Margin, $\tau, \hat y_\theta$ 
-			\State $\text{acc} \gets \operatorname{Train}(\mathcal{L}, \mathcal{D}_\text{test}, \hat y_\theta)$ 
-			%\State $u \underset{\tau}{\sim} \text{unif}(1:|\mathcal{U}|)$
-			\State $r^* \gets 0$
-			\For{$t := 1 \ldots \tau$}
-			\State $\mathcal{L}' \gets \mathcal{L}^{(i)} \cup \{(\mathcal{U}_t, y_t)\}$
-			\State $\text{acc}' \gets \operatorname{Train}(\mathcal{L}', \mathcal{D}_\text{test}, \hat y_\theta)$  
-			\State $r \gets \text{acc} - \text{acc}'$
-			\If{$r > r^*$} 
-			\State $r^* \gets r$
-			\State $u^* \gets \mathcal{U}_t$
-			\EndIf
-			\EndFor
-			\If{$r^* = 0$}
-			\State $u^* \gets \operatorname{margin}(\mathcal{U}, \hat y_\theta)$
-			\EndIf
-			\Return $u^*$
-		\end{algorithmic}
-	\end{algorithm}
-\end{minipage}
-\hspace{2mm}
-\begin{minipage}{0.5\linewidth}
-	\begin{figure}[H]
-		\includegraphics[width=\linewidth]{img/ablation_bald}
-		\caption{Shows a reproduction of the performance analysis of BALD from the original authors \cite{gal2017deep} in comparison to entropy sampling and an adaptation of BALD for batch AL \cite{kirsch2019batchbald} with a batch size of 40.}
-		\label{fig:ablation_bald}
-	\end{figure}
-\end{minipage} \\[2mm]
+\begin{algorithm}
+	\caption{Oracle}\label{alg:oracle}
+	\begin{algorithmic}[1]
+		\Require $\mathcal{U}, \mathcal{L}, \mathcal{Y}, \mathcal{D}_\text{test}$ Train, Margin, $\tau, \hat y_\theta$ 
+		\State $\text{acc} \gets \operatorname{Train}(\mathcal{L}, \mathcal{D}_\text{test}, \hat y_\theta)$ 
+		%\State $u \underset{\tau}{\sim} \text{unif}(1:|\mathcal{U}|)$
+		\State $r^* \gets 0$
+		\For{$t := 1 \ldots \tau$}
+		\State $\mathcal{L}' \gets \mathcal{L}^{(i)} \cup \{(\mathcal{U}_t, y_t)\}$
+		\State $\text{acc}' \gets \operatorname{Train}(\mathcal{L}', \mathcal{D}_\text{test}, \hat y_\theta)$  
+		\State $r \gets \text{acc} - \text{acc}'$
+		\If{$r > r^*$} 
+		\State $r^* \gets r$
+		\State $u^* \gets \mathcal{U}_t$
+		\EndIf
+		\EndFor
+		\If{$r^* = 0$}
+		\State $u^* \gets \operatorname{margin}(\mathcal{U}, \hat y_\theta)$
+		\EndIf
+		\Return $u^*$
+	\end{algorithmic}
+\end{algorithm}
 In this paper we propose a greedy oracle algorithm that constructs an approximation of the optimal sequence in an iterative fashion.
 Our oracle simply evaluated every data point in the provided sample of unlabeled points by fitting the classifier and directly measuring the resulting test performance.
 The point with the best test performance is selected and added to the labeled pool for that iteration.
@@ -278,7 +269,7 @@ The pseudocode for our oracle can be found in Alg. \ref{alg:oracle}.
 In the algorithm $\operatorname{Retrain}(\mathcal{L}^{(i)}, \hat y_\theta)$ trains the classification model $\hat y_\theta$ and returns the accuracy on the test set $\mathcal{D}_\text{test}$. \\ 
 $y_t$ is shorthand for the corresponding label of $u^{(i)}_{t}$ that can be recovered from the dataset labels. \\
 When the oracle does not find a sample with positive change in classification performance ($r^* = 0$), it applies margin sampling as a fallback ($\operatorname{margin}(u^{(i)}, \hat y_\theta)$). \\
-Alg. \ref{alg:oracle} replaces the acquisition function in the AL process.
+Alg. \ref{alg:oracle} replaces the algorithm in the AL process.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -289,7 +280,7 @@ Alg. \ref{alg:oracle} replaces the acquisition function in the AL process.
 \subsection{Available Information}
 At each iteration $i$ the AL algorithm needs to pick an unlabeled datapoint based on a fixed set of information $\{\mathcal{L}^{(i)}, \mathcal{U}^{(i)}, B, |\mathcal{L}^{(i)}|-|\mathcal{L}^{(1)}|, \text{acc}^{(i)}, \text{acc}^{(1)}, \theta^{(i)}, \text{opt}_\theta\}$, where $\theta^{(i)}$ is the current classifier and $\text{opt}_\theta$ is the optimizer used to fit $\theta^{(i)}$.
 We allow algorithms to derive additional information of this set like predictions of the classifier, K-Means clustering or even training new classifiers.
-However, the algorithm may not incorporate external information like other datasets, queries to recover additional labels, or the test/validation set.
+However, the algorithm may not incorporate external information like other datasets, queries to recover additional labels, additional training steps for the classifier, or the test/validation set.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Sampling Strategies}\label{sec:sampling_strategies}
@@ -301,7 +292,7 @@ Tries to find the sample that the classifier is most uncertain about. For our be
 Applies the query-by-committee strategy of model ensembles to a single model by interpreting the model's parameters as distributions and then sample multiple outputs from them via Monte-Carlo dropout.\\
 \textbf{BADGE \cite{ashdeep}} Uses gradient embeddings of unlabeled points to select samples where the classifier is expected to change a lot. The higher the magnitude of the gradient the higher is the expected improvement in model performance.\\
 \textbf{Coreset \cite{sener2017active}}
-Employs K-Means clustering to try to cover all {\color{red}modalities (is this the right word?)} that are observed in the data.
+Employs K-Means clustering to try to cover the whole data distribution.
 Selects the unlabeled sample that is the furthest away from all cluster centers.
 Clustering is done in a semantically meaningful space by encoding the data with the current classifier $\theta_i$.
 In this work we use the greedy variant of Coreset.\\
@@ -373,38 +364,43 @@ The quality of embeddings during pretext training was measured after each epoch 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Results}
 
-\begin{table}[]
-	\centering
-	\begin{tabular}{l|lll}
-		& Splice        & DNA           & USPS          \\
-		\hline
-		Oracle          & 0.830 +- 0.01 & 0.836 +- 0.02 & 0.823 +- 0.01 \\
-		SAL & 0.799 +- 0.01 & 0.797 +- 0.03 & 0.809 +- 0.01 \\
-		Coreset & 0.800 +- 0.01 & 0.795 +- 0.03 & 0.787 +- 0.02 \\
-		TypiClust       & 0.790 +- 0.01 & 0.771 +- 0.04 & 0.761 +- 0.02 \\
-		MarginScore     & 0.797 +- 0.02 & 0.795 +- 0.04 & 0.808 +- 0.01 \\
-		ShannonEntropy  & 0.799 +- 0.02 & 0.794 +- 0.04 & 0.807 +- 0.01 \\
-		RandomAgent     & 0.788 +- 0.01 & 0.765 +- 0.03 & 0.772 +- 0.01 \\
-		Badge           & 0.807 +- 0.01 & 0.769 +- 0.06 & 0.797 +- 0.02 \\
-		BALD            & 0.811 +- 0.01 & 0.743 +- 0.04 & 0.717 +- 0.05
-	\end{tabular}
-	\caption{Median AUC values and standard deviation for all algorithms on the tabular datasets. Higher is better.}
-\end{table}
+%\begin{table}[]
+%	\centering
+%	\begin{tabular}{l|lll}
+%		& Splice        & DNA           & USPS          \\
+%		\hline
+%		Oracle          & 0.830 +- 0.01 & 0.836 +- 0.02 & 0.823 +- 0.01 \\
+%		SAL & 0.799 +- 0.01 & 0.797 +- 0.03 & 0.809 +- 0.01 \\
+%		Coreset & 0.800 +- 0.01 & 0.795 +- 0.03 & 0.787 +- 0.02 \\
+%		TypiClust       & 0.790 +- 0.01 & 0.771 +- 0.04 & 0.761 +- 0.02 \\
+%		MarginScore     & 0.797 +- 0.02 & 0.795 +- 0.04 & 0.808 +- 0.01 \\
+%		ShannonEntropy  & 0.799 +- 0.02 & 0.794 +- 0.04 & 0.807 +- 0.01 \\
+%		RandomAgent     & 0.788 +- 0.01 & 0.765 +- 0.03 & 0.772 +- 0.01 \\
+%		Badge           & 0.807 +- 0.01 & 0.769 +- 0.06 & 0.797 +- 0.02 \\
+%		BALD            & 0.811 +- 0.01 & 0.743 +- 0.04 & 0.717 +- 0.05
+%	\end{tabular}
+%	\caption{Median AUC values and standard deviation for all algorithms on the tabular datasets. Higher is better.}
+%\end{table}
 %
 \begin{figure}
 	\centering
 	\includegraphics[width=0.49\linewidth]{img/eval_splice}
 	\hspace{1mm}
-	\includegraphics[width=0.49\linewidth]{img/eval_dna}
+	\includegraphics[width=0.49\linewidth]{img/eval_dna}\\[2mm]
+	\includegraphics[width=0.49\linewidth]{img/micro_splice}
+	\hspace{1mm}
+	\includegraphics[width=0.49\linewidth]{img/micro_dna}
 	\caption{Results for all algorithms on Splice and DNA, both from the tabular domain. Even within one domain, the performance of the same algorithm can vary drastically.}
 	\label{fig:eval_vector}
 \end{figure}
 %
 \begin{figure}
 \centering
-	\includegraphics[width=0.49\linewidth]{img/vector.png}
-	\includegraphics[width=0.49\linewidth]{img/vector_enc.png}
-	\includegraphics[width=0.49\linewidth]{img/text.png}
+	\includegraphics[width=0.49\linewidth]{img/macro_vector}
+	\includegraphics[width=0.49\linewidth]{img/macro_vector_enc}
+	\includegraphics[width=0.49\linewidth]{img/macro_img}
+	\includegraphics[width=0.49\linewidth]{img/macro_img_enc}
+	\includegraphics[width=0.49\linewidth]{img/macro_text}
 	\includegraphics[width=0.49\linewidth]{img/all_data.png}
 	\caption{Critical Difference Diagram for all algorithms grouped by domain and all domains combined. Ranks are computed based on median AUC for each algorithm and dataset combination. Lower ranks are better.}
 	\label{fig:cd_diagrams}
@@ -439,63 +435,61 @@ SimCRL as Pretext task works better for images
 
 \appendix
 
-\section{Other result tables}
-\begin{table}[H]
-	\begin{tabular}{l|lll}
-		& SpliceEncoded & DNAEncoded    & USPSEncoded   \\
-		\hline
-		Oracle          & 0.754 +- 0.02 & 0.726 +- 0.02 & 0.674 +- 0.01 \\
-		SAL & 0.675 +- 0.03 & 0.640 +- 0.04 & 0.634 +- 0.01 \\
-		Coreset & 0.690 +- 0.02 & 0.644 +- 0.05 & 0.607 +- 0.02 \\
-		TypiClust       & 0.695 +- 0.02 & 0.660 +- 0.03 & 0.643 +- 0.01 \\
-		MarginScore     & 0.675 +- 0.03 & 0.643 +- 0.05 & 0.632 +- 0.02 \\
-		ShannonEntropy  & 0.673 +- 0.03 & 0.638 +- 0.05 & 0.626 +- 0.02 \\
-		RandomAgent     & 0.680 +- 0.03 & 0.633 +- 0.04 & 0.594 +- 0.02 \\
-		Badge           & 0.670 +- 0.04 & 0.600 +- 0.07 & 0.597 +- 0.02 \\
-		BALD            & 0.660 +- 0.04 & 0.597 +- 0.06 & 0.652 +- 0.01
-	\end{tabular}
-	\caption{AUC values for all algorithms on the encoded tabular datasets. Higher is better.}
-\end{table}
-%
-\begin{table}[H]
-	\begin{tabular}{l|ll}
-		& Cifar10Encoded & FashionMnistEncoded \\
-		\hline
-		Oracle          & 0.699 +- 0.01  & 0.721 +- 0.01       \\
-		SAL & 0.623 +- 0.01  & 0.667 +- 0.01       \\
-		Coreset & 0.641 +- 0.01  & 0.674 +- 0.01       \\
-		TypiClust       & 0.627 +- 0.01  & 0.638 +- 0.01       \\
-		MarginScore     & 0.641 +- 0.01  & 0.676 +- 0.01       \\
-		ShannonEntropy  & 0.637 +- 0.02  & 0.680 +- 0.01       \\
-		RandomAgent     & 0.598 +- 0.02  & 0.633 +- 0.01       \\
-		Badge           & 0.645 +- 0.02  & 0.681 +- 0.01       \\
-		BALD            & 0.633 +- 0.01  & 0.666 +- 0.01      
-	\end{tabular}
-	\caption{AUC values for all algorithms on the encoded image datasets. Higher is better.}
-\end{table}
-%
-\begin{table}[H]
-	\begin{tabular}{l|ll}
-		& TopV2         & News          \\
-		\hline
-		Oracle          & 0.860 +- 0.01 & 0.448 +- 0.01 \\
-		SAL & 0.831 +- 0.01 & 0.312 +- 0.01 \\
-		Coreset & 0.816 +- 0.02 & 0.355 +- 0.02 \\
-		TypiClust       & 0.718 +- 0.02 & 0.314 +- 0.01 \\
-		MarginScore     & 0.821 +- 0.02 & 0.357 +- 0.01 \\
-		ShannonEntropy  & 0.794 +- 0.02 & 0.342 +- 0.01 \\
-		RandomAgent     & 0.776 +- 0.02 & 0.349 +- 0.01 \\
-		Badge           & 0.824 +- 0.01 & 0.343 +- 0.01 \\
-		BALD            & 0.825 +- 0.02 & 0.347 +- 0.01
-	\end{tabular}
-\caption{AUC values for all algorithms on the text datasets. Higher is better.}
-\end{table}
+\section{All Results}\label{app:all_results}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.49\linewidth]{img/eval_splice}
+	\includegraphics[width=0.49\linewidth]{img/eval_splice_enc} \\ [2mm]
+	\includegraphics[width=0.49\linewidth]{img/micro_splice.jpg}
+	\includegraphics[width=0.49\linewidth]{img/micro_splice_enc.jpg} \\ [4mm]
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.49\linewidth]{img/eval_dna}
+	\includegraphics[width=0.49\linewidth]{img/eval_dna_enc} \\ [2mm]
+	\includegraphics[width=0.49\linewidth]{img/micro_dna.jpg}
+	\includegraphics[width=0.49\linewidth]{img/micro_dna_enc.jpg} \\ [4mm]
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.49\linewidth]{img/eval_usps}
+	\includegraphics[width=0.49\linewidth]{img/eval_usps_enc} \\ [2mm]
+	\includegraphics[width=0.49\linewidth]{img/micro_usps.jpg}
+	\includegraphics[width=0.49\linewidth]{img/micro_usps_enc.jpg} \\ [4mm]
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.49\linewidth]{img/eval_cifar10}
+\includegraphics[width=0.49\linewidth]{img/eval_cifar10_enc} \\ [2mm]
+\includegraphics[width=0.49\linewidth]{img/micro_cifar10.jpg}
+\includegraphics[width=0.49\linewidth]{img/micro_cifar10_enc.jpg} \\ [4mm]
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.49\linewidth]{img/eval_fmnist}
+\includegraphics[width=0.49\linewidth]{img/eval_fmnist_enc} \\ [2mm]
+\includegraphics[width=0.49\linewidth]{img/micro_fmnist.jpg}
+\includegraphics[width=0.49\linewidth]{img/micro_fmnist_enc.jpg} \\ [4mm]
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.49\linewidth]{img/eval_topv2}
+\includegraphics[width=0.49\linewidth]{img/eval_news} \\ [2mm]
+\includegraphics[width=0.49\linewidth]{img/micro_topv2.jpg}
+\includegraphics[width=0.49\linewidth]{img/micro_news.jpg} \\ [4mm]
+\end{figure}
+
 
 \section{Alternative Plot for Restarts Ablation}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\linewidth]{img/ablation_restarts_2.png}
 \end{figure}
+
+\section{Hyperparameters per AL Algorithm}\label{app:agent_hyperparameters}
+\begin{table}[H]
+	TODO
+\end{table}
 
 \section{Hyperparameters per Dataset}\label{app:hyperparameters}
 \begin{table}[H]
