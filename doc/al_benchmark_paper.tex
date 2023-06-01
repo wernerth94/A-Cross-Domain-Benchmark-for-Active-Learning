@@ -47,13 +47,13 @@
 \maketitle
 
 \begin{abstract}
-	%Active Learning (AL) is a technique used in machine learning to improve data efficiency by selecting the most informative samples for annotation. 
-	In this paper we address the issue of inconsistent results in active learning (AL) literature.
-	Previous papers are constantly reporting significant performance improvements, while subsequent literature fails to reproduce those results. This inconsistency leads to a chaotic landscape of AL algorithms.
-	To the best of our knowledge, we propose the first AL benchmark that tests algorithms in 3 major domains; Tabular, Image and Text.
-	Furthermore, we discuss overlooked problems for reproducing AL experiments that can lead to unfair comparisons and increased variance in the results.
-	We propose a framework for choosing hyperparameters of AL setups and accurately controlling the experiments.
-	Using this framework, we report empirical results for 6 algorithms on 7 datasets and aggregate them into a domain-specific ranking of AL algorithms.
+	Active Learning has received significant attention in the field of machine learning for its potential in selecting the most informative samples for labeling, thereby reducing data annotation costs. However, the lack of reproducibility of performance gains reported in recent literature has created a chaotic landscape in Active Learning research. 
+	This paper addresses these issues of inconsistent results in active learning (AL) literature.
+	%Previous papers are constantly reporting significant performance improvements, while subsequent literature fails to reproduce those results. This inconsistency leads to a chaotic landscape of AL algorithms.
+	To the best of our knowledge, we propose the first AL benchmark that tests algorithms in 3 major domains: Tabular, Image and Text.
+	Furthermore, we highlight overlooked problems for reproducing AL experiments that can lead to unfair comparisons and increased variance in the results.
+	To tackle these challenges, we propose an experimental protocol to accurately control the experiments.
+	We report empirical results for 6 widely used algorithms on 7 datasets and aggregate them into a domain-specific ranking of AL algorithms.
 \end{abstract}
 
 \section{Introduction}
@@ -150,7 +150,6 @@ Table \ref{tab:benchmark_comparison} shows a feature comparison between our prop
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Related Work}
-{\color{red} Version: Braindump}\\
 \begin{wrapfigure}{r}{0.5\textwidth}
 	\centering
 	\includegraphics[width=\linewidth]{img/ablation_bald}
@@ -205,13 +204,14 @@ Each box-plot represents the variance of an evaluation if conducted with the res
 We can observe that low repetitions ($<10$) provide an uncertain evaluation where lucky and unlucky draws of the same experiment give drastically different median AUC values.
 \begin{figure}
 	\centering
-	\includegraphics[width=\linewidth]{img/ablation_restarts.png}
-	\caption{Random draws from an experimental distribution on the Splice datasets with different numbers of repetitions. Each point on the Y-axis represents a cross-validated result that could have been reported in a paper. This analysis shows the drastic differences in performance one could observe even when repeating an experiment 2-10 times.}
+	\includegraphics[width=\linewidth]{img/ablation_restarts}
+	\caption{Random draws from an experimental distribution on the Splice dataset with different numbers of repetitions. Each point on the Y-axis represents a cross-validated result that could have been reported in a paper. This analysis shows the drastic differences in performance one could observe even when repeating an experiment 2-10 times.}
 	\label{fig:restarts}
 \end{figure}
-To reliably arrive at the true median AUC, we propose to repeat every experiment 50 times, as only $>42$ repitions don't produce outliers anymore (as indicated by the rightmost columns in Fig \ref{fig:restarts}).
+To reliably arrive at the true median AUC, we propose to repeat every experiment 50 times, as only $>42$ repetitions don't produce outliers anymore (as indicated by the rightmost columns in Fig \ref{fig:restarts}).
 One way to reduce the number of necessary repetitions is to reduce the amount of variance in the experiment through specialized seeding (discussed in the next section).
 We ultimately decided in favor of high variance and high number of repetitions as the high variance accurately reflects real world applications of AL.
+Fixing for example the classifier initialization to random draws from a constant seed does not have a corresponding use-case in the real world.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -234,42 +234,52 @@ An overview of selected hyperparameters per AL algorithm can be found in Appendi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Oracle}\label{sec:oracle}
 Posing active learning as a combinatorial problem, the oracle set $\mathcal{U}_b$ for a given dataset, model and training procedure would be the set that induces the highest AUC score for a given budget.
-However, since this problem is not solvable for realistic datasets, previous works have proposed approximations to this oracle sequence.
+However, since this problem is not solvable for realistic datasets, previous works have proposed approximations to this oracle sequence. 
 \cite{zhou2021towards} has used simulated annealing to search for the optimal sequence and used the best  solution found after a fixed time budget. 
 Even though their reported performance curves display a significant lift over all other algorithms, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs).
-\begin{algorithm}
-	\caption{Oracle}\label{alg:oracle}
-	\begin{algorithmic}[1]
-		\Require $\mathcal{U}, \mathcal{L}, \mathcal{Y}, \mathcal{D}_\text{test}$ Train, Margin, $\tau, \hat y_\theta$ 
-		\State $\text{acc} \gets \operatorname{Train}(\mathcal{L}, \mathcal{D}_\text{test}, \hat y_\theta)$ 
-		%\State $u \underset{\tau}{\sim} \text{unif}(1:|\mathcal{U}|)$
-		\State $r^* \gets 0$
-		\For{$t := 1 \ldots \tau$}
-		\State $\mathcal{L}' \gets \mathcal{L}^{(i)} \cup \{(\mathcal{U}_t, y_t)\}$
-		\State $\text{acc}' \gets \operatorname{Train}(\mathcal{L}', \mathcal{D}_\text{test}, \hat y_\theta)$  
-		\State $r \gets \text{acc} - \text{acc}'$
-		\If{$r > r^*$} 
-		\State $r^* \gets r$
-		\State $u^* \gets \mathcal{U}_t$
-		\EndIf
-		\EndFor
-		\If{$r^* = 0$}
-		\State $u^* \gets \operatorname{margin}(\mathcal{U}, \hat y_\theta)$
-		\EndIf
-		\Return $u^*$
-	\end{algorithmic}
-\end{algorithm}
 In this paper we propose a greedy oracle algorithm that constructs an approximation of the optimal sequence in an iterative fashion.
-Our oracle simply evaluated every data point in the provided sample of unlabeled points by fitting the classifier and directly measuring the resulting test performance.
+Our oracle simply evaluates every data point $u_k = \operatorname{unif(\mathcal{U} | k = 1 \ldots \tau)}$ in a subsample of unlabeled points by fitting the classifier on $\mathcal{L}^{(i)} \cup u_k$ and directly measuring the resulting test performance.
 The point with the best test performance is selected and added to the labeled pool for that iteration.
 We noticed that this oracle is overfitting on the test set, resulting in stagnating or even decreasing performance curves in later AL iterations.
-To circumvent this problem, we introduced margin sampling as a fallback option for the oracle.
-Whenever the oracle does not find an unlabeled point that results in an increase in performance (indicating an overfitting position), it defaults to margin sampling in that iteration.
-The pseudocode for our oracle can be found in Alg. \ref{alg:oracle}.
-In the algorithm $\operatorname{Retrain}(\mathcal{L}^{(i)}, \hat y_\theta)$ trains the classification model $\hat y_\theta$ and returns the accuracy on the test set $\mathcal{D}_\text{test}$. \\ 
-$y_t$ is shorthand for the corresponding label of $u^{(i)}_{t}$ that can be recovered from the dataset labels. \\
-When the oracle does not find a sample with positive change in classification performance ($r^* = 0$), it applies margin sampling as a fallback ($\operatorname{margin}(u^{(i)}, \hat y_\theta)$). \\
-Alg. \ref{alg:oracle} replaces the algorithm in the AL process.
+This can happen for example, if the oracle picked a labeled set that enables the classifier to correctly classifier a big portion of easy samples in the test set, but now fails to find the next single unlabeled point that would enable the classifier to succeed on one of the hard samples in the test set.
+This leads to a situation, where the selected data point is basically random.\\
+\begin{minipage}{0.5\linewidth}
+	
+	To circumvent this problem, we introduced margin sampling \cite{wang2014new} as a fallback option for the oracle.
+	Whenever the oracle does not find an unlabeled point that results in an increase in performance, it defaults to margin sampling in that iteration.
+	The pseudocode for our oracle can be found in Alg. \ref{alg:oracle}.
+	In the algorithm $\operatorname{Retrain}(\mathcal{L}^{(i)}, \hat y_\theta)$ trains the classification model $\hat y_\theta$ and returns the accuracy on the test set $\mathcal{D}_\text{test}$. \\ 
+	$y_t$ is shorthand for the corresponding label of $u^{(i)}_{t}$ that can be recovered from the dataset labels. \\
+	When the oracle does not find a sample with positive change in classification performance ($r^* = 0$), it applies margin sampling as a fallback ($\operatorname{margin}(u^{(i)}, \hat y_\theta)$). \\
+	Alg. \ref{alg:oracle} replaces the algorithm in the AL process.
+\end{minipage}
+\hspace{2mm}
+\begin{minipage}{0.45\linewidth}
+	\begin{algorithm}[H]
+		\caption{Oracle}\label{alg:oracle}
+		\begin{algorithmic}[1]
+			\Require $\mathcal{U}, \mathcal{L}, \mathcal{Y}, \mathcal{D}_\text{test}$ Train, Margin, $\tau, \hat y_\theta$ 
+			\State $\text{acc} \gets \operatorname{Train}(\mathcal{L}, \mathcal{D}_\text{test}, \hat y_\theta)$ 
+			%\State $u \underset{\tau}{\sim} \text{unif}(1:|\mathcal{U}|)$
+			\State $r^* \gets 0$
+			\For{$t := 1 \ldots \tau$}
+			\State $\mathcal{L}' \gets \mathcal{L}^{(i)} \cup \{(\mathcal{U}_t, y_t)\}$
+			\State $\text{acc}' \gets \operatorname{Train}(\mathcal{L}', \mathcal{D}_\text{test}, \hat y_\theta)$  
+			\State $r \gets \text{acc} - \text{acc}'$
+			\If{$r > r^*$} 
+			\State $r^* \gets r$
+			\State $u^* \gets \mathcal{U}_t$
+			\EndIf
+			\EndFor
+			\If{$r^* = 0$}
+			\State $u^* \gets \operatorname{margin}(\mathcal{U}, \hat y_\theta)$
+			\EndIf
+			\Return $u^*$
+		\end{algorithmic}
+	\end{algorithm}
+\end{minipage}
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -277,7 +287,7 @@ Alg. \ref{alg:oracle} replaces the algorithm in the AL process.
 \section{Implementation Details}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Available Information}
+%\subsection{Available Information}
 At each iteration $i$ the AL algorithm needs to pick an unlabeled datapoint based on a fixed set of information $\{\mathcal{L}^{(i)}, \mathcal{U}^{(i)}, B, |\mathcal{L}^{(i)}|-|\mathcal{L}^{(1)}|, \text{acc}^{(i)}, \text{acc}^{(1)}, \theta^{(i)}, \text{opt}_\theta\}$, where $\theta^{(i)}$ is the current classifier and $\text{opt}_\theta$ is the optimizer used to fit $\theta^{(i)}$.
 We allow algorithms to derive additional information of this set like predictions of the classifier, K-Means clustering or even training new classifiers.
 However, the algorithm may not incorporate external information like other datasets, queries to recover additional labels, additional training steps for the classifier, or the test/validation set.
@@ -401,7 +411,7 @@ The quality of embeddings during pretext training was measured after each epoch 
 	\includegraphics[width=0.49\linewidth]{img/macro_img}
 	\includegraphics[width=0.49\linewidth]{img/macro_img_enc}
 	\includegraphics[width=0.49\linewidth]{img/macro_text}
-	\includegraphics[width=0.49\linewidth]{img/all_data.png}
+	\includegraphics[width=0.49\linewidth]{img/macro_all.jpg}
 	\caption{Critical Difference Diagram for all algorithms grouped by domain and all domains combined. Ranks are computed based on median AUC for each algorithm and dataset combination. Lower ranks are better.}
 	\label{fig:cd_diagrams}
 \end{figure}
@@ -417,6 +427,10 @@ TypiClust is better with embedded data not only due to lower budgets. On other d
 
 
 \section{Conclusion}
+Domains are very different \\
+Even within one domain we have stark differences (Fig. \ref{fig:eval_vector}) \\
+Best 3 ranks for all domains are 3, 3.1 and 3.4 ... No clear winner \\
+At least on average everything is better that random
 
 \section{Limitations and Future Work}
 No batch AL \\
@@ -483,7 +497,7 @@ SimCRL as Pretext task works better for images
 \section{Alternative Plot for Restarts Ablation}
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=\linewidth]{img/ablation_restarts_2.png}
+	\includegraphics[width=\linewidth]{img/ablation_restarts_2}
 \end{figure}
 
 \section{Hyperparameters per AL Algorithm}\label{app:agent_hyperparameters}
