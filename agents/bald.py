@@ -68,7 +68,7 @@ class BALD(BaseAgent):
 
 class BatchBALD(BaseAgent):
 
-    def __init__(self, agent_seed, config, dropout_trials=5, batch_size=40):
+    def __init__(self, agent_seed, config, dropout_trials=5, batch_size=50):
         super().__init__(agent_seed, config)
         assert "current_run_info" in config and "encoded" in config["current_run_info"]
         self.dropout_trials = dropout_trials
