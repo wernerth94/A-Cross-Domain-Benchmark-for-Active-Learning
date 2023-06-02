@@ -167,6 +167,8 @@ def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
         return agents.BatchRandomAgent
     elif name == "batchbald":
         return agents.BatchBALD
+    elif name == "batchbadge":
+        return agents.BatchBadge
     else:
         raise ValueError(f"Agent name '{name}' not recognized")
 

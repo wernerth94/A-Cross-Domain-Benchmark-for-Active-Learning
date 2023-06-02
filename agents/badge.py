@@ -29,11 +29,11 @@ class Badge(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier: nn.Module, optimizer: Optimizer,
-                      sample_size=100) -> Union[Tensor, dict]:
+                      sample_size=8000) -> Union[Tensor, dict]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
-        replacement_needed = len(x_unlabeled) < sample_size
-        state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=replacement_needed)
+        sample_size = min(len(x_unlabeled), sample_size)
+        state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
 
         gradEmbedding = self._get_grad_embedding(x_unlabeled[state_ids], classifier, sample_size)
         chosen = self._init_centers(gradEmbedding, 1)[0]
@@ -79,16 +79,17 @@ class Badge(BaseAgent):
 
     def _init_centers(self, X, K):
         ind = torch.argmax(torch.linalg.norm(X, dim=1)).item()
-        mu = [X[ind]]
+        X_arr = X.cpu().numpy()
+        mu = [X_arr[ind]]
         indsAll = [ind]
-        centInds = [0.] * len(X)
+        centInds = [0.] * len(X_arr)
         cent = 0
         while len(mu) < K:
             if len(mu) == 1:
-                D2 = pairwise_distances(X, mu).ravel().astype(float)
+                D2 = pairwise_distances(X_arr, mu).ravel().astype(float)
             else:
-                newD = pairwise_distances(X, [mu[-1]]).ravel().astype(float)
-                for i in range(len(X)):
+                newD = pairwise_distances(X_arr, [mu[-1]]).ravel().astype(float)
+                for i in range(len(X_arr)):
                     if D2[i] >  newD[i]:
                         centInds[i] = cent
                         D2[i] = newD[i]
@@ -97,7 +98,7 @@ class Badge(BaseAgent):
             Ddist = (D2 ** 2)/ sum(D2 ** 2)
             customDist = stats.rv_discrete(name='custm', values=(np.arange(len(D2)), Ddist))
             ind = customDist.rvs(size=1)[0]
-            mu.append(X[ind])
+            mu.append(X_arr[ind])
             indsAll.append(ind)
             cent += 1
         # gram = np.matmul(X[indsAll], X[indsAll].T)
@@ -105,3 +106,26 @@ class Badge(BaseAgent):
         # val = np.abs(val)
         # vgt = val[val > 1e-2]
         return indsAll
+
+
+class BatchBadge(Badge):
+    def __init__(self, agent_seed, config, batch_size=100):
+        super().__init__(agent_seed, config)
+        self.batch_size = batch_size
+
+
+    def predict(self, x_unlabeled: Tensor,
+                      x_labeled: Tensor, y_labeled: Tensor,
+                      per_class_instances: dict,
+                      budget:int, added_images:int,
+                      initial_test_acc:float, current_test_acc:float,
+                      classifier: nn.Module, optimizer: Optimizer,
+                      sample_size=8000) -> Union[Tensor, dict, list]:
+
+        assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
+        sample_size = min(len(x_unlabeled), sample_size)
+        state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
+
+        gradEmbedding = self._get_grad_embedding(x_unlabeled[state_ids], classifier, sample_size)
+        chosen = self._init_centers(gradEmbedding, self.batch_size)
+        return list(state_ids[chosen])
