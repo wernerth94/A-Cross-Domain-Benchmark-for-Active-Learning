@@ -65,23 +65,25 @@ It has been shown that a small labeled set of this nature can be used to train w
 %On top of providing a principled way to labeled unlabeled datasets, active learning is one of the two major approaches besides semi-supervised learning to make deep learning models more data efficient by requiring only a limited set of manually labeled data.
 %Both approaches are at their core orthogonal and can freely be combined and therefore we should continue our research efforts for both approaches. \\
 In the last decade many different algorithms for AL have been proposed.
-Even though, almost every method has reported lifts of their approach over random selection and all predecessors \footnote{out of all considered algorithms for this paper, only BALD \cite{gal2017deep} did not establish a new SOTA performance in their results sections}, AL research faces two central difficulties:
+Even though, almost every method has reported lifts all it's predecessors 
+\footnote{out of all considered algorithms for this paper, only BALD \cite{gal2017deep} did not claim a new SOTA performance in their result section}
+, AL research faces two central difficulties:
 (i) The experiments are often carried out on different datasets and model architectures, hindering direct comparison,
-(ii) The reported results prove to be very difficult to reproduce.
+(ii) the reported results prove to be very difficult to reproduce.
 While multiple benchmark suites have been proposed to solve (i), to the best of our knowledge, we are the first to compare AL algorithms on all 3 data domains of vector, image and text.
 Regarding (ii), \cite{zhou2021towards} has pointed out severe inconsistencies in results of AL papers in recent years. 
 They conducted a meta analysis of reported results of several different AL algorithms and found that all considered algorithms only provided significant lifts in their own original papers, while following literature reported performances no better that uncertainty sampling, or in some cases no better than random sampling for the same algorithm (\cite{zhou2021towards} Appendix A).
-The result of these inconsistencies is a chaotic landscape of AL algorithms where every paper claims to archive state-of-the-art results by significantly outperforming everyone else, while the vast majority of results proves to be non-reproducible. \\
-In this work we propose an evaluation protocol that was designed to cope with high variance in the performances of AL algorithms as well as being fully controllable regardless of the combination of dataset, model and AL algorithm.\\
+The result of these inconsistencies is a chaotic landscape of AL algorithms where every paper claims to archive state-of-the-art performance
+%by significantly outperforming everyone else
+, while the vast majority of results proves to be non-reproducible. \\
+In this work we propose an evaluation protocol that was designed to cope with the high variance in the performances of AL algorithms as well as being fully controllable regardless of the combination of dataset, model and AL algorithm.\\
 We focus our work on single-sample pool-based AL where a pool of unlabeled samples is fixed at the start of each experiment and samples are chosen sequentially.
-Specifically, we are not experimenting on so-called Batch Active Learning, where at each iteration multiple unlabeled samples are chosen at the same time.
-Even though most proposed algorithms (and benchmarks) only do Batch AL, it does not have a principled advantage over single-sample AL except speed of computation.
-The problem of optimizing a portfolio of unlabeled samples more complicated to solve and the algorithms also have systematically less information per sample to work with.
-%For this reason we propose to focus more research effort on single-sample AL to find better algorithms in an environment that is simpler to solve and easier to control.
+Specifically, we are not experimenting on so-called batch Active Learning, where at each iteration multiple unlabeled samples are chosen at the same time.
+Even though most proposed algorithms (and benchmarks) are batched, they do not have a principled advantage over single-sample AL except speed of computation.
+The problem of optimizing a portfolio of unlabeled samples in each iteration is more complicated to solve and the algorithms have systematically less information per sample to work with.
 A performance comparison of batch AL and single-sample AL can be found in Fig. \ref{fig:ablation_bald}.
-We can see that for two established algorithms BALD \cite{krizhevsky2009learning} and BADGE \cite{ashdeep} Batch AL can at most perform on-par with single-sample AL. \\
+We can see that for two established algorithms BALD \cite{krizhevsky2009learning} and BADGE \cite{ashdeep} Batch AL can at most perform on-par with single-sample AL, independent of wether algorithm was originally designed for batch AL or not. \\
 Table \ref{tab:benchmark_comparison} shows a feature comparison between our proposed benchmark and several existing benchmarks in the literature.
-The table also includes methodological AL papers with experiments on at least two data domains.
 \begin{table}
 	\centering
 	\begin{tabular}{l | c c c c c}
@@ -100,16 +102,16 @@ The table also includes methodological AL papers with experiments on at least tw
 \subsection*{Contributions}
 \begin{enumerate}
 	\item Evaluation of Active Learning algorithms on datasets from 3 different domains, including synthetic data that highlights principled shortcomings of existing approaches.
-	\item Novel experimental protocol for seeding the experiment with 3 different seeds to allow full control, reproducibility and analysis of how many restarts are required to converge to the true median performance reliably.
+	\item Novel experimental protocol for controlling AL experiments to allow full reproducibility.
 	\item Simple algorithm for an Oracle that can be constructed greedily and does not rely on search.
 \end{enumerate}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Problem Description}
+\section{Problem Description}
 Given two spaces $\mathcal{X}, \mathcal{Y}$, $n=l+u$ data points with $l \in \mathbb{N}$ labeled examples $\mathcal{L} = \{(x_1, y_1),\ldots, (x_l,y_l)\}$, $u \in \mathbb{N}$ unlabeled examples $\mathcal{U} = \{x_{l+1},\ldots,x_{n}\}$, a budget $\mathbb{N} \ni b \le u$ and an annotator $A: \mathbb{R}^\mathcal{X} \to \mathbb{R}^\mathcal{Y}$ that can label $x$. 
 We call $x \in \mathcal{X}$, $y \in \mathcal{Y}$ predictors and labels respectively where $(x,y)$ are drawn from an unknown distribution $\rho$. 
-Find an acquisition function $a: \U^{(i)},\LL^{(i)} \mapsto x^{(i)}$ that iteratively selects the next unlabeled point $x^{(i)} \in \U^{(i)}$ for labeling
+Find an acquisition function $\Omega: \U^{(i)},\LL^{(i)} \mapsto x^{(i)}$ that iteratively selects the next unlabeled point $x^{(i)} \in \U^{(i)}$ for labeling
 \begin{align*}
 	\LL^{(i+1)} &\gets \LL^{(i)} \cup \{\left(x^{(i)}, A(x^{(i)})\right)\} \\
 	\U^{(i+1)} &\gets \U^{(i)} \setminus x^{(i)} %, i \in 1{:}B
@@ -127,19 +129,10 @@ This formulation is a special case of the problem formulation in Appendix \ref{a
 	\centering
 	\includegraphics[width=0.49\linewidth]{img/ablation_splice_bald}
 	\includegraphics[width=0.49\linewidth]{img/ablation_splice_badge}
-	\caption{Shows a reproduction of the performance analysis of BALD from the original authors \cite{gal2017deep} in comparison to entropy sampling and an adaptation of BALD for batch AL \cite{kirsch2019batchbald} with a batch size of 40.}
+	\caption{Performance comparison of BALD \cite{gal2017deep} with it's batch AL adaptation \cite{kirsch2019batchbald} and BADGE \cite{ashdeep} with it's single-sample AL adaptation ($k=1$ in \cite{ashdeep} Alg. 1).
+	In either scenario, the batched algorithm can at most perform on-par with it's single-sample analog, independent of wether it was originally designed for batch AL.}
 	\label{fig:ablation_bald}
 \end{figure}
-%Many different algorithms have been proposed for Active Learning. 
-%In this work we focus on those approaches that have shown consistent results over the years as well as some of the new approaches.
-%AL algorithms can be categorized into two classes: Geometric approaches and uncertainty-based approaches.
-%Geometric approaches use clustering techniques to partition the data and then sample their unlabeled points based on the clusters.
-%They often use the current classification model $\hat y_i$ to encode the data into a latent space to improve the performance of their clustering.
-%This benchmark includes the following geometric approaches: CoreSet \cite{sener2017active}, BADGE \cite{ashdeep} and TypiClust \cite{hacohen2022active}.
-%Uncertainty-based approaches use metrics to measure the classifiers state.
-%Commonly, a proxy for the sought after uncertainty of the model for a given datapoint is the distance of that point to the various decision boundaries, measured via the softmax output of the model.
-%This benchmark includes Shannon-Entropy sampling \cite{wang2014new}, margin sampling \cite{wang2014new} and BALD \cite{kirsch2019batchbald} \\ [1mm]
-%
 Multiple benchmark suites have already been proposed for Active Learning:
 The authors of \cite{beck2021effective} and \cite{li2022empirical} both focus exclusively on Batch AL in the image domain.
 While \cite{beck2021effective} discuss a new metric to measure AL performance, which they call ``Label Efficiency'' and provide experiments on many common configurations of data preparation, model training and other hyperparameters, \cite{li2022empirical} focuses on combined approaches of AL and semi-supervised learning.
@@ -167,14 +160,14 @@ To mimic the leave-one-out protocol for cross-validation we will restart each ex
 Each restart will retain the train/test split (often given by the dataset itself), but introduces a new validation split.
 The AUC incorporates performance in early stages (low budget) as well as capabilities to push the classifier in later stages (high budget).
 AL algorithms have to perform well in both scenarios. 
-Since AL performance has high variance and is prone to outliers, we propose to aggregate AUC values with the median instead of mean. \\ [1mm]
+Since AL performance inhibits high variance and is prone to outliers, we propose to aggregate AUC values with their median instead of mean. \\ [1mm]
 Since the AUC depends on the chosen budget, we need a general rule on how to set this hyperparameter that does not inherently benefit a subset of algorithms.
 In this work, we choose the budget per dataset to be the first point at which any algorithm (except oracle) manages to reach a percentage of the upper bound performance measured on the full dataset.
-Even though we would like to propose a single percentage value for all datasets, we found that different data modalities and use cases need different percentages to produce sensible budgets
+Even though we would like to propose a single percentage value for all datasets, we found that different data modalities and use-cases need different percentages to produce sensible budgets
 \footnote{Since we only consider single-sample AL, increasing the budget comes at a high computational cost. Therefore we could not freely increase the budget above 2000.}.
-We propose the following values: \textbf{Tabular}: 99\%, \textbf{Image}: 90\% and \textbf{Text}: 95\%. \\ [1mm]
+We propose the following values: \textbf{Tabular}: 99\%, \textbf{Image}: 90\%, \textbf{Text}: 95\%, \textbf{Embedded Data}: 90\%. \\ [1mm]
 Additionally, we provide evidence in Fig. \ref{fig:restarts} that previous works have not evaluated their experiments with a sufficient number of restarts.
-To create Fig. \ref{fig:restarts} we used 50 restarts from the margin/random sampling algorithm on the splice dataset.
+To create Fig. \ref{fig:restarts} we used 50 restarts from the margin/random acquisition function on the Splice dataset.
 From these 50 runs we uniformly sampled subsets of runs and calculated the median AUC for this subset.
 One of these median AUC values corresponds to one cross-validated experiment sampled from the distribution of experiments that are restarted exactly this many times.
 To create one slice in Fig. \ref{fig:restarts}, we drew 50 samples from this distribution.
@@ -187,20 +180,21 @@ We can observe that low repetitions ($<10$) provide an uncertain evaluation wher
 	\label{fig:restarts}
 \end{figure}
 To reliably arrive at the true median AUC, we propose to repeat every experiment 50 times, as only $>42$ repetitions don't produce outliers anymore (as indicated by the rightmost columns in Fig \ref{fig:restarts}).
-One way to reduce the number of necessary repetitions is to reduce the amount of variance in the experiment through specialized seeding (discussed in the next section).
+One way to reduce the number of necessary repetitions would be to reduce the amount of variance in the experiment through specialized seeding (discussed in the next section).
 We ultimately decided in favor of high variance and high number of repetitions as the high variance accurately reflects real world applications of AL.
-Fixing for example the classifier initialization to random draws from a constant seed does not have a corresponding use-case in the real world.
+%Fixing for example the classifier initialization to random draws from a constant seed does not have a corresponding use-case in the real world.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Reproducibility}\label{sec:reproducibility}
-A big focus in this work is to provide an experimental setup that is fully reproducible independent of the dataset, classification model or AL algorithm used.
-For a fair comparison of two AL algorithms, both algorithms should receive equal starting conditions in terms of train / validation split, initialization of classifier and even the state of minor systems like the optimizer or mini-batch sampler.
-Additionally, previous works have noted a significant adverse effect of training stochasticity on the performance of AL algorithms (\cite{zhou2021towards, lowell2018practical}).
-Even though implementations might have their own solution to some of these problems, to the best of our knowledge no previous work has discussed this topic in detail.
-At the core of this problem is the seeding utility in PyTorch, Tensorflow and other frameworks, whose default choice is a single global seed.
+Previous works have noted adverse effects of training stochasticity on the evaluation of AL algorithms (\cite{zhou2021towards, lowell2018practical}).
+Both papers observed that an actively sampled labeled set does not generalize well between model architectures or even different initializations of the same model.
+To cater for this we aim to provide an experimental setup that is fully reproducible independent of the dataset, classification model or AL algorithm used.
+For a fair comparison of two AL algorithms, both algorithms need to receive equal starting conditions in terms of train / validation split, initialization of classifier and even the state of minor systems like the optimizer or mini-batch sampler.
+Even though different implementations might have their own solution to some of these problems, to the best of our knowledge no previous work has discussed this topic in detail.
+The main obstacle for ensuring reproducibility is the seeding utility in PyTorch, Tensorflow and other frameworks, whose default choice is a single global seed.
 Since many systems draw random numbers from this seed, all of them influence each other to a point where a single additional draw can completely change the model initialization or data split, depending on the ordering of these two in the implementation.
-Even though you could find workarounds like re-setting the seed multiple times, this problem also extends to every AL iteration and the systems within.
+Even though some workarounds exists, like re-setting the seed multiple times, this problem is not limited to the initialization phase, but also extends to the AL iterations and the systems within.
 We propose an implementation that creates a separate Random Number Generator (RNG) for each of these systems to ensure equal testing conditions even when the AL algorithm, dataset or classifier changes.
 We hypothesize that the insufficient setup with global seeds contributes to the on-going problem of inconsistent results of AL algorithms in different papers. \\ [1mm]
 In summary, we introduce three different seeds: $s_\Omega$ for the AL algorithm, $s_\mathcal{D}$ for dataset splitting and mini batch sampling and $s_\theta$ for model initialization and sampling of dropout masks.
@@ -212,25 +206,12 @@ An overview of selected hyperparameters per AL algorithm can be found in Appendi
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Oracle}\label{sec:oracle}
-Posing Active Learning as a combinatorial problem, the oracle set $\mathcal{U}_b$ for a given dataset, model and training procedure would be the set that induces the highest AUC score for a given budget.
-However, since this problem is not solvable for realistic datasets, previous works have proposed approximations to this oracle sequence. 
-\cite{zhou2021towards} has used simulated annealing to search for the optimal sequence and used the best  solution found after a fixed time budget. 
-Even though their reported performance curves display a significant lift over all other algorithms, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs).
-In this paper we propose a greedy oracle algorithm that constructs an approximation of the optimal sequence in an iterative fashion.
-Our oracle simply evaluates every data point $u_k = \operatorname{unif(\mathcal{U} | k = 1 \ldots \tau)}$ in a subsample of unlabeled points by fitting the classifier on $\mathcal{L}^{(i)} \cup u_k$ and directly measuring the resulting test performance.
-The point with the best test performance is selected and added to the labeled pool for that iteration.
-We noticed that this oracle is overfitting on the test set, resulting in stagnating or even decreasing performance curves in later AL iterations.
-This can happen for example, if the oracle picked a labeled set that enables the classifier to correctly classifier a big portion of easy samples in the test set, but now fails to find the next single unlabeled point that would enable the classifier to succeed on one of the hard samples in the test set.
-This leads to a situation, where the selected data point is basically random.\\
 \begin{minipage}{0.5\linewidth}
-	
-	To circumvent this problem, we introduced margin sampling \cite{wang2014new} as a fallback option for the oracle.
-	Whenever the oracle does not find an unlabeled point that results in an increase in performance, it defaults to margin sampling in that iteration.
-	The pseudocode for our oracle can be found in Alg. \ref{alg:oracle}.
-	In the algorithm $\operatorname{Retrain}(\mathcal{L}^{(i)}, \hat y_\theta)$ trains the classification model $\hat y_\theta$ and returns the accuracy on the test set $\mathcal{D}_\text{test}$. \\ 
-	$y_t$ is shorthand for the corresponding label of $u^{(i)}_{t}$ that can be recovered from the dataset labels. \\
-	When the oracle does not find a sample with positive change in classification performance ($r^* = 0$), it applies margin sampling as a fallback ($\operatorname{margin}(u^{(i)}, \hat y_\theta)$). \\
-	Alg. \ref{alg:oracle} replaces the algorithm in the AL process.
+	Posing Active Learning as a combinatorial problem, the oracle set $\mathcal{U}_b$ for a given dataset, model and training procedure is the set that induces the highest AUC score for a given budget.
+	However, since this problem is not solvable for realistic datasets, previous works have proposed approximations to this oracle sequence. 
+	\cite{zhou2021towards} has used simulated annealing to search for the optimal subset and used the best  solution found after a fixed time budget. 
+	Even though their reported performance curves display a significant lift over all other algorithms, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs).
+	In this paper we propose a greedy oracle algorithm that constructs an approximation of the optimal set in an iterative fashion.
 \end{minipage}
 \hspace{2mm}
 \begin{minipage}{0.45\linewidth}
@@ -241,13 +222,13 @@ This leads to a situation, where the selected data point is basically random.\\
 			\State $\text{acc} \gets \operatorname{Train}(\mathcal{L}, \mathcal{D}_\text{test}, \hat y_\theta)$ 
 			%\State $u \underset{\tau}{\sim} \text{unif}(1:|\mathcal{U}|)$
 			\State $r^* \gets 0$
-			\For{$t := 1 \ldots \tau$}
-			\State $\mathcal{L}' \gets \mathcal{L}^{(i)} \cup \{(\mathcal{U}_t, y_t)\}$
+			\For{$k := 1 \ldots \tau$}
+			\State $\mathcal{L}' \gets \mathcal{L}^{(i)} \cup \{(u_k, A(u_k))\}$
 			\State $\text{acc}' \gets \operatorname{Train}(\mathcal{L}', \mathcal{D}_\text{test}, \hat y_\theta)$  
 			\State $r \gets \text{acc} - \text{acc}'$
 			\If{$r > r^*$} 
 			\State $r^* \gets r$
-			\State $u^* \gets \mathcal{U}_t$
+			\State $u^* \gets u_k$
 			\EndIf
 			\EndFor
 			\If{$r^* = 0$}
@@ -256,44 +237,44 @@ This leads to a situation, where the selected data point is basically random.\\
 			\Return $u^*$
 		\end{algorithmic}
 	\end{algorithm}
-\end{minipage}
+\end{minipage} \\ [1mm]
+Our oracle simply evaluates every data point $u_k = \operatorname{unif(\mathcal{U} | k = 1 \ldots \tau)}$ in a subsample of unlabeled points by fitting the classifier $\hat y$ on $\mathcal{L}^{(i)} \cup u_k$ and directly measuring the resulting test performance.
+The data point with the best test performance is selected and added to the labeled pool for that iteration.
+We noticed that this oracle is overfitting on the test set, resulting in stagnating or even decreasing performance curves in later AL iterations.
+This can happen for example, if the oracle picked a labeled set that enables the classifier to correctly classifier a big portion of easy samples in the test set, but now fails to find the next single unlabeled point that would enable the classifier to succeed on one of the hard samples in the test set.
+This leads to a situation, where the selected data point is basically random.\\
+To circumvent this problem, we introduced margin sampling \cite{wang2014new} as a fallback option for the oracle.
+Whenever the oracle does not find an unlabeled point that results in an increase in performance, it defaults to margin sampling in that iteration.
+The resulting greedy algorithm constructs an approximation of the optimal labeled set that consistently outperforms all other algorithms by a significant margin, while requiring relatively low computational cost (scaling linearly in $\tau$).
+The pseudocode for our oracle can be found in Alg. \ref{alg:oracle}.
+In the algorithm $\operatorname{Train}(\LL, \D_\text{test}, \hat y_\theta)$ trains the classification model $\hat y_\theta$ and returns it's accuracy  on $\D_\text{test}$. \\
+Alg. \ref{alg:oracle} replaces the acquisition function in the AL process.
 
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Implementation Details}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\subsection{Available Information}
-At each iteration $i$ the AL algorithm needs to pick an unlabeled datapoint based on a fixed set of information $\{\mathcal{L}^{(i)}, \mathcal{U}^{(i)}, B, |\mathcal{L}^{(i)}|-|\mathcal{L}^{(1)}|, \text{acc}^{(i)}, \text{acc}^{(1)}, \theta^{(i)}, \text{opt}_\theta\}$, where $\theta^{(i)}$ is the current classifier and $\text{opt}_\theta$ is the optimizer used to fit $\theta^{(i)}$.
-We allow algorithms to derive additional information of this set like predictions of the classifier, K-Means clustering or even training new classifiers.
-However, the algorithm may not incorporate external information like other datasets, queries to recover additional labels, additional training steps for the classifier, or the test/validation set.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Sampling Strategies}\label{sec:sampling_strategies}
 We selected AL algorithms that have good performances reported by multiple different sources.
-To ensure a fair comparison we fixed the training process of our classification model as well as the set of available information for the algorithm and selected only those that can work under these restrictions:\\
+To ensure a fair comparison, we fixed the training process of our classification model as well as the set of available information for the algorithms and selected only those that can work under these restrictions:\\
 \textbf{Uncertainty Sampling} 
-Tries to find the sample that the classifier is most uncertain about. For our benchmark we use entropy and margin (a.k.a. best-vs-second-best) sampling.\\
+Tries to find the sample that the classifier is most uncertain about by computing heuristics of the class probabilities. For our benchmark we use entropy and margin (a.k.a. best-vs-second-best) sampling.\\
 \textbf{BALD \cite{kirsch2019batchbald}}
-Applies the query-by-committee strategy of model ensembles to a single model by interpreting the model's parameters as distributions and then sample multiple outputs from them via Monte-Carlo dropout.\\
+Applies the query-by-committee strategy of model ensembles to a single model by interpreting the classifier's parameters as distributions and then sample multiple outputs from them via Monte-Carlo dropout.\\
 \textbf{BADGE \cite{ashdeep}} Uses gradient embeddings of unlabeled points to select samples where the classifier is expected to change a lot. The higher the magnitude of the gradient the higher is the expected improvement in model performance.\\
 \textbf{Coreset \cite{sener2017active}}
 Employs K-Means clustering to try to cover the whole data distribution.
 Selects the unlabeled sample that is the furthest away from all cluster centers.
-Clustering is done in a semantically meaningful space by encoding the data with the current classifier $\theta_i$.
+Clustering is done in a semantically meaningful space by encoding the data with the current classifier $\hat y$.
 In this work we use the greedy variant of Coreset.\\
 \textbf{TypiClust \cite{hacohen2022active}}
-Relies on clustering similar to Coreset but proposes a new measure called "Typicality" to select unlabeled centers.
-Tries to select points that are in the densest regions of clusters that do not contain labeled samples yet.
-Clustering is done in a semantically meaningful space by encoding the data with the current classifier $\theta_i$.
+Relies on clustering similar to Coreset but proposes a new measure called "Typicality" to select unlabeled samples.
+Selects points that are in the densest regions of clusters that do not contain labeled samples yet.
+Clustering is done in a semantically meaningful space by encoding the data with the current classifier $\hat y$.
 It has to be pointed out that TypiClust was designed for low-budget scenarios, but we think it is still worthwhile to test and compare this algorithm with practically relevant budgets.
 %
-\subsubsection{Honorable Mentions}
+\subsubsection*{Honorable Mentions}
 \textbf{Learning Loss for AL}
 Introduces an updated training of the classification model with an auxiliary loss and therefore cannot be compared fairly against classification models without this boosted training regime.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Choosing the Classifier}\label{sec:choosing_the_classifier}
@@ -301,12 +282,19 @@ Traditionally, the classifier is chosen per dataset so that it is capable of sol
 Since we are not interested in archiving a new SOTA in any classification problem, we opt to use smaller classifiers for the following reasons:
 Smaller classifiers generally (i) exhibit more stable training behavior and (ii) on average require less sampled datapoints to reach the their upper bound performance on the full dataset.
 For every dataset the chosen architecture's hyperparameters are optimized by to archive maximum upper bound performance.
-One desired characteristic of small classifiers is that the ranking of AL algorithms should stay the same when switching to larger models.
+One desired characteristic of these small classifiers is that the ranking of AL algorithms should stay the same when switching to larger models.
 A small analysis of this behavior can be found in Appendix \ref{app:classifier_size}.
-We found that the ranking of AL algorithms unfortunately does change, but we did not observe systematics that benefit one or few specific algorithms.
+We found that the ranking of AL algorithms unfortunately does change slightly, but we did not observe systematics that benefit one or few specific algorithms.
 We therefore rely on the different data domains to provide classification models of different sizes and archetypes to cover all of the use-cases.
 For an overview of architectures and hyperparameters please refer to Appendix \ref{app:hyperparameters}.
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Implementation Details}
+At each iteration $i$ the AL algorithm picks an unlabeled datapoint based on a fixed set of information $\{\mathcal{L}^{(i)}, \mathcal{U}^{(i)}, B, |\mathcal{L}^{(i)}|-|\mathcal{L}^{(1)}|, \text{acc}^{(i)}, \text{acc}^{(1)}, \theta^{(i)}, \text{opt}_\theta\}$, where $\theta^{(i)}$ is the current classifier and $\text{opt}_\theta$ is the optimizer used to fit $\theta^{(i)}$.
+We allow algorithms to derive additional information of this set like predictions of the classifier, K-Means clustering or even training new classifiers.
+However, the algorithm may not incorporate external information like other datasets, queries to recover additional labels, additional training steps for the classifier, or the test/validation set.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Training the Classifier}\label{sec:training_the_classifier}
@@ -404,6 +392,8 @@ In Fig. \ref{fig:cd_diagrams} we report the rankings split by domain as well as 
 BALD performs bad with linear classifiers since they are trained without dropout and cannot cope well with missing inputs. \\
 TypiClust is better with embedded data not only due to lower budgets. On other datasets it is not able to outperform other algorithms in early stages
 
+% Missing:
+% Seed set
 
 \section{Discussion}
 Domains are very different \\
@@ -447,7 +437,7 @@ Given
 find a function
 \vspace*{-0.5cm}
 \begin{align*}
-	a: (\X\times \Y)^* \times \X^* &\rightarrow \N
+	\Omega: (\X\times \Y)^* \times \X^* &\rightarrow \N
 	\quad\quad \text{\tiny (with $a(\D,X) \leq |X|$)} \\
 	& \text{\tiny where $a(\D,X)$ selects an unlabeled instance from $X$}
 \end{align*}
