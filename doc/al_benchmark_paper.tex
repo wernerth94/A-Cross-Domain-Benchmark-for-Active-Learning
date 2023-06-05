@@ -58,6 +58,7 @@
 	We report empirical results for 6 widely used algorithms on 7 datasets and aggregate them into a domain-specific ranking of AL algorithms.
 \end{abstract}
 
+
 \section{Introduction}
 Deep neural networks (NN) have produced state-of-the-art results on many important supervised learning tasks.
 Since Deep NNs usually require large amounts of labeled training data, Active Learning (AL) can be used to instead to select the most informative samples out of a large pool of unlabeled data, so that only these samples need to be labeled.
@@ -67,6 +68,7 @@ It has been shown that a small labeled set of this nature can be used to train w
 In the last decade many different algorithms for AL have been proposed.
 Even though, almost every method has reported lifts all it's predecessors 
 \footnote{out of all considered algorithms for this paper, only BALD \cite{gal2017deep} did not claim a new SOTA performance in their result section}
+\let\thefootnote\relax\footnotetext{Code available at: \url{https://github.com/wernerth94/comparable-active-learning}}
 , AL research faces two central difficulties:
 (i) The experiments are often carried out on different datasets and model architectures, hindering direct comparison,
 (ii) the reported results prove to be very difficult to reproduce.
