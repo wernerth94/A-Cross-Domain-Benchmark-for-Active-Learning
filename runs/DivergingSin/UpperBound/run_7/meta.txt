@@ -1,10 +1,10 @@
 # Dataset: 
 DivergingSin
-Budget: 80
+Budget: 400
 Seeding points per class: 1
 Classifier Batch Size: 32 
 
 # Config: 
-dataset: {'budget': 80, 'classifier_fitting_mode': 'from_scratch', 'initial_points_per_class': 1, 'classifier_batch_size': 32, 'validation_split': 0.2} 
+dataset: {'budget': 400, 'classifier_fitting_mode': 'from_scratch', 'initial_points_per_class': 1, 'classifier_batch_size': 32, 'validation_split': 0.2} 
 classifier: {'type': 'MLP', 'hidden': [24, 2]} 
 optimizer: {'type': 'NAdam', 'lr': 0.001, 'weight_decay': 0.0} 
