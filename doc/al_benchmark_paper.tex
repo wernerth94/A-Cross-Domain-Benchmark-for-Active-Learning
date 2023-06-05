@@ -211,7 +211,7 @@ An overview of selected hyperparameters per AL algorithm can be found in Appendi
 	Posing Active Learning as a combinatorial problem, the oracle set $\mathcal{U}_b$ for a given dataset, model and training procedure is the set that induces the highest AUC score for a given budget.
 	However, since this problem is not solvable for realistic datasets, previous works have proposed approximations to this oracle sequence. 
 	\cite{zhou2021towards} has used simulated annealing to search for the optimal subset and used the best  solution found after a fixed time budget. 
-	Even though their reported performance curves display a significant lift over all other algorithms, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs).
+	Even though their reported performance curves display a significant lift over all other acquisition functions, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs).
 	In this paper we propose a greedy oracle algorithm that constructs an approximation of the optimal set in an iterative fashion.
 \end{minipage}
 \hspace{2mm}
@@ -289,16 +289,14 @@ We found that the ranking of AL algorithms unfortunately does change slightly, b
 We therefore rely on the different data domains to provide classification models of different sizes and archetypes to cover all of the use-cases.
 For an overview of architectures and hyperparameters please refer to Appendix \ref{app:hyperparameters}.
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Implementation Details}
-At each iteration $i$ the AL algorithm picks an unlabeled datapoint based on a fixed set of information $\{\mathcal{L}^{(i)}, \mathcal{U}^{(i)}, B, |\mathcal{L}^{(i)}|-|\mathcal{L}^{(1)}|, \text{acc}^{(i)}, \text{acc}^{(1)}, \theta^{(i)}, \text{opt}_\theta\}$, where $\theta^{(i)}$ is the current classifier and $\text{opt}_\theta$ is the optimizer used to fit $\theta^{(i)}$.
-We allow algorithms to derive additional information of this set like predictions of the classifier, K-Means clustering or even training new classifiers.
-However, the algorithm may not incorporate external information like other datasets, queries to recover additional labels, additional training steps for the classifier, or the test/validation set.
-
+\section{Experiments}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Training the Classifier}\label{sec:training_the_classifier}
+\subsection{Implementation Details}
+At each iteration $i$ the AL algorithm picks an unlabeled datapoint based on a fixed set of information $\{\mathcal{L}^{(i)}, \mathcal{U}^{(i)}, B, |\mathcal{L}^{(i)}|-|\mathcal{L}^{(1)}|, \text{acc}^{(i)}, \text{acc}^{(1)}, \hat y^{(i)}, \text{opt}_{\hat y}\}$, where $\hat y^{(i)}$ is the current classifier and $\text{opt}_{\hat y}$ is the optimizer used to fit $\hat y^{(i)}$.
+We allow acquisition functions to derive additional information of this set like predictions of the classifier, K-Means clustering or even training new classifiers.
+However, the algorithm may not incorporate external information like other datasets, queries to recover additional labels, additional training steps for $\hat y$, or the test/validation set. \\ [1mm]
 The classification model can be trained in two ways. Either you reset the parameters after each AL iteration and train the classifier from scratch with the updated labeled set $\mathcal{L}^{(i)}$, or you retain the previous state and only fine-tune the classifier on $\mathcal{L}^{(i)}$ for a reduced number of epochs.
 In this work we use the fine-tuning method for raw datasets to save computation, while we use the from-scratch training for embedded dataset, since they have very small classifiers and this method generally produces better results.
 Our fine-tuning scheme always trains for at least one epoch and employs an aggressive early stopping after that.
@@ -306,9 +304,6 @@ The early stopping has patience 0, so it will stop as soon as the validation los
 Even though the use of a fully labeled validation set might be regarded as impractical, since such a set will never exist during deployment, we strongly advocate for using it in benchmarks to control the classifier training.
 In this work we use the validation set to optimize the hyperparameters of the classifier and reduce overfitting with early stopping the training process in every iteration.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Experiments}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Datasets}\label{sec:datasets}
@@ -334,43 +329,45 @@ This might be true if we aimed to develop novel classification models on these d
 Our core assumption is that a well-performing algorithm in our benchmark will also transfer into more practical use-cases. \\ [1mm]
 Adapting the experimental setting from \cite{hacohen2022active} we offer all our datasets in the raw setting as well as pre-encoded by a fixed embedding model that was trained by unsupervised contrastive learning. 
 The text datasets are an exception, as they are only offered in their encoded form.
-The pre-encoded datasets enable us to test our single-sample algorithms on more complex datasets like Cifar10 and FashionMnist without the need of sampling $>2000$ datapoints before we can reach our upper bound performance.
+The pre-encoded datasets enable us to test our single-sample algorithms on more complex datasets like Cifar10 and FashionMnist.
 The embedding model was trained with the SimCLR \cite{chen2020simple} algorithm. 
 For Cifar10 we adapt the reported hyperparameters from \cite{hacohen2022active} and for the tabular datasets we use random search to optimize the hyperparameters.
-The quality of embeddings during pretext training was measured after each epoch by attaching a linear classification head and evaluating this classifier for test accuracy, mirroring our AL setup for embedded datasets.
+The quality of embeddings during pretext training was measured after each epoch by attaching a linear classification head and evaluating this classifier for test accuracy, mirroring our AL setup for embedded datasets. \\ [1mm]
+Every dataset has a fixed size for the seed set of 1 sample per class, with the only exceptions being raw FashionMnist and Cifar10 with 100 examples per class to alleviate the cold-start problem in these complex domains.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Results}
 
-%\begin{table}[]
-%	\centering
-%	\begin{tabular}{l|lll}
-%		& Splice        & DNA           & USPS          \\
-%		\hline
-%		Oracle          & 0.830 +- 0.01 & 0.836 +- 0.02 & 0.823 +- 0.01 \\
-%		SAL & 0.799 +- 0.01 & 0.797 +- 0.03 & 0.809 +- 0.01 \\
-%		Coreset & 0.800 +- 0.01 & 0.795 +- 0.03 & 0.787 +- 0.02 \\
-%		TypiClust       & 0.790 +- 0.01 & 0.771 +- 0.04 & 0.761 +- 0.02 \\
-%		MarginScore     & 0.797 +- 0.02 & 0.795 +- 0.04 & 0.808 +- 0.01 \\
-%		ShannonEntropy  & 0.799 +- 0.02 & 0.794 +- 0.04 & 0.807 +- 0.01 \\
-%		RandomAgent     & 0.788 +- 0.01 & 0.765 +- 0.03 & 0.772 +- 0.01 \\
-%		Badge           & 0.807 +- 0.01 & 0.769 +- 0.06 & 0.797 +- 0.02 \\
-%		BALD            & 0.811 +- 0.01 & 0.743 +- 0.04 & 0.717 +- 0.05
-%	\end{tabular}
-%	\caption{Median AUC values and standard deviation for all algorithms on the tabular datasets. Higher is better.}
-%\end{table}
+
+\begin{table}[]
+	\hspace{-5mm}
+	\begin{tabular}{l|lllll|c}
+		& Vector       & Vector Enc. & Image        & Image Enc. & Text         & All          \\
+		\hline
+		Oracle          & 1.07 $\pm$ 0.02 & 1.13 $\pm$ 0.01    & 1.07 $\pm$ 0.04 & 1.16 $\pm$ 0.02   & 1.16 $\pm$ 0.07 & 1.12 $\pm$ 0.05 \\
+		Margin     & 1.03 $\pm$ 0.02 & 1.03 $\pm$ 0.03    & 1.01 $\pm$ 0.01 & 1.07 $\pm$ 0.00   & 1.04 $\pm$ 0.00 & 1.04 $\pm$ 0.02 \\
+		Badge           & 1.02 $\pm$ 0.01 & 0.98 $\pm$ 0.04    & 1.01 $\pm$ 0.00 & 1.07 $\pm$ 0.00   & 1.04 $\pm$ 0.01 & 1.02 $\pm$ 0.04 \\
+		Entropy  & 1.03 $\pm$ 0.02 & 0.99 $\pm$ 0.01    & 1.00 $\pm$ 0.01 & 1.07 $\pm$ 0.00   & 1.02 $\pm$ 0.00 & 1.02 $\pm$ 0.03 \\
+		Coreset & 1.02 $\pm$ 0.01 & 0.99 $\pm$ 0.04    & 1.00 $\pm$ 0.00 & 1.07 $\pm$ 0.00   & 1.03 $\pm$ 0.02 & 1.02 $\pm$ 0.04 \\
+		TypiClust       & 1.03 $\pm$ 0.03 & 1.05 $\pm$ 0.04    & 0.99 $\pm$ 0.02 & 1.03 $\pm$ 0.01   & 0.98 $\pm$ 0.04 & 1.02 $\pm$ 0.04 \\
+		Random     & 1.00 $\pm$ 0.00 & 1.00 $\pm$ 0.00    & 1.00 $\pm$ 0.00 & 1.00 $\pm$ 0.00   & 1.00 $\pm$ 0.00 & 1.00 $\pm$ 0.00 \\
+		BALD            & 0.98 $\pm$ 0.03 & 0.90 $\pm$ 0.04    & 0.99 $\pm$ 0.03 & 1.06 $\pm$ 0.01   & 1.04 $\pm$ 0.01 & 0.98 $\pm$ 0.07
+	\end{tabular}
+	\caption{Performances for each algorithm per domain normalized by the performance of random sampling. Higher is better, scores below 1 indicate worse-than-random performance.}
+	\label{tab:results}
+\end{table}
 %
-\begin{figure}
-	\centering
-	\includegraphics[width=0.49\linewidth]{img/eval_splice}
-	\hspace{1mm}
-	\includegraphics[width=0.49\linewidth]{img/eval_dna}\\[2mm]
-	\includegraphics[width=0.49\linewidth]{img/micro_splice}
-	\hspace{1mm}
-	\includegraphics[width=0.49\linewidth]{img/micro_dna}
-	\caption{Results for all algorithms on Splice and DNA, both from the tabular domain. Even within one domain, the performance of the same algorithm can vary drastically.}
-	\label{fig:eval_vector}
-\end{figure}
+%\begin{figure}
+%	\centering
+%	\includegraphics[width=0.49\linewidth]{img/eval_splice}
+%	\hspace{1mm}
+%	\includegraphics[width=0.49\linewidth]{img/eval_dna}\\[2mm]
+%	\includegraphics[width=0.49\linewidth]{img/micro_splice}
+%	\hspace{1mm}
+%	\includegraphics[width=0.49\linewidth]{img/micro_dna}
+%	\caption{Results for all algorithms on Splice and DNA, both from the tabular domain. Even within one domain, the performance of the same algorithm can vary drastically.}
+%	\label{fig:eval_vector}
+%\end{figure}
 %
 \begin{figure}
 \centering
@@ -384,25 +381,28 @@ The quality of embeddings during pretext training was measured after each epoch 
 	\label{fig:cd_diagrams}
 \end{figure}
 %
-From Fig. \ref{fig:eval_vector} we notice drastically different qualities for the same AL algorithm for different datasets.
-We would like to highlight that both datasets are tabular from the medical domain with similar number of features and classes, yet we see that i.e. BALD is the best algorithm for Splice and the worst algorithm for DNA.
-These inconsistencies are present between the datasets of all our tested domains, further highlighting the difficulties for comparing AL algorithms in terms of average performance.
-In order to provide a meaningful analysis of which algorithm can be expected to perform best on average we ranked the algorithm for each dataset based on their median AUC and displayed these rankings in critical difference diagrams \cite{IsmailFawaz2018deep}.
-In Fig. \ref{fig:cd_diagrams} we report the rankings split by domain as well as across all domains (excluding the toydata). \\ [2mm]
-%
+We report our results in two different fashions: Table \ref{tab:results} contains mean AUC performances per data domain.
+To make performances from different datasets comparable we normalized them with the random performance of each dataset.
+Figure \ref{fig:cd_diagrams} aggregates the performances per domain by counting wins and deriving a ranking of algorithms.
+This is closely related to the evaluation protocol of \cite{ashdeep}, who displayed a pairwise penalty matrix for all algorithms. \\
+Based these two evaluations we make the following observations:\\
+(i) The ranking of both reports does not match exactly.
+This is due to Table \ref{tab:results} being more sensitive to outlier performances (i.e. BALD being worse than random due to it's bad performance on embedded vector data). \\
+(ii) Both evaluations make it clear that no one-fits-all algorithm for all domains seems to exist, with only margin sampling being significantly better that random in Tab. \ref{tab:results} and the best 3 ranks for all domains in Fig. \ref{fig:cd_diagrams} being close together. \\
+(iii) Even though in Fig. \ref{fig:cd_diagrams} some domains show evidence of one algorithm being systematically better than the rest (i.e. Image), the actual differences in Tab. \ref{tab:results} seem to be negligible. \\
+(iv) Not only do different domains favor different AL algorithms, we noticed that even within the same domain datasets can induce drastically different behaviors (Compare Appendix \ref{app:all_results} Splice/DNA/USPS). 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussion}
+Based on the findings of the previous section a couple of things deserve to be highlighted:
+(i) None of the algorithms display performance values that could be thought of a reproduction of the reported values from their papers.
 BALD performs bad with linear classifiers since they are trained without dropout and cannot cope well with missing inputs. \\
 TypiClust is better with embedded data not only due to lower budgets. On other datasets it is not able to outperform other algorithms in early stages
-
-% Missing:
-% Seed set
-
-\section{Discussion}
-Domains are very different \\
-Even within one domain we have stark differences (Fig. \ref{fig:eval_vector}) \\
-Best 3 ranks for all domains are 3, 3.1 and 3.4 ... No clear winner \\
-At least on average everything is better that random \\
 BADGE: "Separately, we notice that diversity sampling only seems to work well when either the model has good architectural priors (inductive biases) built in, or when the data are easy to learn. Otherwise, penultimate layer representations are not meaningful, and diverse sampling can be deleterious. For this reason, CORESET often performs worse than random on sufficiently complex data when not using a convolutional network (Figure 3b)" \\
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Limitations and Future Work}
 No batch AL \\
 No learned algorithms \\
