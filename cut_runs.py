@@ -36,6 +36,8 @@ datasets = [
     "FashionMnistEncoded",
     "News",
     "TopV2",
+    "DivergingSin",
+    "ThreeClust"
 ]
 
 

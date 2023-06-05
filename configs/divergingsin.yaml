@@ -1,6 +1,7 @@
 # Normal Classification
 dataset:
-  budget: 400
+  budget: 150
+#  budget: 400
   classifier_fitting_mode: from_scratch
   initial_points_per_class: 1
   classifier_batch_size: 32
