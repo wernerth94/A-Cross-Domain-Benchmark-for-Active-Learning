@@ -395,19 +395,23 @@ This is due to Table \ref{tab:results} being more sensitive to outlier performan
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
-Based on the findings of the previous section a couple of things deserve to be highlighted:
-(i) None of the algorithms display performance values that could be thought of a reproduction of the reported values from their papers.
-BALD performs bad with linear classifiers since they are trained without dropout and cannot cope well with missing inputs. \\
-TypiClust is better with embedded data not only due to lower budgets. On other datasets it is not able to outperform other algorithms in early stages
-BADGE: "Separately, we notice that diversity sampling only seems to work well when either the model has good architectural priors (inductive biases) built in, or when the data are easy to learn. Otherwise, penultimate layer representations are not meaningful, and diverse sampling can be deleterious. For this reason, CORESET often performs worse than random on sufficiently complex data when not using a convolutional network (Figure 3b)" \\
+Our results empirically reinforce what the authors of \cite{zhou2021towards} have noticed in their meta-analysis already:
+When slightly altering the dataset, model or training conditions, most AL algorithms are reduced to uncertainty sampling or worse.
+Additionally, some results remain non-reproducible even on the same dataset and model combination (Compare Appendix \ref{app:all_results} Cifar10 with \cite{hacohen2022active} or \cite{sener2017active}).
+On the other hand we were able to also confirm some previous results i.e. for the NewsCategory dataset (Compare Appendix \ref{app:all_results} News with \cite{hu2021towards} Fig 3g). \\ [1mm]
+Regarding meta analysis of our results we have the following conclusions:\\
+(i) BALD seems to be performing especially bad when the input dimensionality is low and the applied classifier is too simple. (i.e. (Encoded) Vector). \\
+(ii) TypiClust seemingly holds its claim to work well with extremely low budgets (Encoded Vector $B=\{50,60,600\}$), but fails to push the classifier close to upper bound performance even with moderate budgets in other domains. \\
+(iii) The authors of \cite{ashdeep} noted that diversity sampling and adjacent methods, like Coreset and TypiClust, only work well when the classifier has correct inductive biases (correct architecture, tuned hyperparameters). Since our architectures are extensively tuned, the performance of these algorithms might be slightly inflated.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Limitations and Future Work}
-No batch AL \\
-No learned algorithms \\
-No SOTA classifier training (data augmentation, semi-supervised, etc.) \\
-SimCRL as Pretext task works better for images
+In the current state, a couple of aspects/use-cases are missing from our proposed benchmark and are considered future work: \\
+(i) We elected to not provide any experiments on batch AL, but the provided implementation is already capable of doing that and we plan to extend the benchmark to include batch sizes larger than 1 in our experiments. \\
+(ii) Due to difficulties with reproducing results and high computational setup costs, we did not include learned acquisition functions like \cite{shao2019learning}, \cite{vu2019learning} or \cite{konyushkova2017learning} \\
+(iii) Our training process for the classifier does not include techniques that would be present in real-world scenarios, like data augmentation, semi-supervised learning, or auxiliary tasks. We opted for simpler training process to be able to extensively tune those fewer hyperparameters and have full control over the training.\\
+(iv) We used SimCLR as pretext task for our vector datasets, which primarily relies on data augmentation. While images have a plethora of well-defined augmentation techniques, we had to rely on Gaussian noise to augment the vector data. Other pretext tasks, like autoencoders have potential to provide better encodings of the data.
 
 \newpage
 
