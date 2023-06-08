@@ -174,5 +174,5 @@ def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
 
 
 if __name__ == '__main__':
-    base_path = "runs/Mnist/BatchRandomAgent"
+    base_path = "runs/Splice/BatchBALD_100"
     collect_results(base_path, "run_")

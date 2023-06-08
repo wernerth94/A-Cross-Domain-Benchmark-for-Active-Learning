@@ -1,0 +1,9 @@
+,Cifar10
+Oracle,0.500 $\pm$ 0.01
+Badge,0.453 $\pm$ 0.01
+Coreset_Greedy,0.453 $\pm$ 0.01
+MarginScore,0.451 $\pm$ 0.01
+RandomAgent,0.450 $\pm$ 0.01
+ShannonEntropy,0.449 $\pm$ 0.01
+TypiClust,0.436 $\pm$ 0.01
+BALD,0.436 $\pm$ 0.01

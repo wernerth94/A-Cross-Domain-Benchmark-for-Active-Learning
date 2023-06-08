@@ -1,0 +1,9 @@
+,USPSEncoded
+Oracle,0.522 $\pm$ 0.02
+TypiClust,0.507 $\pm$ 0.03
+MarginScore,0.496 $\pm$ 0.03
+RandomAgent,0.468 $\pm$ 0.02
+ShannonEntropy,0.459 $\pm$ 0.02
+Badge,0.440 $\pm$ 0.03
+Coreset_Greedy,0.435 $\pm$ 0.03
+BALD,0.402 $\pm$ 0.05

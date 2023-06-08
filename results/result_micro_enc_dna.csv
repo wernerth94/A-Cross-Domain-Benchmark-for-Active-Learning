@@ -1,0 +1,9 @@
+,DNAEncoded
+Oracle,0.709 $\pm$ 0.02
+TypiClust,0.672 $\pm$ 0.03
+MarginScore,0.648 $\pm$ 0.05
+Badge,0.647 $\pm$ 0.04
+Coreset_Greedy,0.640 $\pm$ 0.04
+ShannonEntropy,0.629 $\pm$ 0.06
+RandomAgent,0.626 $\pm$ 0.04
+BALD,0.594 $\pm$ 0.04

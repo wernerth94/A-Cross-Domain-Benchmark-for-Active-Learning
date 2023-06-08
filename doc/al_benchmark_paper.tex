@@ -221,7 +221,7 @@ An overview of selected hyperparameters per AL algorithm can be found in Appendi
 	\begin{algorithm}[H]
 		\caption{Oracle}\label{alg:oracle}
 		\begin{algorithmic}[1]
-			\Require $\mathcal{U}, \mathcal{L}, \mathcal{Y}, \mathcal{D}_\text{test}$ Train, Margin, $\tau, \hat y_\theta$ 
+			\Require $\mathcal{U}, \mathcal{L}, A, \mathcal{D}_\text{test}$ Train, Margin, $\tau, \hat y_\theta$ 
 			\State $\text{acc} \gets \operatorname{Train}(\mathcal{L}, \mathcal{D}_\text{test}, \hat y_\theta)$ 
 			%\State $u \underset{\tau}{\sim} \text{unif}(1:|\mathcal{U}|)$
 			\State $r^* \gets 0$
@@ -469,45 +469,45 @@ is minimal:
 \section{All Results}\label{app:all_results}
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.49\linewidth]{img/eval_splice}
-	\includegraphics[width=0.49\linewidth]{img/eval_splice_enc} \\ [2mm]
-	\includegraphics[width=0.49\linewidth]{img/micro_splice.jpg}
-	\includegraphics[width=0.49\linewidth]{img/micro_splice_enc.jpg} \\ [4mm]
+	\includegraphics[width=0.4\linewidth]{img/eval_splice}
+	\includegraphics[width=0.4\linewidth]{img/eval_splice_enc} \\ [2mm]
+	\includegraphics[width=0.3\linewidth]{img/micro_splice.jpg}
+	\includegraphics[width=0.3\linewidth]{img/micro_splice_enc.jpg} \\ [4mm]
 \end{figure}
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.49\linewidth]{img/eval_dna}
-	\includegraphics[width=0.49\linewidth]{img/eval_dna_enc} \\ [2mm]
-	\includegraphics[width=0.49\linewidth]{img/micro_dna.jpg}
-	\includegraphics[width=0.49\linewidth]{img/micro_dna_enc.jpg} \\ [4mm]
+	\includegraphics[width=0.4\linewidth]{img/eval_dna}
+	\includegraphics[width=0.4\linewidth]{img/eval_dna_enc} \\ [2mm]
+	\includegraphics[width=0.3\linewidth]{img/micro_dna.jpg}
+	\includegraphics[width=0.3\linewidth]{img/micro_dna_enc.jpg} \\ [4mm]
 \end{figure}
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.49\linewidth]{img/eval_usps}
-	\includegraphics[width=0.49\linewidth]{img/eval_usps_enc} \\ [2mm]
-	\includegraphics[width=0.49\linewidth]{img/micro_usps.jpg}
-	\includegraphics[width=0.49\linewidth]{img/micro_usps_enc.jpg} \\ [4mm]
+	\includegraphics[width=0.4\linewidth]{img/eval_usps}
+	\includegraphics[width=0.4\linewidth]{img/eval_usps_enc} \\ [2mm]
+	\includegraphics[width=0.3\linewidth]{img/micro_usps.jpg}
+	\includegraphics[width=0.3\linewidth]{img/micro_usps_enc.jpg} \\ [4mm]
 \end{figure}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.49\linewidth]{img/eval_cifar10}
-\includegraphics[width=0.49\linewidth]{img/eval_cifar10_enc} \\ [2mm]
-\includegraphics[width=0.49\linewidth]{img/micro_cifar10.jpg}
-\includegraphics[width=0.49\linewidth]{img/micro_cifar10_enc.jpg} \\ [4mm]
+\includegraphics[width=0.4\linewidth]{img/eval_cifar10}
+\includegraphics[width=0.4\linewidth]{img/eval_cifar10_enc} \\ [2mm]
+\includegraphics[width=0.3\linewidth]{img/micro_cifar10.jpg}
+\includegraphics[width=0.3\linewidth]{img/micro_cifar10_enc.jpg} \\ [4mm]
 \end{figure}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.49\linewidth]{img/eval_fmnist}
-\includegraphics[width=0.49\linewidth]{img/eval_fmnist_enc} \\ [2mm]
-\includegraphics[width=0.49\linewidth]{img/micro_fmnist.jpg}
-\includegraphics[width=0.49\linewidth]{img/micro_fmnist_enc.jpg} \\ [4mm]
+\includegraphics[width=0.4\linewidth]{img/eval_fmnist}
+\includegraphics[width=0.4\linewidth]{img/eval_fmnist_enc} \\ [2mm]
+\includegraphics[width=0.3\linewidth]{img/micro_fmnist.jpg}
+\includegraphics[width=0.3\linewidth]{img/micro_fmnist_enc.jpg} \\ [4mm]
 \end{figure}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.49\linewidth]{img/eval_topv2}
-\includegraphics[width=0.49\linewidth]{img/eval_news} \\ [2mm]
-\includegraphics[width=0.49\linewidth]{img/micro_topv2.jpg}
-\includegraphics[width=0.49\linewidth]{img/micro_news.jpg} \\ [4mm]
+\includegraphics[width=0.4\linewidth]{img/eval_topv2}
+\includegraphics[width=0.4\linewidth]{img/eval_news} \\ [2mm]
+\includegraphics[width=0.3\linewidth]{img/micro_topv2.jpg}
+\includegraphics[width=0.3\linewidth]{img/micro_news.jpg} \\ [4mm]
 \end{figure}
 
 
@@ -519,30 +519,61 @@ is minimal:
 
 \section{Hyperparameters per AL Algorithm}\label{app:agent_hyperparameters}
 \begin{table}[H]
-	TODO
+	\centering
+	\begin{tabular}{l || l | l}
+		Algorithm & Sample Size & \\
+		\hline
+		BADGE & 100 & \\
+		BALD & 100 & Dropout Trials: 5 \\
+		Coreset & 8000 & \\
+		TypiClust & 10000 & Min Cluster Size: 5, Max \# Clusters: 500 \\
+		Margin & 8000 & \\
+		Entropy & 8000 & \\
+	\end{tabular}
 \end{table}
 
 \section{Hyperparameters per Dataset}\label{app:hyperparameters}
 \begin{table}[H]
 	\centering
-	\begin{tabular}{l || l | l l l l}
-		Dataset & Classifier & Optimizer & LR & Weight Decay & Dropout \\
+	\begin{tabular}{l || l l l }
+		Dataset & Seed Set & Budget & Val Split \\
 		\hline
-		Splice & [24, 12] & NAdam & 1.2e-3 & 5.9e-5 & 0 \\
-		SpliceEnc. & linear & NAdam & 6.2e-4 & 5.9e-6 & 0 \\
-		DNA & [24, 12] & NAdam & 3.9e-2 & 3.6e-5 & 0 \\
-		DNAEnc & linear & NAdam & 1.6e-3 & 4e-4 & 0 \\
-		USPS & [24, 12] & Adam & 8.1e-3 & 1.5e-6 & 0 \\
-		USPS & linear & NAdam & 7.8e-3 & 1.9e-6 & 0 \\
-		FashionMnist & ResNet18 & NAdam & 1e-3 & 0 & 0 \\
-		FashionMnistEnc & linear & Adam & 1.6e-3 & 1e-5 & 5e-2 \\
-		Cifar10 & ResNet18 & NAdam & 1e-3 & 0 & 0 \\
-		Cifar10Enc & linear & NAdam & 1.7e-3 & 2.3e-5 & 0 \\
-		TopV2 & BiLSTM & NAdam & 1.5e-3 & 1.7e-7 & 5e-2 \\
-		News & BiLSTM & NAdam & 1.5e-3 & 1.7e-7 & 5e-2 \\
+		Splice & 1 & 400 & 0.2 \\
+		SpliceEnc. & 1 & 60 & 0.2 \\
+		DNA & 1 & 300 & 0.2 \\
+		DNAEnc & 1 & 40 & 0.2 \\
+		USPS & 1 & 400 & 0.2 \\
+		USPSEnc & 1 & 600 & 0.2 \\
+		FashionMnist & 100 & 2000 & 0.04 \\
+		FashionMnistEnc & 1 & 500 & 0.04 \\
+		Cifar10 & 100 & 2000 & 0.04  \\
+		Cifar10Enc & 1 & 350 & 0.04  \\
+		TopV2 & 1 & 125 & 0.25  \\
+		News & 1 & 1500 & 0.03  \\
 	\end{tabular}
-	\caption{Classifier architectures and optimized hyperparameters per dataset. Numbers in brackets signify a MLP with corresponding hidden layers.}
+	\caption{Size of the seed set is given by number of labeled sample per class.}
 	\label{tab:architectures}
+\end{table}
+\begin{table}[H]
+\centering
+\begin{tabular}{l || l | l l l l l}
+	Dataset & Classifier & Optimizer & LR & Weight Decay & Dropout & Batch Size \\
+	\hline
+	Splice & [24, 12] & NAdam & 1.2e-3 & 5.9e-5 & 0 & 43 \\
+	SpliceEnc. & linear & NAdam & 6.2e-4 & 5.9e-6 & 0 & 64 \\
+	DNA & [24, 12] & NAdam & 3.9e-2 & 3.6e-5 & 0 & 64 \\
+	DNAEnc & linear & NAdam & 1.6e-3 & 4e-4 & 0 & 64 \\
+	USPS & [24, 12] & Adam & 8.1e-3 & 1.5e-6 & 0 & 43 \\
+	USPSEnc & linear & NAdam & 7.8e-3 & 1.9e-6 & 0 & 64 \\
+	FashionMnist & ResNet18 & NAdam & 1e-3 & 0 & 0 & 64 \\
+	FashionMnistEnc & linear & Adam & 1.6e-3 & 1e-5 & 5e-2 & 64 \\
+	Cifar10 & ResNet18 & NAdam & 1e-3 & 0 & 0 & 64 \\
+	Cifar10Enc & linear & NAdam & 1.7e-3 & 2.3e-5 & 0 & 64 \\
+	TopV2 & BiLSTM & NAdam & 1.5e-3 & 1.7e-7 & 5e-2 & 64 \\
+	News & BiLSTM & NAdam & 1.5e-3 & 1.7e-7 & 5e-2 & 64 \\
+\end{tabular}
+\caption{Classifier architectures and optimized hyperparameters per dataset. Numbers in brackets signify a MLP with corresponding hidden layers.}
+\label{tab:architectures}
 \end{table}
 
 \section{Comparison of Different Classifier Sizes}\label{app:classifier_size}
@@ -551,7 +582,7 @@ We tested two different classifier sizes in Splice and DNA:
 	\item Small: [24, 12] (2400 parameters)
 	\item Big: [24, 48, 48] (5700 parameters)
 \end{itemize}
-\begin{figure}
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=0.49\linewidth]{img/supp_dna_small.png}
 	\includegraphics[width=0.49\linewidth]{img/supp_dna_big.png}
@@ -559,7 +590,7 @@ We tested two different classifier sizes in Splice and DNA:
 	\includegraphics[width=0.49\linewidth]{img/supp_micro_dna_big.png}
 	\caption{Comparison of small and big classifiers for the DNA dataset}
 \end{figure}
-\begin{figure}
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=0.49\linewidth]{img/supp_splice_small.png}
 	\includegraphics[width=0.49\linewidth]{img/supp_splice_big.png}
@@ -567,33 +598,22 @@ We tested two different classifier sizes in Splice and DNA:
 	\includegraphics[width=0.49\linewidth]{img/supp_micro_splice_big.png}
 	\caption{Comparison of small and big classifiers for the Splice dataset}
 \end{figure}
-
-
-\section{Comparison of different sample sizes}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.7\linewidth]{img/tau_ablation.png}
-\end{figure}
+Even though the ranking between the two sizes of classifier does change, we observed no systematic that would favor one algorithm. 
+We therefore rely on the different datasets to provide classifiers of varying size and architecture.
 
 \section{AL Pseudocode}
 \begin{algorithm}[H]
 	\caption{Active Learning}\label{alg:active_learning}
 	\begin{algorithmic}[1]
-		\Require $\mathcal{U}$ \Comment{Unlabeled Pool}
-		\Require $\tau$ \Comment{Unlabeled Sample Size}
-		\Require $\Omega$ \Comment{AL Agent}
-		\Require $\omega$ \Comment{Environment State function}
-		\State $\mathcal{L}^{(1)} \gets \operatorname{seed}(\mathcal{U})$  \Comment{Create the initial labeled set}
-		\State $\mathcal{U}^{(1)} \gets \mathcal{U}$
+		\Require $\LL, \U, \D_\text{test}, \operatorname{Train}, \operatorname{Seed}, \hat y$
+		\Require $\Omega$ \Comment{Acquisition Function}
+		\State $\LL^{(1)} \gets \operatorname{Seed}(\U)$  \Comment{Create the initial labeled set}
+		\State $\U^{(1)} \gets \U$
 		\For{$i := 1 \ldots B$}
-		\State $\text{acc}^{(i)} \gets \operatorname{Retrain}(\mathcal{L}^{(i)})$  %\Comment{$\operatorname{Retrain}(\mathcal{L}^{(i)})$ is shorthand for $\operatorname{Retrain}(\mathcal{L}^{(i)}, \mathcal{L}^\text{test}, \hat y_\theta, e^\text{max})$}
-		%\State $u^{(i)} \sim \text{unif}(1:|\mathcal{U}^{(i)}|)$
-		\State $a^{(i)} \gets \Omega(\mathcal{U}^{(i)}) \hspace{1mm};\hspace{2mm} a \in 1:|\mathcal{U}^{(i)}|$ 
-		%\Comment{$a^{(i)}$ is an index inside of $u^{(i)}$}
-		\State $y^{(i)} \gets \operatorname{label}(\mathcal{U}^{(i)}_{a})$ 
-		%\Comment{$u^{(i)}_{a}$ is shorthand for $u^{(i)}_{a^{(i)}}$}
-		\State $\mathcal{L}^{(i+1)} \gets \mathcal{L}^{(i)} \cup \{(\mathcal{U}^{(i)}_a, y^{(i)})\}$
-		\State $\mathcal{U}^{(i+1)} \gets \mathcal{U}^{(i)} \setminus \{\mathcal{U}^{(i)}_a\}$
+		\State $\text{acc}^{(i)} \gets \operatorname{Train}(\LL^{(i)})$ 
+		\State $a^{(i)} \gets \Omega(\mathcal{U}^{(i)})$ 
+		\State $\mathcal{L}^{(i+1)} \gets \mathcal{L}^{(i)} \cup \{(\U^{(i)}_a, A(\U^{(i)}_{a}))\}$
+		\State $\U^{(i+1)} \gets \U^{(i)} \setminus \{\U^{(i)}_a\}$
 		\EndFor
 		\State
 		\Return $\frac{1}{B} \sum_{i=1}^{B} \text{acc}^{(i)}$
@@ -603,15 +623,12 @@ We tested two different classifier sizes in Splice and DNA:
 \begin{algorithm}[H]
 	\caption{Retrain}\label{alg:retrain}
 	\begin{algorithmic}[1]
-		\Require $\mathcal{L}$ \Comment{Labeled Pool}
-		\Require $\mathcal{D}_\text{val}$ \Comment{Validation Data}
-		\Require $\mathcal{D}_\text{test}$ \Comment{Test Data}
-		\Require $\hat y_\theta$ \Comment{Class. Model}
-		\Require $e^\text{max}$ \Comment{Maximum Epochs}
+		\Require $\LL, \D_\text{val}, \D_\text{test}$
+		\Require $\hat y, e_\text{max}$
 		\State $\text{loss}^* \gets \infty$
 		\For{$i := 1 \ldots e^{\text{max}}$}
-		\State $\theta_{i+1} \gets \theta_i - \eta \nabla_\theta \ell(\mathcal{L}, \hat y_{\theta})$
-		\State $\text{loss}_i \gets \ell(\mathcal{D}^\text{val}, \hat y_{\theta})$
+		\State $\hat y_{i+1} \gets \hat y_i - \eta \nabla_{\hat y} \ell(\mathcal{L}, \hat y)$
+		\State $\text{loss}_i \gets \ell(\mathcal{D}^\text{val}, \hat y)$
 		\If{$\text{loss}_i < \text{loss}^*$}
 		\State $\text{loss}^* \gets \text{loss}_i$
 		\Else
@@ -619,7 +636,7 @@ We tested two different classifier sizes in Splice and DNA:
 		\EndIf
 		\EndFor
 		\State
-		\Return Acc($\mathcal{D}^\text{test}, \hat y_{\theta}$)
+		\Return Acc($\mathcal{D}^\text{test}, \hat y$)
 	\end{algorithmic}
 \end{algorithm}
 

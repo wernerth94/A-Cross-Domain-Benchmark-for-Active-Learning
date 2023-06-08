@@ -3,7 +3,7 @@ dataset:
   budget: 150
 #  budget: 400
   classifier_fitting_mode: from_scratch
-  initial_points_per_class: 1
+  initial_points_per_class: 10
   classifier_batch_size: 32
   validation_split: 0.2
 
