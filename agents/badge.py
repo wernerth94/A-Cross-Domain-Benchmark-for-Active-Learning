@@ -29,7 +29,7 @@ class Badge(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier: nn.Module, optimizer: Optimizer,
-                      sample_size=100) -> Union[Tensor, dict]:
+                      sample_size=100) -> Union[int, list[int]]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
         sample_size = min(len(x_unlabeled), sample_size)
@@ -120,7 +120,7 @@ class BatchBadge(Badge):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier: nn.Module, optimizer: Optimizer,
-                      sample_size=8000) -> Union[Tensor, dict, list]:
+                      sample_size=8000) -> Union[int, list[int]]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
         sample_size = min(len(x_unlabeled), sample_size)

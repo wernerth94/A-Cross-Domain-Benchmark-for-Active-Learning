@@ -173,7 +173,7 @@ class SAL(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier: Module, optimizer: Optimizer,
-                      sample_size=100) -> Union[Tensor, dict]:
+                      sample_size=100) -> Union[int, list[int]]:
 
         with torch.no_grad():
             replacement_needed = len(x_unlabeled) < sample_size

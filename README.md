@@ -1,8 +1,9 @@
 # Active Learning Benchmark
 
 ## Dependencies
-Python >= 3.10
+Python >= 3.10 
 
+Via pip:
 - tianshou
 - gym
 - torchvision
@@ -10,7 +11,7 @@ Python >= 3.10
 - Pandas
 - scikit-learn
 - faiss-cpu
-- nltk
+- nltk (additional download for `nltk.word_tokenize` in News/TopV2 needed)
 - PyYAML
 - batchbald-redux
 - ray\[tune\] (Optional)
@@ -24,7 +25,9 @@ Available Agents:
 - `margin`
 - `entropy`
 - `coreset` (CoreSet Greedy)
-- `agent` (Thorbens RL Agent)
+- `typiclust`
+- `bald`
+- `badge`
 
 Available Datasets:
 - `splice`
@@ -32,6 +35,14 @@ Available Datasets:
 - `usps`
 - `cifar10`
 - `fashion_mnist`
+- `mnist`
+- `topv2`
+- `news`
+
+## Results
+All generated results tables can be found in `results/`\
+`macro_` tables are aggregated by domain \
+`micro_` tables are per dataset
 
 ## Parallel Runs
 Parallelism is controlled by two parameters: `run_id`(default 1) and `restarts`(default 50)\
@@ -42,96 +53,52 @@ This will automatically collect the results after each finished run and store it
 Here is an example how to run 6 seeded runs in three different levels of parallelism \
 ![](doc/img/parallel_runs_example.png)
 
-## Agents
-[Basic Overview](https://jacobgil.github.io/deeplearning/activelearning#active-learning-for-deep-learning)
-- Uncertainty Sampling
-  - Entropy
-  - Margin
-- Coreset
-- AL by Surrogate (Thorben) 
-- BADGE (Gradient Length for Uncertainty) ([Link](https://arxiv.org/pdf/1906.03671.pdf))
-- *MC Dropout for Uncertainty ([Link](https://openaccess.thecvf.com/content_cvpr_2018/papers/Beluch_The_Power_of_CVPR_2018_paper.pdf))
-- *Learning Loss for Active Learning ([Link](https://openaccess.thecvf.com/content_CVPR_2019/papers/Yoo_Learning_Loss_for_Active_Learning_CVPR_2019_paper.pdf))
-- *Learning to Sample ([Link](https://arxiv.org/pdf/1909.03585.pdf))
-
-### Problematic Agents
-- PAL: needs CRF classifiers and Word2Vec features
-- BADGE: uses kmeans initialization for selecting samples, which (probably) only works for multiple selected samples
-- Deep Bayesian Active Learning with Image Data: Needs Bayesian classifiers
-
 ## Structure
 ### Dataset
 Each dataset class needs to inherit from BaseDataset and implement a set of functions:
-- `__init__(...)`: Sets hyperparameters for this dataset:
-  - budget: AL Budget
-  - initial_points_per_class: Size of the seed set per class
-  - classifier_batch_size: Batch size for classifier training
-  - data_file: name of the file that will hold the normalized and processed data
+- `__init__()`: Sets hyperparameters for this dataset:
+  - data_file: name of the file that will hold the preprocessed data
   - cache_folder: location for downloaded and processed files
 - `_download_data()`: Automatically downloads the data source files into self.cache_folder, stores the data in self.x_train, self.y_train, self.x_test and self.y_test and normalizes self.x_train and self.x_test. <br>
-  Helper functions for processing the data:
-  - `postprocess_torch_dataset`
-  - `postprocess_svm_data`
-  - `convert_to_channel_first`
-- `get_classifier(hidden_dims)`: constructs and returns the classifier for this dataset. hidden_dims sets the default size of the classifier and acts as a hyperparameter.
-The returned object is a torch.Module
-- `get_optimizer(model)`: constructs and returns the optimizer for the classifier.
+- `load_pretext_data()`: Loads the version of the data that can be used for the pretext task, like SimCLR
+- `get_pretext_transforms()`: Returns PyTorch data transforms for pretext training
+- `get_pretext_validation_transforms()`: Returns PyTorch data transforms for pretext training
+- (optional) `inject_config()`: Can be used to force some properties in the config
 - (optional) `get_meta_data()`: can be overwritten to save some meta information that concerns the dataset, like the source or version
 
 ### Agent
 Each agent class needs to inherit from BaseAgent and implement a set of functions:
-- `__init__()`: sets hyperparameters for the agent, like a checkpoint or number of clusters, etc.
-- `predict(state, state_ids, ...)`: implements the forward pass of the agent. 
-Receives the full state with all available information.
-The agent computes a scalar score value for each data id in state_ids and picks the instance as it sees fit.
+- `__init__()`: sets hyperparameters for the agent, like a model-checkpoint or number of clusters, etc.
+- `predict(state, x_unlabeled, ...)`: implements the forward pass of the agent.
+Receives the full state with all available information
+The agent computes its score and return the index/indices of x_unlabeled that are selected for labeling
+- (optional) `inject_config()`: Can be used to force some properties in the config, i.e. dropout for BALD
 - (optional) `get_meta_data()`: can be overwritten to save some meta information that concerns the agent, like the checkpoint or other hyperparameters
 
-### Run Script
-A run script can execute any number of agents and datasets. \
+### Run Scripts
+The main run script is called `evaluate.py`. \
 It implements the basic reinforcement learning flow and wraps the environment into a logging context manager:
 ```python
 with core.EnvironmentLogger(env, log_path, util.is_cluster) as env:
     done = False
     dataset.reset()
     state = env.reset()
-    for i in tqdm(range(env.env.budget)):
+    iterator = tqdm(range(env.env.budget), miniters=2)
+    for i in iterator:
         action = agent.predict(*state)
-        state, reward, done, truncated, info = env.step(action.item())
+        state, reward, done, truncated, info = env.step(action)
+        iterator.set_postfix({"accuracy": env.accuracies[1][-1]})
         if done or truncated:
-            break # fail save; should not happen
+            # triggered when sampling batch_size is >1
+            break
 ```
-The EnvironmentLogger also handles restarts of the evaluation process, so the loop can be restarted any amount
-of times for cross-validation. \
-Currently I have three run scripts:
-- `al_benchmark/evaluation.py`: evaluates an AL agent on a dataset
-- `al_benchmark/evaluate_oracle.py`: evaluates the oracle on a dataset
-- `al_benchmark/compute_upper_bound.py`: computes maximum performance on a dataset with all data available
+The run script will collect all intermediate results and aggregate them into one `accuracies.csv` and `losses.csv` per experiment.
 
-## Datasets
-To download the datasets all at once, please execute `download_all_datasets.py --data_folder <your_folder>`
-
-|         | One Domain            | Domain Transfer |
-|---------|-----------------------|-----------------|
-| Tabular | splice, dna, usps     |                 |
-| Image   | FashionMnist, cifar10 | office*         |
-| Text    |                       |                 |
-
-*not implemented yet
-
-## Oracle
-Alternative Approach:
-- sample random batches of instances and take the best batch
-  - pro: might even be faster
-  - con: not clear how many random batches need to be checked
-
-## Runtimes
-GPU Partition:
-- Splice(900): 12m 
-- DNA(600): 10m
-- DNA Oracle(600): 3h 40m
-- USPS (900): 16m
-- FashionMnist(1000): 6-10h ( (12, 24, 48)-Vanilla-CNN ) 
-- Cifar10(2000) BatchSize=64: 40h (~72s per retraining)
-
-NGPU Partition:
-- USPS Oracle(900): 8-20h 
+### Other Scripts
+- `evaluate_oracle.py` executes the greedy oracle algorithm or a dataset
+- `compute_upper_bound.py` uses the full dataset to compute the upper bound for a dataset
+- `train_encoder.py` executes the pretext task for a dataset and saves a checkpoint for the encoder model
+- `ray_tune.py` optimizes the hyperparameters for one of three tasks:
+  1. Normal classification
+  2. Embedded classification
+  3. Pretext 

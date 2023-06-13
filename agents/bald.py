@@ -29,7 +29,7 @@ class BALD(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier: Module, optimizer: Optimizer,
-                      sample_size=100) -> Union[Tensor, dict]:
+                      sample_size=100) -> Union[int, list[int]]:
 
         with torch.no_grad():
             sample_size = min(sample_size, len(x_unlabeled))
@@ -89,7 +89,7 @@ class BatchBALD(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier: Module, optimizer: Optimizer,
-                      sample_size=200) -> list[int]:
+                      sample_size=200) -> Union[int, list[int]]:
 
         with torch.no_grad():
             sample_size = min(sample_size, len(x_unlabeled))

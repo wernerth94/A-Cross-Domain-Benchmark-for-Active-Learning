@@ -22,7 +22,7 @@ class TypiClust(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier:Module, optimizer:Optimizer,
-                      sample_size:int=10000)->Union[Tensor, dict]:
+                      sample_size:int=10000)->Union[int, list[int]]:
 
         sample_size = min(sample_size, len(x_unlabeled))
         state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)

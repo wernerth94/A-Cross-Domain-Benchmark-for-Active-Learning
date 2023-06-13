@@ -26,18 +26,15 @@ class ALGame(gym.Env):
         self.model_rng.manual_seed(model_seed)
         self.data_loader_rng = torch.Generator()
         self.data_loader_rng.manual_seed(self.data_loader_seed)
-        # torch.random.manual_seed(model_seed)
 
         self.dataset = dataset
         self.budget = dataset.budget
-        # self.sample_size = labeled_sample_size
         self.fitting_mode = dataset.class_fitting_mode
         self.loss = nn.CrossEntropyLoss().to(self.device)
+        self.current_test_accuracy = 0.0
 
-        # set gym observation space and action space
-        self.current_val_accuracy = 0.0
+        # Create Mock values to satisfy Gym interface
         state = self.reset()
-
         if isinstance(state, dict):
             self.observation_space = dict()
             for key, value in state.items():
@@ -59,23 +56,27 @@ class ALGame(gym.Env):
             self.reset_al_pool()
         # first training of the model should be done from scratch
         self._fit_classifier(from_scratch=True)
-        self.initial_test_accuracy = self.current_val_accuracy
+        self.initial_test_accuracy = self.current_test_accuracy
         return self.create_state()
 
 
     def create_state(self):
-        # replacement_needed = len(self.x_unlabeled) < self.sample_size
-        # self.state_ids = self.pool_rng.choice(len(self.x_unlabeled), self.sample_size, replace=replacement_needed)
+        """
+        Collects all necessary information that is exposed to the acquisition functions
+        """
         state = [self.x_unlabeled,
                  self.x_labeled, self.y_labeled,
                  self.per_class_instances,
                  self.budget, self.added_images,
-                 self.initial_test_accuracy, self.current_val_accuracy,
+                 self.initial_test_accuracy, self.current_test_accuracy,
                  self.classifier, self.optimizer]
         return state
 
 
     def step(self, action: Union[int, list[int]]):
+        """
+        Adds one or more samples to the labeled set and retrains the classifier
+        """
         reward = 0
         if isinstance(action, int):
             action = [action]
@@ -104,6 +105,7 @@ class ALGame(gym.Env):
         else:
             early_stop = EarlyStopping(patience=0)
 
+        # If drop_last is True, the first iterations i < batch_size have no training data
         drop_last = self.dataset.classifier_batch_size < len(self.x_labeled)
         train_dataloader = DataLoader(TensorDataset(self.x_labeled, self.y_labeled),
                                       batch_size=self.dataset.classifier_batch_size,
@@ -140,6 +142,7 @@ class ALGame(gym.Env):
                     break
         self.current_val_loss = loss_sum
 
+        #
         with torch.no_grad():
             self.classifier.eval()
             correct = 0.0
@@ -148,8 +151,8 @@ class ALGame(gym.Env):
                 predicted = torch.argmax(yHat, dim=1)
                 correct += (predicted == torch.argmax(batch_y, dim=1)).sum().item()
             accuracy = correct / len(self.dataset.x_test)
-            reward = accuracy - self.current_val_accuracy
-            self.current_val_accuracy = accuracy
+            reward = accuracy - self.current_test_accuracy
+            self.current_test_accuracy = accuracy
         return reward
 
 
@@ -197,6 +200,10 @@ class ALGame(gym.Env):
 
 
 class OracleALGame(ALGame):
+    """
+    Custom environment for the oracle algorithm with modified step function.
+    """
+
     def __init__(self, dataset: BaseDataset,
                  labeled_sample_size,
                  pool_rng: np.random.Generator,
@@ -211,19 +218,22 @@ class OracleALGame(ALGame):
     def _get_internal_state(self):
         initial_weights = copy.deepcopy(self.classifier.state_dict())
         initial_optimizer_state = copy.deepcopy(self.optimizer.state_dict())
-        initial_val_loss = self.current_val_loss
-        initial_val_acc = self.current_val_accuracy
+        initial_val_loss = self.current_test_loss
+        initial_val_acc = self.current_test_accuracy
         return (initial_weights, initial_optimizer_state,
                 initial_val_loss, initial_val_acc)
 
     def _set_internal_state(self, state_tuple):
         self.classifier.load_state_dict(state_tuple[0])
         self.optimizer.load_state_dict(state_tuple[1])
-        self.current_val_loss = state_tuple[2]
-        self.current_val_accuracy = state_tuple[3]
+        self.current_test_loss = state_tuple[2]
+        self.current_test_accuracy = state_tuple[3]
         self.data_loader_rng.manual_seed(self.data_loader_seed_i)
 
     def step(self, *args, **kwargs):
+        """
+        Custom step function that ignores any passed action and searches for the best point in a greedy fashion
+        """
         max_reward = 0.0
         best_i = -1
         best_action = -1

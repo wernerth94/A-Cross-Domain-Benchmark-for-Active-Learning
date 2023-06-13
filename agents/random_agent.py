@@ -13,7 +13,7 @@ class RandomAgent(BaseAgent):
                       per_class_instances: dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier: Module, optimizer: Optimizer) -> Union[Tensor, dict]:
+                      classifier: Module, optimizer: Optimizer) -> Union[int, list[int]]:
         idx = int(self.agent_rng.random()*len(x_unlabeled))
         return idx
 

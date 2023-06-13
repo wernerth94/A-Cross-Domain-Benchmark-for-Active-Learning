@@ -29,9 +29,17 @@ class BaseAgent(ABC):
                       per_class_instances:dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier:Module, optimizer:Optimizer)->Union[Tensor, dict]:
+                      classifier:Module, optimizer:Optimizer)->Union[int, list[int]]:
+        """
+        Sampling function for the acquisition function.
+        Return one id, or list of ids from x_unlabeled
+        """
         pass
 
 
     def get_meta_data(self)->str:
+        """
+        Can be overwritten to provide additional information about the acquisition function.
+        Contents will be stored into a meta.txt file for each run.
+        """
         return f"{self.name}"

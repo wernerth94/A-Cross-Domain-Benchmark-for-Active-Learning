@@ -64,6 +64,10 @@ class BaseDataset(ABC):
         print(f"| Test Instances {len(self.x_test)}")
 
     def reset(self):
+        """
+        Resets the validation split and creates a new one.
+        Also chooses initial datapoints for the seed set
+        """
         self._create_validation_split()
         self._create_seed_set()
 
@@ -92,13 +96,23 @@ class BaseDataset(ABC):
 
     @abstractmethod
     def get_pretext_transforms(self, config: dict) -> torchvision.transforms.Compose:
+        """
+        Loads the neccessary data transforms for the pretext task (SimCLR)
+        """
         pass
 
     @abstractmethod
     def get_pretext_validation_transforms(self, config: dict) -> torchvision.transforms.Compose:
+        """
+        Loads the neccessary data transforms for the pretext task (SimCLR)
+        """
         pass
 
     def _load_or_download_data(self):
+        """
+        Main loading function.
+        Loads preprocessed data from disk or fetches it from the web
+        """
         # make sure the base files are there
         if self.data_file is not None and \
            not exists(join(self.cache_folder, self.data_file)):
@@ -126,6 +140,9 @@ class BaseDataset(ABC):
         return True
 
     def _encode(self, x_train, y_train, x_test, y_test):
+        """
+        Passes the data through the encoder model specified in the config
+        """
         with torch.no_grad():
             device = "cpu"
             # device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -163,6 +180,10 @@ class BaseDataset(ABC):
         return None
 
     def get_classifier(self, model_rng) -> Module:
+        """
+        Constructs the classifier for this dataset according to the config
+        :return: PyTorch Model
+        """
         from classifiers.classifier import construct_model
         if self.encoded:
             model, _= construct_model(model_rng, self, self.config["classifier_embedded"])
@@ -171,6 +192,10 @@ class BaseDataset(ABC):
         return model
 
     def get_pretext_encoder(self, config: dict, seed=1) -> nn.Module:
+        """
+        Constructs the encoding model for this dataset according to the config
+        :return: PyTorch Model
+        """
         from sim_clr.encoder import ContrastiveModel
         from classifiers.classifier import construct_model
         model_rng = torch.Generator()
@@ -194,6 +219,10 @@ class BaseDataset(ABC):
                                    weight_decay=opt_config["weight_decay"])
 
     def get_optimizer(self, model: Module) -> Optimizer:
+        """
+        Constructs the optimizer for this dataset according to the config
+        :return: PyTorch Optimizer
+        """
         if self.encoded:
             return self._construct_optimizer(model, self.config["optimizer_embedded"])
         else:
@@ -213,6 +242,10 @@ class BaseDataset(ABC):
         return True
 
     def _create_seed_set(self):
+        """
+        Selects n samples per class and add them to the labeled set.
+        n = config["dataset"]["initial_points_per_class"]
+        """
         nClasses = self.y_train.shape[1]
         x_labeled, y_labeled = [], []
 
@@ -347,7 +380,6 @@ def normalize(x_train, x_test, mode: Literal["none", "mean", "mean_std", "min_ma
 def subsample_data(x, y, fraction: float, pool_rng: np.random.Generator):
     all_ids = np.arange(len(x))
     pool_rng.shuffle(all_ids)
-    # np.random.shuffle(all_ids)
     cutoff = int(len(all_ids) * fraction)
     ids = all_ids[:cutoff]
     new_x = x[ids]
@@ -435,5 +467,8 @@ class GaussianNoise(Module):
 
 
 class VectorToTensor(Module):
+    """
+    Custom data Transform used for compatibility in the pretext tasks
+    """
     def forward(self, x: Union[list, np.ndarray]):
         return torch.Tensor(x).type(torch.float32)
