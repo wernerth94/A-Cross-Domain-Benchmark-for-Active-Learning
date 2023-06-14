@@ -1,9 +1,9 @@
 ,FashionMnist
-Oracle,0.862 $\pm$ 0.00
-BALD,0.854 $\pm$ 0.00
-MarginScore,0.851 $\pm$ 0.00
-Badge,0.851 $\pm$ 0.00
-ShannonEntropy,0.847 $\pm$ 0.00
-TypiClust,0.846 $\pm$ 0.00
-Coreset_Greedy,0.840 $\pm$ 0.00
-RandomAgent,0.837 $\pm$ 0.00
+Oracle,0.862 $\pm$ 0.003
+BALD,0.854 $\pm$ 0.003
+MarginScore,0.851 $\pm$ 0.003
+Badge,0.851 $\pm$ 0.003
+ShannonEntropy,0.847 $\pm$ 0.004
+TypiClust,0.846 $\pm$ 0.004
+Coreset_Greedy,0.840 $\pm$ 0.004
+RandomAgent,0.837 $\pm$ 0.004

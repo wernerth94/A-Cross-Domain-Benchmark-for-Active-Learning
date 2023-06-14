@@ -1,9 +1,9 @@
 ,TopV2
-Oracle,0.862 $\pm$ 0.01
-BALD,0.831 $\pm$ 0.01
-Badge,0.826 $\pm$ 0.01
-Coreset_Greedy,0.823 $\pm$ 0.02
-MarginScore,0.822 $\pm$ 0.01
-TypiClust,0.805 $\pm$ 0.02
-ShannonEntropy,0.801 $\pm$ 0.03
-RandomAgent,0.787 $\pm$ 0.02
+Oracle,0.862 $\pm$ 0.006
+BALD,0.831 $\pm$ 0.013
+Badge,0.826 $\pm$ 0.015
+Coreset_Greedy,0.823 $\pm$ 0.016
+MarginScore,0.822 $\pm$ 0.015
+TypiClust,0.805 $\pm$ 0.015
+ShannonEntropy,0.801 $\pm$ 0.025
+RandomAgent,0.787 $\pm$ 0.015

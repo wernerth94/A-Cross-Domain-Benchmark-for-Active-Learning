@@ -44,6 +44,9 @@ All generated results tables can be found in `results/`\
 `macro_` tables are aggregated by domain \
 `micro_` tables are per dataset
 
+## Visualizations
+All graphics from the paper are generated via the two notebooks `eval_plots.ipynb` and `other_plots.ipynb`.
+
 ## Parallel Runs
 Parallelism is controlled by two parameters: `run_id`(default 1) and `restarts`(default 50)\
 This starts one run with seed 1 that sequentially executes the evaluation 50 times. \

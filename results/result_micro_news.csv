@@ -1,9 +1,9 @@
 ,News
-Oracle,0.502 $\pm$ 0.00
-MarginScore,0.427 $\pm$ 0.01
-BALD,0.421 $\pm$ 0.01
-Badge,0.420 $\pm$ 0.01
-ShannonEntropy,0.416 $\pm$ 0.01
-Coreset_Greedy,0.415 $\pm$ 0.01
-RandomAgent,0.409 $\pm$ 0.01
-TypiClust,0.385 $\pm$ 0.01
+Oracle,0.502 $\pm$ 0.005
+MarginScore,0.427 $\pm$ 0.007
+BALD,0.421 $\pm$ 0.008
+Badge,0.420 $\pm$ 0.011
+ShannonEntropy,0.416 $\pm$ 0.010
+Coreset_Greedy,0.415 $\pm$ 0.011
+RandomAgent,0.409 $\pm$ 0.008
+TypiClust,0.385 $\pm$ 0.010

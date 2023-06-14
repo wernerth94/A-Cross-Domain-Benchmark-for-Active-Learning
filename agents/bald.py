@@ -6,7 +6,8 @@ from torch.optim import Optimizer
 from core.agent import BaseAgent
 from batchbald_redux.batchbald import get_batchbald_batch
 
-
+# Based on https://github.com/acl21/deep-active-learning-pytorch
+# Author: Akshay L Chandra
 class BALD(BaseAgent):
 
     def __init__(self, agent_seed, config, dropout_trials=5):

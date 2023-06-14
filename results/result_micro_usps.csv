@@ -1,0 +1,9 @@
+,USPS
+TypiClust,0.830 $\pm$ 0.007
+Oracle,0.823 $\pm$ 0.011
+MarginScore,0.809 $\pm$ 0.013
+ShannonEntropy,0.807 $\pm$ 0.013
+Badge,0.795 $\pm$ 0.018
+Coreset_Greedy,0.788 $\pm$ 0.017
+RandomAgent,0.774 $\pm$ 0.012
+BALD,0.725 $\pm$ 0.050
