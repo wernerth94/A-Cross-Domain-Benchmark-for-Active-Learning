@@ -162,6 +162,8 @@ def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
         return agents.SAL
     elif name == "typiclust":
         return agents.TypiClust
+    elif name == "coregcn":
+        return agents.CoreGCN
     # Batch Implementations
     elif name == "batchrandom":
         return agents.BatchRandomAgent
