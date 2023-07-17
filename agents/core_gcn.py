@@ -81,12 +81,13 @@ class GCN(nn.Module):
 
 
 def aff_to_adj(x:torch.Tensor, y=None):
+    device = x.device
     x = x.detach()#.cpu().numpy()
     adj = torch.matmul(x, x.T)
-    adj += -1.0 * torch.eye(adj.shape[0])
+    adj += -1.0 * torch.eye(adj.shape[0]).to(device)
     adj_diag = torch.sum(adj, dim=0) #rowise sum
-    adj = torch.matmul(adj, torch.diag(1/adj_diag))
-    adj = adj + torch.eye(adj.size(0))
+    adj = torch.matmul(adj, torch.diag(1/adj_diag).to(device))
+    adj = adj + torch.eye(adj.size(0)).to(device)
     #adj = torch.Tensor(adj)
     return adj
 
