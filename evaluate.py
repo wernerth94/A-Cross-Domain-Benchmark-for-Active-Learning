@@ -16,10 +16,10 @@ parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--agent", type=str, default="coregcn")
-parser.add_argument("--dataset", type=str, default="splice")
+parser.add_argument("--dataset", type=str, default="topv2")
 parser.add_argument("--encoded", type=int, default=0)
 # parser.add_argument("--sample_size", type=int, default=20)
-parser.add_argument("--restarts", type=int, default=50)
+parser.add_argument("--restarts", type=int, default=1)
 ##########################################################
 parser.add_argument("--experiment_postfix", type=str, default=None)
 args = parser.parse_args()
@@ -37,8 +37,10 @@ while run_id < max_run_id:
 
     pool_rng = np.random.default_rng(args.pool_seed + run_id)
     model_seed = args.model_seed + run_id
-    # This is currently the only way to seed dropout layers in Python
+    # This is currently the only way to seed dropout masks in Python
     torch.random.manual_seed(args.model_seed + run_id)
+    # Seed numpy-based algorithms like KMeans
+    np.random.seed(args.model_seed + run_id)
     data_loader_seed = 1
 
     AgentClass = get_agent_by_name(args.agent)

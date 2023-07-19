@@ -1,5 +1,7 @@
+################################################################################
 # This is an implementation of the paper: Sequential GCN for Active Learning
 # Implemented by Yu LI, based on the code: https://github.com/razvancaramalau/Sequential-GCN-for-Active-Learning
+# Taken from https://github.com/cure-lab/deep-active-learning and adapted for this benchmark
 import abc
 import math
 from typing import Union
@@ -75,68 +77,66 @@ class GCN(nn.Module):
         x = F.relu(self.gc1(x, adj))
         feat = F.dropout(x, self.dropout, training=self.training)
         x = self.gc3(feat, adj)
-        #x = self.linear(x)
+        # x = self.linear(x)
         # x = F.softmax(x, dim=1)
-        return torch.sigmoid(x), feat, torch.cat((feat,x),1)
+        return torch.sigmoid(x), feat, torch.cat((feat, x), 1)
 
 
-def aff_to_adj(x:torch.Tensor, y=None):
+def aff_to_adj(x: torch.Tensor, y=None):
     device = x.device
-    x = x.detach()#.cpu().numpy()
+    x = x.detach()  # .cpu().numpy()
     adj = torch.matmul(x, x.T)
     adj += -1.0 * torch.eye(adj.shape[0]).to(device)
-    adj_diag = torch.sum(adj, dim=0) #rowise sum
-    adj = torch.matmul(adj, torch.diag(1/adj_diag).to(device))
+    adj_diag = torch.sum(adj, dim=0) + 1e-6  # preventing division by 0
+    adj = torch.matmul(adj, torch.diag(1 / adj_diag).to(device))
     adj = adj + torch.eye(adj.size(0)).to(device)
-    #adj = torch.Tensor(adj)
+    # adj = torch.Tensor(adj)
     return adj
 
 
-def BCEAdjLoss(scores, lbl, nlbl, l_adj):
-    lnl = torch.log(scores[lbl])
-    lnu = torch.log(1 - scores[nlbl])
+def BCEAdjLoss(scores, labeled_idxs, unlabeled_idxs, l_adj, eps=1e-6):
+    # added an epsilon to avoid division log(0)
+    lnl = torch.log(scores[labeled_idxs] + eps)
+    lnu = torch.log(1 - scores[unlabeled_idxs] + eps)
     labeled_score = torch.mean(lnl)
     unlabeled_score = torch.mean(lnu)
-    bce_adj_loss = -labeled_score - l_adj*unlabeled_score
+    bce_adj_loss = -labeled_score - l_adj * unlabeled_score
     return bce_adj_loss
 
 
-
 class SamplingMethod(object):
-  __metaclass__ = abc.ABCMeta
+    __metaclass__ = abc.ABCMeta
 
-  @abc.abstractmethod
-  def __init__(self, X, y, seed, **kwargs):
-    self.X = X
-    self.y = y
-    self.seed = seed
+    @abc.abstractmethod
+    def __init__(self, X, y, seed, **kwargs):
+        self.X = X
+        self.y = y
+        self.seed = seed
 
-  def flatten_X(self):
-    shape = self.X.shape
-    flat_X = self.X
-    if len(shape) > 2:
-      flat_X = np.reshape(self.X, (shape[0],np.product(shape[1:])))
-    return flat_X
+    def flatten_X(self):
+        shape = self.X.shape
+        flat_X = self.X
+        if len(shape) > 2:
+            flat_X = np.reshape(self.X, (shape[0], np.product(shape[1:])))
+        return flat_X
 
+    @abc.abstractmethod
+    def select_batch_(self):
+        return
 
-  @abc.abstractmethod
-  def select_batch_(self):
-    return
+    def select_batch(self, **kwargs):
+        return self.select_batch_(**kwargs)
 
-  def select_batch(self, **kwargs):
-    return self.select_batch_(**kwargs)
+    def select_batch_unc_(self, **kwargs):
+        return self.select_batch_unc_(**kwargs)
 
-  def select_batch_unc_(self, **kwargs):
-      return self.select_batch_unc_(**kwargs)
-
-  def to_dict(self):
-    return None
-
+    def to_dict(self):
+        return None
 
 
 class kCenterGreedy(SamplingMethod):
 
-    def __init__(self, X,  metric='euclidean'):
+    def __init__(self, X, metric='euclidean'):
         self.X = X
         # self.y = y
         self.flat_X = self.flatten_X()
@@ -158,18 +158,17 @@ class kCenterGreedy(SamplingMethod):
         """
 
         if reset_dist:
-          self.min_distances = None
+            self.min_distances = None
         if only_new:
-          cluster_centers = [d for d in cluster_centers
-                            if d not in self.already_selected]
-        if cluster_centers:
-          x = self.features[cluster_centers]
-          # Update min_distances for all examples given new cluster center.
-          dist = pairwise_distances(self.features, x, metric=self.metric)#,n_jobs=4)
+            cluster_centers = [d for d in cluster_centers
+                               if d not in self.already_selected]
+        x = self.features[cluster_centers]
+        # Update min_distances for all examples given new cluster center.
+        dist = pairwise_distances(self.features, x, metric=self.metric)  # ,n_jobs=4)
 
-          if self.min_distances is None:
-            self.min_distances = np.min(dist, axis=1).reshape(-1,1)
-          else:
+        if self.min_distances is None:
+            self.min_distances = np.min(dist, axis=1).reshape(-1, 1)
+        else:
             self.min_distances = np.minimum(self.min_distances, dist)
 
     def select_batch_(self, already_selected, N, **kwargs):
@@ -186,38 +185,27 @@ class kCenterGreedy(SamplingMethod):
         """
 
         try:
-          # Assumes that the transform function takes in original data and not
-          # flattened data.
-          # print('Getting transformed features...')
-        #   self.features = model.transform(self.X)
-        #   print('Calculating distances...')
-          self.update_distances(already_selected, only_new=False, reset_dist=True)
+            self.update_distances(already_selected, only_new=False, reset_dist=True)
         except:
-          # print('Using flat_X as features.')
-          self.update_distances(already_selected, only_new=True, reset_dist=False)
+            self.update_distances(already_selected, only_new=True, reset_dist=False)
 
         new_batch = []
 
         for _ in range(N):
-          if self.already_selected is None:
-            # Initialize centers with a randomly selected datapoint
-            ind = np.random.choice(np.arange(self.n_obs))
-          else:
-            ind = np.argmax(self.min_distances)
-          # New examples should not be in already selected since those points
-          # should have min_distance of zero to a cluster center.
-          assert ind not in already_selected
+            if self.already_selected is None:
+                # Initialize centers with a randomly selected datapoint
+                ind = np.random.choice(np.arange(self.n_obs))
+            else:
+                ind = np.argmax(self.min_distances)
+            # New examples should not be in already selected since those points
+            # should have min_distance of zero to a cluster center.
+            assert ind not in already_selected
 
-          self.update_distances([ind], only_new=True, reset_dist=False)
-          new_batch.append(ind)
-        # print('Maximum distance from cluster centers is %0.2f'
-        #         % max(self.min_distances))
-
-
+            self.update_distances([ind], only_new=True, reset_dist=False)
+            new_batch.append(ind)
         self.already_selected = already_selected
 
         return new_batch
-
 
 
 class CoreGCN(BaseAgent):
@@ -226,7 +214,7 @@ class CoreGCN(BaseAgent):
     Taken from https://github.com/cure-lab/deep-active-learning
     """
 
-    def __init__(self, agent_seed, config:dict,
+    def __init__(self, agent_seed, config: dict,
                  gcn_n_hidden=128, gcn_dropout=0.3, gcn_lambda=1.2):
         super().__init__(agent_seed, config)
         self.gcn_n_hidden = gcn_n_hidden
@@ -234,12 +222,12 @@ class CoreGCN(BaseAgent):
         self.gcn_lambda = gcn_lambda
 
     def predict(self, x_unlabeled: Tensor,
-                      x_labeled: Tensor, y_labeled: Tensor,
-                      per_class_instances: dict,
-                      budget:int, added_images:int,
-                      initial_test_acc:float, current_test_acc:float,
-                      classifier: Module, optimizer: Optimizer,
-                      sample_size=10000) -> Union[int, list[int]]:
+                x_labeled: Tensor, y_labeled: Tensor,
+                per_class_instances: dict,
+                budget: int, added_images: int,
+                initial_test_acc: float, current_test_acc: float,
+                classifier: Module, optimizer: Optimizer,
+                sample_size=10000) -> Union[int, list[int]]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
         device = x_unlabeled.device
@@ -249,10 +237,10 @@ class CoreGCN(BaseAgent):
         all_points = torch.cat([x_unlabeled[state_ids], x_labeled], dim=0)
         features = self._embed(all_points, classifier)
         features = functional.normalize(features)
-        adj = aff_to_adj(features)#.to(device)
+        adj = aff_to_adj(features)
 
         binary_labels = torch.cat([torch.zeros([sample_size, 1]),
-                                   torch.ones([len(x_labeled),1])], 0)
+                                   torch.ones([len(x_labeled), 1])], 0)
 
         gcn = GCN(nfeat=features.shape[1],
                   nhid=self.gcn_n_hidden,
@@ -260,13 +248,13 @@ class CoreGCN(BaseAgent):
                   dropout=self.gcn_dropout).to(device)
 
         optim = Adam(gcn.parameters(), lr=1e-3,
-                              weight_decay=5e-4)
+                     weight_decay=5e-4)
 
-        lbl = np.arange(sample_size, sample_size + len(x_labeled), 1) # temp labeled index
-        nlbl = np.arange(0, sample_size, 1) # temp unlabled index
+        lbl = np.arange(sample_size, sample_size + len(x_labeled), 1)  # temp labeled index
+        nlbl = np.arange(0, sample_size, 1)  # temp unlabled index
 
         # train the gcn model
-        losses = [] # for debugging
+        losses = []  # for debugging
         for _ in range(200):
             optim.zero_grad()
             outputs, _, _ = gcn(features, adj)
@@ -278,8 +266,8 @@ class CoreGCN(BaseAgent):
 
         gcn.eval()
         with torch.no_grad():
-            inputs = features#.to(self.device)
-            labels = binary_labels.to(device)
+            inputs = features
+            # labels = binary_labels.to(device)
             scores, _, feat = gcn(inputs, adj)
 
             feat = feat.detach().cpu().numpy()
@@ -287,20 +275,10 @@ class CoreGCN(BaseAgent):
             sampling2 = kCenterGreedy(feat)
             selected_indices = sampling2.select_batch_(new_av_idx, 1)
 
-        # print("Max confidence value: ",torch.max(scores.data))
-        # print("Mean confidence value: ",torch.mean(scores.data))
-        # preds = torch.round(scores)
-        # correct_labeled = (preds[sample_size:,0] == labels[sample_size:,0]).sum().item() / len(x_labeled)
-        # correct_unlabeled = (preds[:sample_size,0] == labels[:sample_size,0]).sum().item() / sample_size
-        # correct = (preds[:,0] == labels[:,0]).sum().item() / (sample_size + len(x_labeled))
-        # print("Labeled classified: ", correct_labeled)
-        # print("Unlabeled classified: ", correct_unlabeled)
-        # print("Total classified: ", correct)
-
         return list(state_ids[selected_indices])
 
 
-    def _embed(self, x:Tensor, model:Module)->Tensor:
+    def _embed(self, x: Tensor, model: Module) -> Tensor:
         with torch.no_grad():
             loader = DataLoader(TensorDataset(x),
                                 batch_size=256)
