@@ -11,7 +11,7 @@ from core.helper_functions import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument("--run_id", type=int, default=1)
+parser.add_argument("--run_id", type=int, default=9)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)

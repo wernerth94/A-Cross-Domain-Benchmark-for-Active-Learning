@@ -30,11 +30,11 @@ class DSA(BaseAgent):
         unlabeled_embed = self._embed(x_unlabeled[state_ids], classifier)
 
         class_matrix = {}
+        for label_id in per_class_instances.keys():
+            class_matrix[label_id] = []
         all_idx = []
         for i, label in enumerate(labeled_pred):
             label = torch.argmax(label).item()
-            if label not in class_matrix:
-                class_matrix[label] = []
             class_matrix[label].append(i)
             all_idx.append(i)
 
@@ -43,12 +43,16 @@ class DSA(BaseAgent):
         for i, at in enumerate(unlabeled_embed):
             label = torch.argmax(unlabeled_pred[i]).item()
             a_dist, a_dot = self._find_closest_at(at, labeled_embed[class_matrix[label]])
-            b_dist, _ = self._find_closest_at(a_dot, labeled_embed[list(set(all_idx) - set(class_matrix[label]))])
-            if b_dist.item() == 0:
-                print("b_dist of 0 discovered (Duplicate point or collapsed embeddings)")
-                print("a_dot"); print(a_dot)
-                print("b_dot"); print(_)
-            dsa = a_dist / b_dist
+            rest_of_points = list(set(all_idx) - set(class_matrix[label]))
+            if len(rest_of_points) > 0:
+                b_dist, _ = self._find_closest_at(a_dot, labeled_embed[rest_of_points])
+                if b_dist.item() == 0:
+                    print("b_dist of 0 discovered (Duplicate point or collapsed embeddings)")
+                    print("a_dot"); print(a_dot)
+                    print("b_dot"); print(_)
+                dsa = a_dist / b_dist
+            else:
+                dsa = 0.0
             if dsa > min_dsa:
                 min_dsa = dsa
                 min_idx = i
@@ -69,7 +73,7 @@ class DSA(BaseAgent):
         """
 
         dist = torch.linalg.norm(at - train_ats, axis=1)
-        return (min(dist), train_ats[torch.argmin(dist)])
+        return (torch.min(dist), train_ats[torch.argmin(dist)])
 
 
     def _embed(self, x: Tensor, model: Module) -> Tensor:
