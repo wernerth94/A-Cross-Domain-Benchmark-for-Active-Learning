@@ -30,7 +30,7 @@ class DSA(BaseAgent):
         unlabeled_embed = self._embed(x_unlabeled[state_ids], classifier)
 
         class_matrix = {}
-        for label_id in per_class_instances.keys():
+        for label_id in range(len(per_class_instances)):
             class_matrix[label_id] = []
         all_idx = []
         for i, label in enumerate(labeled_pred):
