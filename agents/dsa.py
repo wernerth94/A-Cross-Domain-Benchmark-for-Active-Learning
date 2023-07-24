@@ -42,17 +42,21 @@ class DSA(BaseAgent):
         min_idx = None
         for i, at in enumerate(unlabeled_embed):
             label = torch.argmax(unlabeled_pred[i]).item()
-            a_dist, a_dot = self._find_closest_at(at, labeled_embed[class_matrix[label]])
-            rest_of_points = list(set(all_idx) - set(class_matrix[label]))
-            if len(rest_of_points) > 0:
-                b_dist, _ = self._find_closest_at(a_dot, labeled_embed[rest_of_points])
-                if b_dist.item() == 0:
-                    print("b_dist of 0 discovered (Duplicate point or collapsed embeddings)")
-                    print("a_dot"); print(a_dot)
-                    print("b_dot"); print(_)
-                dsa = a_dist / b_dist
-            else:
+            points_of_same_class = class_matrix[label]
+            if len(points_of_same_class) == 0:
                 dsa = 0.0
+            else:
+                a_dist, a_dot = self._find_closest_at(at, labeled_embed[class_matrix[label]])
+                rest_of_points = list(set(all_idx) - set(class_matrix[label]))
+                if len(rest_of_points) > 0:
+                    b_dist, _ = self._find_closest_at(a_dot, labeled_embed[rest_of_points])
+                    if b_dist.item() == 0:
+                        print("b_dist of 0 discovered (Duplicate point or collapsed embeddings)")
+                        print("a_dot"); print(a_dot)
+                        print("b_dot"); print(_)
+                    dsa = a_dist / b_dist
+                else:
+                    dsa = 0.0
             if dsa > min_dsa:
                 min_dsa = dsa
                 min_idx = i
@@ -73,7 +77,9 @@ class DSA(BaseAgent):
         """
 
         dist = torch.linalg.norm(at - train_ats, axis=1)
-        return (min(dist), train_ats[torch.argmin(dist)])
+        if dist.numel() == 0:
+            print()
+        return (torch.min(dist), train_ats[torch.argmin(dist)])
 
 
     def _embed(self, x: Tensor, model: Module) -> Tensor:

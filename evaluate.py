@@ -11,13 +11,13 @@ from core.helper_functions import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
-parser.add_argument("--run_id", type=int, default=9)
+parser.add_argument("--run_id", type=int, default=3)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--agent", type=str, default="dsa")
-parser.add_argument("--dataset", type=str, default="dna")
-parser.add_argument("--encoded", type=int, default=0)
+parser.add_argument("--dataset", type=str, default="usps")
+parser.add_argument("--encoded", type=int, default=1)
 # parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=1)
 ##########################################################
