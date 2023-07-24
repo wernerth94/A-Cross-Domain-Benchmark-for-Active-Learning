@@ -73,7 +73,7 @@ class DSA(BaseAgent):
         """
 
         dist = torch.linalg.norm(at - train_ats, axis=1)
-        return (torch.min(dist), train_ats[torch.argmin(dist)])
+        return (min(dist), train_ats[torch.argmin(dist)])
 
 
     def _embed(self, x: Tensor, model: Module) -> Tensor:
