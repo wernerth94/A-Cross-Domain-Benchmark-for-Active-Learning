@@ -7,4 +7,5 @@ from agents.bald import BALD, BatchBALD
 from agents.badge import Badge, BatchBadge
 from agents.typiclust import TypiClust
 from agents.core_gcn import CoreGCN
+from agents.dsa import DSA
 
