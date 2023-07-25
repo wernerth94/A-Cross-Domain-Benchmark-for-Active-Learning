@@ -1,3 +1,4 @@
+import functools
 from typing import Union, Callable
 import os
 from os.path import join, exists
@@ -93,11 +94,32 @@ def plot_learning_curves(list_of_accs:list, out_file:str=None):
         plt.savefig(out_file, dpi=100, bbox_inches='tight')
     plt.clf()
 
+def sort_by_run_id(x, y):
+    """
+    custom comparator for sorting run folders with syntax 'run_<id>'
+    """
+    if "_" not in x and "_" not in x:
+        return 0
+    elif "_" not in x:
+        return 1
+    elif "_" not in y:
+        return -1
+    else:
+        x_id = int(x.split("_")[-1])
+        y_id = int(y.split("_")[-1])
+        if x_id > y_id:
+            return 1
+        elif x_id < y_id:
+            return -1
+        else:
+            return 0
+
 
 def collect_results(base_path, folder_prefix):
     result_acc = pd.DataFrame()
     result_loss = pd.DataFrame()
-    for run_folder in os.listdir(base_path):
+    runs = sorted(os.listdir(base_path), key=functools.cmp_to_key(sort_by_run_id))
+    for run_folder in runs:
         if run_folder.startswith(folder_prefix):
             acc_file_path = join(base_path, run_folder, "accuracies.csv")
             if exists(acc_file_path):
