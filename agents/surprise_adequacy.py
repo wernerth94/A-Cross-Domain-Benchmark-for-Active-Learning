@@ -41,7 +41,7 @@ class LSA(BaseAgent):
         max_lsa = -torch.inf
         max_idx = -1 # if not updated, is the same as random sampling
         remaining_cols = list(set(range(unlabeled_embed.size(-1))) - set(removed_cols))
-        unlabeled_embed = unlabeled_embed[:, remaining_cols]
+        unlabeled_embed = unlabeled_embed[:, remaining_cols].cpu()
         for i, at in enumerate(unlabeled_embed):
             label = torch.argmax(unlabeled_pred[i]).item()
             kde = kdes[label]
@@ -73,7 +73,7 @@ class LSA(BaseAgent):
                     removed_cols.append(i)
 
         remaining_cols = list(set(range(train_ats.size(-1))) - set(removed_cols))
-        train_ats = train_ats[:, remaining_cols]
+        train_ats = train_ats[:, remaining_cols].cpu()
         kdes = {}
         for label in range(num_classes):
             refined_ats = train_ats[class_matrix[label]].T
