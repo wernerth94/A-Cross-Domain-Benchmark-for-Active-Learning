@@ -1,8 +1,10 @@
 from typing import Union
 from abc import ABC, abstractmethod
+import torch
 from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
+from torch.utils.data import TensorDataset, DataLoader
 import numpy as np
 
 class BaseAgent(ABC):
@@ -36,6 +38,19 @@ class BaseAgent(ABC):
         """
         pass
 
+    def _embed(self, x: Tensor, model: Module) -> Tensor:
+        with torch.no_grad():
+            loader = DataLoader(TensorDataset(x),
+                                batch_size=512)
+            emb_x = None
+            for batch in loader:
+                batch = batch[0]
+                emb_batch = model._encode(batch)
+                if emb_x is None:
+                    emb_dim = emb_batch.size(-1)
+                    emb_x = torch.zeros((0, emb_dim)).to(emb_batch.device)
+                emb_x = torch.cat([emb_x, emb_batch])
+        return emb_x
 
     def get_meta_data(self)->str:
         """

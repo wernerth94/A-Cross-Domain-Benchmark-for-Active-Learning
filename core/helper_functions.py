@@ -1,10 +1,7 @@
 import functools
-from typing import Union, Callable
+from typing import Callable
 import os
 from os.path import join, exists
-from core.agent import BaseAgent
-from core.data import BaseDataset
-import datasets
 import torch
 import numpy as np
 import pandas as pd
@@ -134,7 +131,8 @@ def collect_results(base_path, folder_prefix):
     result_loss.to_csv(join(base_path, "losses.csv"))
 
 
-def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
+def get_dataset_by_name(name:str)->Callable:
+    import datasets
     # Tabular
     name = name.lower()
     if name == "splice":
@@ -165,7 +163,7 @@ def get_dataset_by_name(name:str)->Union[Callable, BaseDataset]:
         raise ValueError(f"Dataset name '{name}' not recognized")
 
 
-def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
+def get_agent_by_name(name:str)->Callable:
     import agents
     name = name.lower()
     if name == "random":
@@ -188,6 +186,8 @@ def get_agent_by_name(name:str)->Union[Callable, BaseAgent]:
         return agents.CoreGCN
     elif name == "dsa":
         return agents.DSA
+    elif name == "lsa":
+        return agents.LSA
     # Batch Implementations
     elif name == "batchrandom":
         return agents.BatchRandomAgent
