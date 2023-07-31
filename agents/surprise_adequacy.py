@@ -16,7 +16,7 @@ class LSA(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier:Module, optimizer:Optimizer,
-                      sample_size=100) ->Union[int, list[int]]:
+                      sample_size=1000) ->Union[int, list[int]]:
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
         sample_size = min(sample_size, len(x_unlabeled))
         state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
@@ -93,7 +93,7 @@ class DSA(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier:Module, optimizer:Optimizer,
-                      sample_size=100) ->Union[int, list[int]]:
+                      sample_size=1000) ->Union[int, list[int]]:
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
         sample_size = min(sample_size, len(x_unlabeled))
         state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
