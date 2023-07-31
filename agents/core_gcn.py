@@ -277,17 +277,3 @@ class CoreGCN(BaseAgent):
 
         return list(state_ids[selected_indices])
 
-
-    def _embed(self, x: Tensor, model: Module) -> Tensor:
-        with torch.no_grad():
-            loader = DataLoader(TensorDataset(x),
-                                batch_size=256)
-            emb_x = None
-            for batch in loader:
-                batch = batch[0]
-                emb_batch = model._encode(batch)
-                if emb_x is None:
-                    emb_dim = emb_batch.size(-1)
-                    emb_x = torch.zeros((0, emb_dim)).to(emb_batch.device)
-                emb_x = torch.cat([emb_x, emb_batch])
-        return emb_x
