@@ -24,6 +24,7 @@ parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
+parser.add_argument("--encoded", type=int, default=0)
 parser.add_argument("--agent", type=str, default="coregcn")
 ##########################################################
 parser.add_argument("--experiment_postfix", type=str, default=None)
@@ -82,7 +83,7 @@ done = False
 dataset.reset()
 state = env.reset()
 # iterator = tqdm(range(env.budget), miniters=2)
-iterator = tqdm(range(min(300, env.budget)))
+iterator = tqdm(range(min(500, env.budget)))
 ram_thread = multiprocessing.Process(target=track_ram, args=(os.getpid(), ram_usage,))
 ram_thread.start()
 for i in iterator:
