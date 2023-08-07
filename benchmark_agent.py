@@ -83,12 +83,12 @@ for ss in sample_sizes:
     # iterator = tqdm(range(env.budget), miniters=2)
     iterator = tqdm(range(min(500, env.budget)))
     ram_thread = multiprocessing.Process(target=track_ram, args=(os.getpid(), ram_usage_output,))
+    ram_thread.start()
     for i in iterator:
         start_time = time.time()
         action = agent.predict(*state, sample_size=ss)
         x_axis.append(len(env.x_labeled))
         predict_time.append(time.time() - start_time)
-        ram_thread.start()
         state, reward, done, truncated, info = env.step(action)
         # iterator.set_postfix({"ram": ram_usage[-1], "time": predict_time[-1]})
         if done or truncated:
