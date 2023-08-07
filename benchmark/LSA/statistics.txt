@@ -1,6 +1,0 @@
-maximal RAM (G) usage:
-9999.0:
-
-final predict time (mean of last 100):
-0.4839544057846069:
-

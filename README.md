@@ -9,6 +9,7 @@
 - include batch-AL: each dataset supports a range of batch-sizes - we can use lager image datasets
 - set sample-size: Maybe by RAM usage?
 - Revise the evaluation: Is the "sets of experiments" protocol from the CD-diagram what we need?
+- Show that other benchmarks are not consistent
 
 ## Dependencies
 Python >= 3.10 

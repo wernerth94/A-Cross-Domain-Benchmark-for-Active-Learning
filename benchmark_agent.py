@@ -8,16 +8,9 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import core
 import yaml
+import pandas as pd
 import numpy as np
 from core.helper_functions import *
-
-def getCurrentMemoryUsage():
-    ''' Memory usage in kB '''
-
-    with open('/proc/self/status') as f:
-        memusage = f.read().split('VmRSS:')[1].split('\n')[0][:-3]
-
-    return int(memusage.strip())
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", type=str, required=True)
@@ -25,11 +18,11 @@ parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--encoded", type=int, default=0)
-parser.add_argument("--agent", type=str, default="coregcn")
+parser.add_argument("--agent", type=str, default="margin")
 ##########################################################
 parser.add_argument("--experiment_postfix", type=str, default=None)
 args = parser.parse_args()
-dataset = "cifar10"
+dataset = "splice"
 
 with open(f"configs/{dataset}.yaml", 'r') as f:
     config = yaml.load(f, yaml.Loader)
@@ -68,60 +61,74 @@ else:
     log_path = os.path.join("benchmark", agent.name)
 time.sleep(0.1) # prevents printing uglyness with tqdm
 
-stop_flag = False
-x_axis = []
-ram_usage = multiprocessing.Array("f", range(10000))
-predict_time = []
-def track_ram(pid:int, out, delay=0.5):
+def track_ram(pid:int, out, delay=0.25):
     for i in range(10000):
         ram = psutil.Process(pid).memory_info().rss / (1024**3) # ^2=Mb ; ^3=Gb
         out[i] = ram
         # out.put(ram)
         time.sleep(delay)
 
-done = False
-dataset.reset()
-state = env.reset()
-# iterator = tqdm(range(env.budget), miniters=2)
-iterator = tqdm(range(min(500, env.budget)))
-ram_thread = multiprocessing.Process(target=track_ram, args=(os.getpid(), ram_usage,))
-ram_thread.start()
-for i in iterator:
-    time.sleep(2)
-    start_time = time.time()
-    action = agent.predict(*state)
-    x_axis.append(len(env.x_labeled))
-    predict_time.append(time.time() - start_time)
-    state, reward, done, truncated, info = env.step(action)
-    # iterator.set_postfix({"ram": ram_usage[-1], "time": predict_time[-1]})
-    if done or truncated:
-        # triggered when sampling batch_size is >1
-        break
-ram_thread.terminate()
-l_ram_usage = []
-for i in range(10000):
-    r = ram_usage[i]
-    if r == i:
-        break
-    l_ram_usage.append(r)
+fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(15, 7))
+benchmark_data = pd.DataFrame(columns=["labeled points", "sample size", "ram", "time"])
+sample_sizes = [50, 100, 150, 200]
+for ss in sample_sizes:
+    print(f"starting sample size {ss}")
+    time.sleep(0.1) # prevents printing uglyness with tqdm
+    x_axis = []
+    ram_usage_output = multiprocessing.Array("f", range(10000))
+    predict_time = []
+    done = False
+    dataset.reset()
+    state = env.reset()
+    # iterator = tqdm(range(env.budget), miniters=2)
+    iterator = tqdm(range(min(500, env.budget)))
+    ram_thread = multiprocessing.Process(target=track_ram, args=(os.getpid(), ram_usage_output,))
+    for i in iterator:
+        start_time = time.time()
+        action = agent.predict(*state, sample_size=ss)
+        x_axis.append(len(env.x_labeled))
+        predict_time.append(time.time() - start_time)
+        ram_thread.start()
+        state, reward, done, truncated, info = env.step(action)
+        # iterator.set_postfix({"ram": ram_usage[-1], "time": predict_time[-1]})
+        if done or truncated:
+            # triggered when sampling batch_size is >1
+            break
+    ram_thread.terminate()
+    incumbent = 0.0
+    ram_incumbent = []
+    for i in range(10000):
+        r = ram_usage_output[i]
+        if r == i:
+            break
+        incumbent = max(incumbent, r)
+        ram_incumbent.append(incumbent)
+    sample_ids = np.linspace(0, len(ram_incumbent)-1, len(x_axis))
+    sample_ids = sample_ids.astype(int)
+    ram_incumbent = np.array(ram_incumbent)[sample_ids]
+
+    ax1.plot(x_axis, ram_incumbent, label=f"{ss}")
+    ax2.plot(x_axis, predict_time, label=f"{ss}")
+
+    for i in range(len(x_axis)):
+        benchmark_data = pd.concat([benchmark_data,
+                                    pd.DataFrame({
+                                        "labeled points": x_axis[i],
+                                        "sample size": ss,
+                                        "ram": ram_incumbent[i],
+                                        "time": predict_time[i]
+                                    }, index=[i])])
 
 if os.path.exists(log_path):
     shutil.rmtree(log_path)
 os.makedirs(log_path)
-with open(os.path.join(log_path, "statistics.txt"), "w") as f:
-    f.write(f"maximal RAM (G) usage:\n")
-    f.write(f"{max(ram_usage)}:\n\n")
-    window = 100
-    f.write(f"final predict time (mean of last {window}):\n")
-    f.write(f"{sum(predict_time[-window:])/window}:\n\n")
-np.savez(os.path.join(log_path, "data.npz"), x=x_axis, ram=ram_usage, time=predict_time)
+benchmark_data.to_csv(os.path.join(log_path, "data.csv"))
 
-fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(15, 7))
-ax1.plot(l_ram_usage, label="RAM (G)", color='tab:blue')
+ax1.set_title("RAM (Gb)")
 ax1.legend()
 ax1.grid()
 
-ax2.plot(x_axis, predict_time, label="Time (s)", color='tab:red')
+ax2.set_title("Time (s)")
 ax2.legend()
 ax2.grid()
 plt.savefig(os.path.join(log_path, "plot.jpg"))
