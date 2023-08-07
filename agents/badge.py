@@ -55,8 +55,8 @@ class Badge(BaseAgent):
         with torch.no_grad():
             for x in loader_te:
                 x = x[0]
-                x_embed = model._encode(x)
-                logits = model(x)
+                x_embed = self._embed(x, model)
+                logits = self._predict(x, model)
                 batch_probs = F.softmax(logits, dim=1)
                 predicted_class = torch.argmax(batch_probs,1)
                 emb_dim = x_embed.size(-1)

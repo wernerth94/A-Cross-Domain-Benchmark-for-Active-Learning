@@ -72,44 +72,49 @@ def track_ram(pid:int, out:multiprocessing.Array, delay:float):
 
 fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(15, 7))
 benchmark_data = pd.DataFrame(columns=["labeled points", "sample size", "ram", "time"])
-sample_sizes = [50, 100, 150, 200]
+sample_sizes = [100, 300, 500, 700]
 for ss in sample_sizes:
-    print(f"starting sample size {ss}")
-    time.sleep(0.1) # prevents printing uglyness with tqdm
-    x_axis = []
-    ram_usage_output = multiprocessing.Array("f", range(10000))
-    predict_time = []
-    done = False
-    dataset.reset()
-    state = env.reset()
-    iterator = tqdm(range(min(args.steps, env.budget)))
-    ram_thread = multiprocessing.Process(target=track_ram, args=(os.getpid(), ram_usage_output, args.ram_interval))
-    ram_thread.start()
-    for i in iterator:
-        start_time = time.time()
-        action = agent.predict(*state, sample_size=ss)
-        x_axis.append(len(env.x_labeled))
-        predict_time.append(time.time() - start_time)
-        state, reward, done, truncated, info = env.step(action)
-        # iterator.set_postfix({"ram": ram_usage[-1], "time": predict_time[-1]})
-        if done or truncated:
-            # triggered when sampling batch_size is >1
-            break
-    ram_thread.terminate()
-    incumbent = 0.0
-    ram_incumbent = []
-    for i in range(10000):
-        r = ram_usage_output[i]
-        if r == i:
-            break
-        incumbent = max(incumbent, r)
-        ram_incumbent.append(incumbent)
-    sample_ids = np.linspace(0, len(ram_incumbent)-1, len(x_axis))
-    sample_ids = sample_ids.astype(int)
-    ram_incumbent = np.array(ram_incumbent)[sample_ids]
+    try:
+        print(f"starting sample size {ss}")
+        time.sleep(0.1) # prevents printing uglyness with tqdm
+        x_axis = []
+        ram_usage_output = multiprocessing.Array("f", range(10000))
+        predict_time = []
+        done = False
+        dataset.reset()
+        state = env.reset()
+        iterator = tqdm(range(min(args.steps, env.budget)))
+        ram_thread = multiprocessing.Process(target=track_ram, args=(os.getpid(), ram_usage_output, args.ram_interval))
+        ram_thread.start()
+        for i in iterator:
+            start_time = time.time()
+            action = agent.predict(*state, sample_size=ss)
+            x_axis.append(len(env.x_labeled))
+            predict_time.append(time.time() - start_time)
+            state, reward, done, truncated, info = env.step(action)
+            # iterator.set_postfix({"ram": ram_usage[-1], "time": predict_time[-1]})
+            if done or truncated:
+                # triggered when sampling batch_size is >1
+                break
+    except Exception as ex:
+        print("Exception occured:")
+        print(ex)
+    finally:
+        ram_thread.terminate()
+        incumbent = 0.0
+        ram_incumbent = []
+        for i in range(10000):
+            r = ram_usage_output[i]
+            if r == i:
+                break
+            incumbent = max(incumbent, r)
+            ram_incumbent.append(incumbent)
+        sample_ids = np.linspace(0, len(ram_incumbent)-1, len(x_axis))
+        sample_ids = sample_ids.astype(int)
+        ram_incumbent = np.array(ram_incumbent)[sample_ids]
 
-    ax1.plot(x_axis, ram_incumbent, label=f"{ss}")
-    ax2.plot(x_axis, predict_time, label=f"{ss}")
+        ax1.plot(x_axis, ram_incumbent, label=f"{ss}")
+        ax2.plot(x_axis, predict_time, label=f"{ss}")
 
     for i in range(len(x_axis)):
         benchmark_data = pd.concat([benchmark_data,

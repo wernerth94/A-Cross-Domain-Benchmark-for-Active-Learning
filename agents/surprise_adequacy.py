@@ -21,9 +21,9 @@ class LSA(BaseAgent):
         sample_size = min(sample_size, len(x_unlabeled))
         state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
 
+        labeled_pred = self._predict(x_labeled, classifier)
         labeled_embed = self._embed(x_labeled, classifier)
-        labeled_pred = classifier(x_labeled)
-        unlabeled_pred = classifier(x_unlabeled[state_ids])
+        unlabeled_pred = self._predict(x_unlabeled[state_ids], classifier)
         unlabeled_embed = self._embed(x_unlabeled[state_ids], classifier)
 
         class_matrix = {}
@@ -98,9 +98,9 @@ class DSA(BaseAgent):
         sample_size = min(sample_size, len(x_unlabeled))
         state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
 
-        labeled_pred = classifier(x_labeled)
+        labeled_pred = self._predict(x_labeled, classifier)
         labeled_embed = self._embed(x_labeled, classifier)
-        unlabeled_pred = classifier(x_unlabeled[state_ids])
+        unlabeled_pred = self._predict(x_unlabeled[state_ids], classifier)
         unlabeled_embed = self._embed(x_unlabeled[state_ids], classifier)
 
         class_matrix = {}

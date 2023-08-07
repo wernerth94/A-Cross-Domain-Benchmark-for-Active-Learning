@@ -28,16 +28,3 @@ class MarginScore(BaseAgent):
             torch.unsqueeze(bVsSB, dim=-1)
         return state_ids[torch.argmax(bVsSB, dim=0)].item()
 
-    def _predict(self, x:Tensor, model:Module)->Tensor:
-        with torch.no_grad():
-            loader = DataLoader(TensorDataset(x),
-                                batch_size=256)
-            y_hat = None
-            for batch in loader:
-                batch = batch[0]
-                emb_batch = model(batch)
-                if y_hat is None:
-                    emb_dim = emb_batch.size(-1)
-                    y_hat = torch.zeros((0, emb_dim)).to(emb_batch.device)
-                y_hat = torch.cat([y_hat, emb_batch])
-        return y_hat

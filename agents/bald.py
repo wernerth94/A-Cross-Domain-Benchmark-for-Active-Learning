@@ -45,7 +45,7 @@ class BALD(BaseAgent):
             y_hat_sum = torch.zeros( (len(x_sample), y_labeled.size(-1)) ).to(device)
             entropy_sum = torch.zeros(len(x_sample)).to(device)
             for trial in range(self.dropout_trials):
-                y_hat = classifier(x_sample)
+                y_hat = self._predict(x_sample, classifier)
                 y_hat = torch.nn.functional.softmax(y_hat, dim=-1)
                 y_hat_sum += y_hat
 
