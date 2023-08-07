@@ -20,6 +20,8 @@ parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--encoded", type=int, default=0)
 parser.add_argument("--agent", type=str, default="margin")
 parser.add_argument("--dataset", type=str, default="cifar10")
+parser.add_argument("--steps", type=int, default=500)
+parser.add_argument("--ram_interval", type=float, default=0.25)
 ##########################################################
 parser.add_argument("--experiment_postfix", type=str, default=None)
 args = parser.parse_args()
@@ -61,7 +63,7 @@ else:
     log_path = os.path.join("benchmark", agent.name)
 time.sleep(0.1) # prevents printing uglyness with tqdm
 
-def track_ram(pid:int, out, delay=0.25):
+def track_ram(pid:int, out:multiprocessing.Array, delay:float):
     for i in range(10000):
         ram = psutil.Process(pid).memory_info().rss / (1024**3) # ^2=Mb ; ^3=Gb
         out[i] = ram
@@ -80,9 +82,8 @@ for ss in sample_sizes:
     done = False
     dataset.reset()
     state = env.reset()
-    # iterator = tqdm(range(env.budget), miniters=2)
-    iterator = tqdm(range(min(500, env.budget)))
-    ram_thread = multiprocessing.Process(target=track_ram, args=(os.getpid(), ram_usage_output,))
+    iterator = tqdm(range(min(args.steps, env.budget)))
+    ram_thread = multiprocessing.Process(target=track_ram, args=(os.getpid(), ram_usage_output, args.ram_interval))
     ram_thread.start()
     for i in iterator:
         start_time = time.time()
