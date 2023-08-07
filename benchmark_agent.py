@@ -19,12 +19,12 @@ parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--encoded", type=int, default=0)
 parser.add_argument("--agent", type=str, default="margin")
+parser.add_argument("--dataset", type=str, default="cifar10")
 ##########################################################
 parser.add_argument("--experiment_postfix", type=str, default=None)
 args = parser.parse_args()
-dataset = "splice"
 
-with open(f"configs/{dataset}.yaml", 'r') as f:
+with open(f"configs/{args.dataset.lower()}.yaml", 'r') as f:
     config = yaml.load(f, yaml.Loader)
 config["current_run_info"] = args.__dict__
 print("Config:")
@@ -40,7 +40,7 @@ np.random.seed(args.model_seed)
 data_loader_seed = 1
 
 AgentClass = get_agent_by_name(args.agent)
-DatasetClass = get_dataset_by_name(dataset)
+DatasetClass = get_dataset_by_name(args.dataset)
 
 # Inject additional configuration into the dataset config (See BALD agent)
 AgentClass.inject_config(config)
