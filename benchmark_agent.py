@@ -1,3 +1,5 @@
+import sys
+
 import experiment_util as util
 import time, os, shutil
 import multiprocessing
@@ -57,84 +59,29 @@ env = core.ALGame(dataset,
                   device=util.device)
 agent = AgentClass(args.agent_seed, config)
 
-if args.experiment_postfix is not None:
-    log_path = os.path.join("benchmark", f"{agent.name}_{args.experiment_postfix}")
-else:
-    log_path = os.path.join("benchmark", agent.name)
-time.sleep(0.1) # prevents printing uglyness with tqdm
-
-def track_ram(pid:int, out:multiprocessing.Array, delay:float):
-    for i in range(10000):
-        ram = psutil.Process(pid).memory_info().rss / (1024**3) # ^2=Mb ; ^3=Gb
-        out[i] = ram
-        # out.put(ram)
-        time.sleep(delay)
-
-fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(15, 7))
-benchmark_data = pd.DataFrame(columns=["labeled points", "sample size", "ram", "time"])
-sample_sizes = [100, 300, 500, 700]
-for ss in sample_sizes:
+ss = 10000.
+jump = 5000.
+for trials in range(6):
     try:
-        print(f"starting sample size {ss}")
-        time.sleep(0.1) # prevents printing uglyness with tqdm
+        print(f"sample size {ss}... ", end="")
         x_axis = []
-        ram_usage_output = multiprocessing.Array("f", range(10000))
-        predict_time = []
         done = False
         dataset.reset()
         state = env.reset()
-        iterator = tqdm(range(min(args.steps, env.budget)))
-        ram_thread = multiprocessing.Process(target=track_ram, args=(os.getpid(), ram_usage_output, args.ram_interval))
-        ram_thread.start()
-        for i in iterator:
-            start_time = time.time()
-            action = agent.predict(*state, sample_size=ss)
-            x_axis.append(len(env.x_labeled))
-            predict_time.append(time.time() - start_time)
+        for i in range(env.budget):
+            action = agent.predict(*state, sample_size=int(ss))
             state, reward, done, truncated, info = env.step(action)
-            # iterator.set_postfix({"ram": ram_usage[-1], "time": predict_time[-1]})
             if done or truncated:
                 # triggered when sampling batch_size is >1
                 break
+        print("success")
+        if ss == 10000:
+            print("early stopping")
+            sys.exit(0)
+        else:
+            ss += jump
+            jump /= 2
     except Exception as ex:
-        print("Exception occured:")
-        print(ex)
-    finally:
-        ram_thread.terminate()
-        incumbent = 0.0
-        ram_incumbent = []
-        for i in range(10000):
-            r = ram_usage_output[i]
-            if r == i:
-                break
-            incumbent = max(incumbent, r)
-            ram_incumbent.append(incumbent)
-        sample_ids = np.linspace(0, len(ram_incumbent)-1, len(x_axis))
-        sample_ids = sample_ids.astype(int)
-        ram_incumbent = np.array(ram_incumbent)[sample_ids]
-
-        ax1.plot(x_axis, ram_incumbent, label=f"{ss}")
-        ax2.plot(x_axis, predict_time, label=f"{ss}")
-
-    for i in range(len(x_axis)):
-        benchmark_data = pd.concat([benchmark_data,
-                                    pd.DataFrame({
-                                        "labeled points": x_axis[i],
-                                        "sample size": ss,
-                                        "ram": ram_incumbent[i],
-                                        "time": predict_time[i]
-                                    }, index=[i])])
-
-if os.path.exists(log_path):
-    shutil.rmtree(log_path)
-os.makedirs(log_path)
-benchmark_data.to_csv(os.path.join(log_path, "data.csv"))
-
-ax1.set_title("RAM (Gb)")
-ax1.legend()
-ax1.grid()
-
-ax2.set_title("Time (s)")
-ax2.legend()
-ax2.grid()
-plt.savefig(os.path.join(log_path, "plot.jpg"))
+        print("failed")
+        ss -= jump
+        jump /= 2
