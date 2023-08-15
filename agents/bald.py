@@ -10,7 +10,7 @@ from batchbald_redux.batchbald import get_batchbald_batch
 # Author: Akshay L Chandra
 class BALD(BaseAgent):
 
-    def __init__(self, agent_seed, config, dropout_trials=5):
+    def __init__(self, agent_seed, config, dropout_trials=25):
         super().__init__(agent_seed, config)
         assert "current_run_info" in config and "encoded" in config["current_run_info"]
         self.dropout_trials = dropout_trials
@@ -21,7 +21,7 @@ class BALD(BaseAgent):
         Add dropout to classification model
         """
         class_key = "classifier_embedded" if config["current_run_info"]["encoded"] else "classifier"
-        config[class_key]["dropout"] = 0.2
+        config[class_key]["dropout"] = 0.3
 
 
     def predict(self, x_unlabeled: Tensor,

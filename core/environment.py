@@ -101,7 +101,7 @@ class ALGame(gym.Env):
     def _fit_classifier(self, epochs=50, from_scratch=False):
         if from_scratch:
             self.classifier.load_state_dict(self.initial_weights)
-            early_stop = EarlyStopping(patience=3)
+            early_stop = EarlyStopping(patience=50)
         else:
             early_stop = EarlyStopping(patience=0)
 

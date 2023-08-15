@@ -63,7 +63,7 @@ ss = 10000.
 jump = 5000.
 for trials in range(6):
     try:
-        print(f"sample size {ss}... ", end="")
+        print(f"sample size {ss} ... ", end="")
         x_axis = []
         done = False
         dataset.reset()
