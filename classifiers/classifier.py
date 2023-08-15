@@ -151,10 +151,18 @@ def fit_and_evaluate(dataset:BaseDataset,
                      patience:int=40):
 
     from core.helper_functions import EarlyStopping
+    import optim.gdtuo as gdtuo
     loss = nn.CrossEntropyLoss()
     model = dataset.get_classifier(model_rng)
     model = model.to(dataset.device)
-    optimizer = dataset.get_optimizer(model)
+    # optimizer = dataset.get_optimizer(model)
+    if dataset.encoded:
+        optim_cfg = dataset.config["optimizer_embedded"]
+    else:
+        optim_cfg = dataset.config["optimizer"]
+    # optim = gdtuo.Adam(0.086)
+    optim = gdtuo.SGD(0.086, weight_decay=0.000002, optimizer=gdtuo.SGD(1e-3))
+    module_wrapper = gdtuo.ModuleWrapper(model, optim)
 
     train_dataloader = DataLoader(TensorDataset(dataset.x_train, dataset.y_train),
                                   batch_size=dataset.classifier_batch_size,
@@ -167,11 +175,16 @@ def fit_and_evaluate(dataset:BaseDataset,
     for e in iterator:
         model.train()
         for batch_x, batch_y in train_dataloader:
+            module_wrapper.begin()
             yHat = model(batch_x)
             loss_value = loss(yHat, batch_y)
-            optimizer.zero_grad()
-            loss_value.backward()
-            optimizer.step()
+            # optimizer.zero_grad()
+            # loss_value.backward()
+            # optimizer.step()
+            module_wrapper.zero_grad()
+            loss_value.backward(create_graph=True)
+            module_wrapper.step()
+        lr = module_wrapper.optimizer.parameters["alpha"].cpu().item()
 
         # early stopping on validation
         model.eval()
@@ -196,5 +209,24 @@ def fit_and_evaluate(dataset:BaseDataset,
             test_loss += class_loss.detach().cpu().numpy()
         test_acc = correct / len(dataset.x_test)
         all_accs.append(test_acc)
-        iterator.set_postfix({"test loss": "%1.4f"%test_loss, "test acc": "%1.4f"%test_acc})
+        iterator.set_postfix({"lr": lr, "test loss": "%1.4f"%test_loss, "test acc": "%1.4f"%test_acc})
     return all_accs
+
+
+if __name__ == '__main__':
+    import yaml
+    import numpy as np
+    from core.helper_functions import get_dataset_by_name
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    dataset = "splice"
+    with open(f"configs/{dataset}.yaml", 'r') as f:
+        config = yaml.load(f, yaml.Loader)
+    DatasetClass = get_dataset_by_name(dataset)
+    DatasetClass.inject_config(config)
+    pool_rng = np.random.default_rng(1)
+    dataset = DatasetClass("../datasets", config, pool_rng, encoded=0)
+    dataset = dataset.to(device)
+    model_rng = torch.Generator()
+    model_rng.manual_seed(1)
+    accs = fit_and_evaluate(dataset, model_rng)
+
