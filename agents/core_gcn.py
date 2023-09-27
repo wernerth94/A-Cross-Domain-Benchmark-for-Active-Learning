@@ -214,9 +214,9 @@ class CoreGCN(BaseAgent):
     Taken from https://github.com/cure-lab/deep-active-learning
     """
 
-    def __init__(self, agent_seed, config: dict,
+    def __init__(self, agent_seed, config: dict, query_size=1,
                  gcn_n_hidden=128, gcn_dropout=0.3, gcn_lambda=1.2):
-        super().__init__(agent_seed, config)
+        super().__init__(agent_seed, config, query_size)
         self.gcn_n_hidden = gcn_n_hidden
         self.gcn_dropout = gcn_dropout
         self.gcn_lambda = gcn_lambda
@@ -226,20 +226,16 @@ class CoreGCN(BaseAgent):
                 per_class_instances: dict,
                 budget: int, added_images: int,
                 initial_test_acc: float, current_test_acc: float,
-                classifier: Module, optimizer: Optimizer,
-                sample_size=10000) -> Union[int, list[int]]:
+                classifier: Module, optimizer: Optimizer) -> Union[int, list[int]]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
         device = x_unlabeled.device
-        sample_size = min(sample_size, len(x_unlabeled))
-        state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
-
-        all_points = torch.cat([x_unlabeled[state_ids], x_labeled], dim=0)
+        all_points = torch.cat([x_unlabeled, x_labeled], dim=0)
         features = self._embed(all_points, classifier)
         features = functional.normalize(features)
         adj = aff_to_adj(features)
 
-        binary_labels = torch.cat([torch.zeros([sample_size, 1]),
+        binary_labels = torch.cat([torch.zeros([len(x_unlabeled), 1]),
                                    torch.ones([len(x_labeled), 1])], 0)
 
         gcn = GCN(nfeat=features.shape[1],
@@ -250,8 +246,8 @@ class CoreGCN(BaseAgent):
         optim = Adam(gcn.parameters(), lr=1e-3,
                      weight_decay=5e-4)
 
-        lbl = np.arange(sample_size, sample_size + len(x_labeled), 1)  # temp labeled index
-        nlbl = np.arange(0, sample_size, 1)  # temp unlabled index
+        lbl = np.arange(len(x_unlabeled), len(x_unlabeled) + len(x_labeled), 1)  # temp labeled index
+        nlbl = np.arange(0, len(x_unlabeled), 1)  # temp unlabled index
 
         # train the gcn model
         losses = []  # for debugging
@@ -271,9 +267,9 @@ class CoreGCN(BaseAgent):
             scores, _, feat = gcn(inputs, adj)
 
             feat = feat.detach().cpu().numpy()
-            new_av_idx = np.arange(sample_size, sample_size + len(x_labeled))
+            new_av_idx = np.arange(len(x_unlabeled), len(x_unlabeled) + len(x_labeled))
             sampling2 = kCenterGreedy(feat)
             selected_indices = sampling2.select_batch_(new_av_idx, 1)
 
-        return list(state_ids[selected_indices])
+        return list(selected_indices)
 

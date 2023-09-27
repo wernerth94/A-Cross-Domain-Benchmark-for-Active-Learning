@@ -14,7 +14,7 @@ class RandomAgent(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier: Module, optimizer: Optimizer) -> Union[int, list[int]]:
-        idx = int(self.agent_rng.random()*len(x_unlabeled))
+        idx = self.agent_rng.choice(len(x_unlabeled), self.query_size)
         return idx
 
 class BatchRandomAgent(BaseAgent):

@@ -1,2 +1,2 @@
 from core.environment import ALGame, OracleALGame
-from core.logging import EnvironmentLogger
+from core.env_logging import EnvironmentLogger

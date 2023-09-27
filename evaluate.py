@@ -14,11 +14,12 @@ parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--agent", type=str, default="entropy")
+parser.add_argument("--agent", type=str, default="typiclust")
 parser.add_argument("--dataset", type=str, default="splice")
-parser.add_argument("--encoded", type=int, default=0)
+parser.add_argument("--query_size", type=int, default=1)
+parser.add_argument("--encoded", type=int, default=1)
 # parser.add_argument("--sample_size", type=int, default=20)
-parser.add_argument("--restarts", type=int, default=50)
+parser.add_argument("--restarts", type=int, default=1)
 ##########################################################
 parser.add_argument("--experiment_postfix", type=str, default=None)
 args = parser.parse_args()
@@ -56,12 +57,12 @@ while run_id < max_run_id:
                       model_seed=model_seed,
                       data_loader_seed=data_loader_seed,
                       device=util.device)
-    agent = AgentClass(args.agent_seed, config)
+    agent = AgentClass(args.agent_seed, config, args.query_size)
 
     if args.experiment_postfix is not None:
-        base_path = os.path.join("runs", dataset.name, f"{agent.name}_{args.experiment_postfix}")
+        base_path = os.path.join("runs", dataset.name, args.query_size, f"{agent.name}_{args.experiment_postfix}")
     else:
-        base_path = os.path.join("runs", dataset.name, agent.name)
+        base_path = os.path.join("runs", dataset.name, args.query_size, agent.name)
     log_path = os.path.join(base_path, f"run_{run_id}")
 
     print(f"Starting run {run_id}")

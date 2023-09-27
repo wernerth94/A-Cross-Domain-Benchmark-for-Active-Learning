@@ -178,8 +178,6 @@ def get_agent_by_name(name:str)->Callable:
         return agents.BALD
     elif name == "badge":
         return agents.Badge
-    elif name == "sal":
-        return agents.SAL
     elif name == "typiclust":
         return agents.TypiClust
     elif name == "coregcn":
@@ -188,13 +186,6 @@ def get_agent_by_name(name:str)->Callable:
         return agents.DSA
     elif name == "lsa":
         return agents.LSA
-    # Batch Implementations
-    elif name == "batchrandom":
-        return agents.BatchRandomAgent
-    elif name == "batchbald":
-        return agents.BatchBALD
-    elif name == "batchbadge":
-        return agents.BatchBadge
     else:
         raise ValueError(f"Agent name '{name}' not recognized")
 

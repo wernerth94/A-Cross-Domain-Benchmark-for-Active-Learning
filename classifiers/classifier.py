@@ -161,7 +161,7 @@ def fit_and_evaluate(dataset:BaseDataset,
     else:
         optim_cfg = dataset.config["optimizer"]
     # optim = gdtuo.Adam(0.086)
-    optim = gdtuo.SGD(0.086, weight_decay=0.000002, optimizer=gdtuo.SGD(1e-3))
+    optim = gdtuo.Adam(0.086, weight_decay=0.000002, optimizer=gdtuo.SGD(1e-3))
     module_wrapper = gdtuo.ModuleWrapper(model, optim)
 
     train_dataloader = DataLoader(TensorDataset(dataset.x_train, dataset.y_train),
@@ -229,4 +229,6 @@ if __name__ == '__main__':
     model_rng = torch.Generator()
     model_rng.manual_seed(1)
     accs = fit_and_evaluate(dataset, model_rng)
+    import matplotlib.pyplot as plt
+    plt.plot(accs)
 

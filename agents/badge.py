@@ -17,8 +17,8 @@ from torch.utils.data import TensorDataset, DataLoader
 # https://github.com/JordanAsh/badge
 # and https://github.com/cure-lab/deep-active-learning
 class Badge(BaseAgent):
-    def __init__(self, agent_seed, config):
-        super().__init__(agent_seed, config)
+    def __init__(self, agent_seed, config, query_size=1):
+        super().__init__(agent_seed, config, query_size)
         self.data_loader_rng = torch.Generator()
         self.data_loader_rng.manual_seed(agent_seed)
 
@@ -28,28 +28,23 @@ class Badge(BaseAgent):
                       per_class_instances: dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier: nn.Module, optimizer: Optimizer,
-                      sample_size=100) -> Union[int, list[int]]:
+                      classifier: nn.Module, optimizer: Optimizer) -> Union[int, list[int]]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
-        sample_size = min(len(x_unlabeled), sample_size)
-        state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
-
-        gradEmbedding = self._get_grad_embedding(x_unlabeled[state_ids], classifier, sample_size)
-        chosen = self._init_centers(gradEmbedding, 1)[0]
-        return state_ids[chosen].item()
+        gradEmbedding = self._get_grad_embedding(x_unlabeled, classifier)
+        chosen = self._init_centers(gradEmbedding, 1)
+        return chosen
 
 
-    def _get_grad_embedding(self, X, model, sample_size):
+    def _get_grad_embedding(self, X, model):
         """ gradient embedding (assumes cross-entropy loss) of the last layer"""
         if isinstance(model, nn.DataParallel):
             model = model.module
         model_mode = model.training
         model.eval()
         all_embeddings = None
-        batch_size = min(sample_size, 128)
         loader_te = DataLoader(TensorDataset(X),
-                               batch_size=batch_size,
+                               batch_size=128,
                                generator=self.data_loader_rng)
         device = X.device
         with torch.no_grad():
@@ -107,25 +102,3 @@ class Badge(BaseAgent):
         # vgt = val[val > 1e-2]
         return indsAll
 
-
-class BatchBadge(Badge):
-    def __init__(self, agent_seed, config, batch_size=100):
-        super().__init__(agent_seed, config)
-        self.batch_size = batch_size
-
-
-    def predict(self, x_unlabeled: Tensor,
-                      x_labeled: Tensor, y_labeled: Tensor,
-                      per_class_instances: dict,
-                      budget:int, added_images:int,
-                      initial_test_acc:float, current_test_acc:float,
-                      classifier: nn.Module, optimizer: Optimizer,
-                      sample_size=8000) -> Union[int, list[int]]:
-
-        assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
-        sample_size = min(len(x_unlabeled), sample_size)
-        state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
-
-        gradEmbedding = self._get_grad_embedding(x_unlabeled[state_ids], classifier, sample_size)
-        chosen = self._init_centers(gradEmbedding, self.batch_size)
-        return list(state_ids[chosen])

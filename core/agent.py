@@ -9,10 +9,11 @@ import numpy as np
 
 class BaseAgent(ABC):
 
-    def __init__(self, agent_seed, config:dict):
+    def __init__(self, agent_seed, config:dict, query_size):
         self.agent_seed = agent_seed
         self.agent_rng = np.random.default_rng(agent_seed)
         self.config = config
+        self.query_size = query_size
         self.name = str(self.__class__).split('.')[-1][:-2]
         print(f"Loaded Agent: {self.name}")
 
@@ -31,7 +32,7 @@ class BaseAgent(ABC):
                       per_class_instances:dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier:Module, optimizer:Optimizer)->Union[int, list[int]]:
+                      classifier:Module, optimizer:Optimizer)->list[int]:
         """
         Sampling function for the acquisition function.
         Return one id, or list of ids from x_unlabeled

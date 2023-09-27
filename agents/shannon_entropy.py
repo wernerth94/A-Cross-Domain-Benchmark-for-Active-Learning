@@ -14,17 +14,14 @@ class ShannonEntropy(BaseAgent):
                       per_class_instances: dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier: Module, optimizer: Optimizer,
-                      sample_size=8000) -> Union[int, list[int]]:
+                      classifier: Module, optimizer: Optimizer) -> list[int]:
 
         with torch.no_grad():
-            sample_size = min(sample_size, len(x_unlabeled))
-            state_ids = self.agent_rng.choice(len(x_unlabeled), sample_size, replace=False)
-            x_sample = x_unlabeled[state_ids]
+            x_sample = x_unlabeled
             pred = self._predict(x_sample, classifier)
             pred = torch.softmax(pred, dim=1)
             eps = 1e-7
             entropy = -torch.mean(pred * torch.log(eps + pred) + (1 + eps - pred) * torch.log(1 + eps - pred), dim=1)
             entropy = torch.unsqueeze(entropy, dim=-1)
-        return state_ids[torch.argmax(entropy, dim=0)].item()
+        return torch.topk(entropy, self.query_size).indices.tolist()
 

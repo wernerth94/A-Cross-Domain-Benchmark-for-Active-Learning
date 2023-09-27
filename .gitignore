@@ -3,6 +3,8 @@
 __pycache__
 venv*
 
+runs/Splice_backup.zip
+
 raytune_output
 
 # Cluster run files

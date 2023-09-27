@@ -73,13 +73,11 @@ class ALGame(gym.Env):
         return state
 
 
-    def step(self, action: Union[int, list[int]]):
+    def step(self, action: list[int]):
         """
         Adds one or more samples to the labeled set and retrains the classifier
         """
         reward = 0
-        if isinstance(action, int):
-            action = [action]
 
         self.n_interactions += len(action)
         self.added_images += len(action)
