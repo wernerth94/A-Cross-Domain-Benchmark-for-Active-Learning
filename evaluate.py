@@ -1,3 +1,4 @@
+import math
 import time
 
 import experiment_util as util
@@ -14,12 +15,12 @@ parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--agent_seed", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--agent", type=str, default="typiclust")
+parser.add_argument("--agent", type=str, default="badge")
 parser.add_argument("--dataset", type=str, default="splice")
-parser.add_argument("--query_size", type=int, default=1)
-parser.add_argument("--encoded", type=int, default=1)
+parser.add_argument("--query_size", type=int, default=50)
+parser.add_argument("--encoded", type=int, default=0)
 # parser.add_argument("--sample_size", type=int, default=20)
-parser.add_argument("--restarts", type=int, default=1)
+parser.add_argument("--restarts", type=int, default=50)
 ##########################################################
 parser.add_argument("--experiment_postfix", type=str, default=None)
 args = parser.parse_args()
@@ -62,7 +63,7 @@ while run_id < max_run_id:
     if args.experiment_postfix is not None:
         base_path = os.path.join("runs", dataset.name, args.query_size, f"{agent.name}_{args.experiment_postfix}")
     else:
-        base_path = os.path.join("runs", dataset.name, args.query_size, agent.name)
+        base_path = os.path.join("runs", dataset.name, str(args.query_size), agent.name)
     log_path = os.path.join(base_path, f"run_{run_id}")
 
     print(f"Starting run {run_id}")
@@ -72,7 +73,8 @@ while run_id < max_run_id:
         done = False
         dataset.reset()
         state = env.reset()
-        iterator = tqdm(range(env.env.budget), miniters=2)
+        iterations = math.ceil(env.env.budget / args.query_size)
+        iterator = tqdm(range(iterations), miniters=2)
         for i in iterator:
             action = agent.predict(*state)
             state, reward, done, truncated, info = env.step(action)

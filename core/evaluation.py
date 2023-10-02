@@ -86,26 +86,47 @@ def plot_heatmap_individual(t_tables, means, plots_path):
     plt.show()
 
 
-def combine_agents_into_df(run_folder):
+def _query_to_list(query, current_folder):
+    if query is None:
+        result_list = list(os.listdir(current_folder))
+    elif isinstance(query, list):
+        result_list = query
+    elif isinstance(query, str):
+        result_list = [query]
+    else:
+        raise ValueError(f"Query not recognized: {query}")
+    return result_list
+
+def combine_agents_into_df(dataset=None, query_size=None, agent=None):
+    base_folder = "runs"
+
     df_data = {
+        "dataset": [],
         "agent": [],
         "trial": [],
-        "iteration": [],
         "acc": []
     }
-    for agent_name in os.listdir(run_folder):
-        if "batch" in agent_name.lower():
-            continue
-        acc_file = join(run_folder, agent_name, "accuracies.csv")
-        if exists(acc_file):
-            accuracies = pd.read_csv(acc_file, header=0, index_col=0).values
-            # accuracies = np.mean(accuracies, axis=1)
-            for trial in range(accuracies.shape[1]):
-                for iteration in range(accuracies.shape[0]):
-                    df_data["agent"].append(agent_name)
-                    df_data["trial"].append(trial)
-                    df_data["iteration"].append(iteration)
-                    df_data["acc"].append(accuracies[iteration, trial])
+    dataset_list = _query_to_list(dataset, base_folder)
+    for dataset in dataset_list:
+        dataset_folder = join(base_folder, dataset)
+        query_size_list = _query_to_list(query_size, dataset_folder)
+        for query_size in query_size_list:
+            if query_size in ["UpperBound"]:
+                continue
+            query_size_folder = join(dataset_folder, query_size)
+            agent_list = _query_to_list(agent, query_size_folder)
+            for agent in agent_list:
+                agent_folder = join(query_size_folder, agent)
+                acc_file = join(agent_folder, "accuracies.csv")
+                if exists(acc_file):
+                    accuracies = pd.read_csv(acc_file, header=0, index_col=0).values
+                    # accuracies = np.mean(accuracies, axis=1)
+                    for trial in range(accuracies.shape[1]):
+                        #for iteration in range(accuracies.shape[0]):
+                        df_data["dataset"].append(dataset)
+                        df_data["agent"].append(agent)
+                        df_data["trial"].append(trial)
+                        df_data["acc"].append(accuracies[:, trial])
     df = pd.DataFrame(df_data)
     return df
 
@@ -113,6 +134,6 @@ def combine_agents_into_df(run_folder):
 
 if __name__ == '__main__':
     run = "runs/Splice"
-    df = combine_agents_into_df(run)
+    df = combine_agents_into_df(dataset="Splice")
     t_table, _ = two_tailed_paired_t_test(df)
     plot_heatmap_individual(t_table, None, None)

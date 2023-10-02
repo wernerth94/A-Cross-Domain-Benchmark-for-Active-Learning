@@ -28,11 +28,11 @@ class Badge(BaseAgent):
                       per_class_instances: dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier: nn.Module, optimizer: Optimizer) -> Union[int, list[int]]:
+                      classifier: nn.Module, optimizer: Optimizer) -> list[int]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
         gradEmbedding = self._get_grad_embedding(x_unlabeled, classifier)
-        chosen = self._init_centers(gradEmbedding, 1)
+        chosen = self._init_centers(gradEmbedding, self.query_size)
         return chosen
 
 
@@ -46,17 +46,17 @@ class Badge(BaseAgent):
         loader_te = DataLoader(TensorDataset(X),
                                batch_size=128,
                                generator=self.data_loader_rng)
-        device = X.device
         with torch.no_grad():
             for x in loader_te:
                 x = x[0]
-                x_embed = self._embed(x, model)
-                logits = self._predict(x, model)
+                x_embed = self._embed(x, model) # using the classifier as encoder model
+                logits = self._predict(x, model) # normal prediction
                 batch_probs = F.softmax(logits, dim=1)
                 predicted_class = torch.argmax(batch_probs,1)
                 emb_dim = x_embed.size(-1)
                 n_classes = logits.size(-1)
 
+                # combining every embedded point with every class to generate the gradient embeddings for each point
                 if all_embeddings is None:
                     all_embeddings = torch.zeros([0, emb_dim * n_classes])
                 batch_embedding = torch.zeros([len(x), emb_dim * n_classes])
@@ -88,7 +88,6 @@ class Badge(BaseAgent):
                     if D2[i] >  newD[i]:
                         centInds[i] = cent
                         D2[i] = newD[i]
-            if sum(D2) == 0.0: pdb.set_trace()
             D2 = D2.ravel().astype(float)
             Ddist = (D2 ** 2)/ sum(D2 ** 2)
             customDist = stats.rv_discrete(name='custm', values=(np.arange(len(D2)), Ddist))
@@ -96,9 +95,5 @@ class Badge(BaseAgent):
             mu.append(X_arr[ind])
             indsAll.append(ind)
             cent += 1
-        # gram = np.matmul(X[indsAll], X[indsAll].T)
-        # val, _ = np.linalg.eig(gram)
-        # val = np.abs(val)
-        # vgt = val[val > 1e-2]
         return indsAll
 

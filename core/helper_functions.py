@@ -48,35 +48,113 @@ def save_meta_data(logpath, agent, env, dataset, config:dict):
             f.write(f"{key}: {value} \n")
 
 
-def plot_mean_std_development(inpt:list, title:str, out_file:str=None):
-    # standard deviation statistics
-    mean_develop = [np.mean(inpt[:i]) for i in range(1, len(inpt) + 1)]
-    median_develop = [np.median(inpt[:i]) for i in range(1, len(inpt) + 1)]
-    std_develop = [np.std(inpt[:i]) for i in range(1, len(inpt) + 1)]
-    fig, ax = plt.subplots()
-    ax.set_ylabel("mean")
-    ax.set_xlabel("eval run")
-    ax.grid()
-    ax.scatter(range(len(inpt)), inpt, c="r", s=9, alpha=0.3)
-    ax.plot(mean_develop, c="b", label="mean")
-    ax.plot(median_develop, c="navy", label="median")
-    ax2 = ax.twinx()
-    ax2.set_ylabel("std")
-    ax2.plot(std_develop, c="g", label="std")
+def _pad_nans_with_last_value(df:pd.DataFrame):
+    max_len = len(df)
+    for col in df:
+        diff = max_len - sum(pd.notna(df[col]))
+        if diff > 0:
+            last_val = df[col][sum(pd.notna(df[col])) - 1]
+            df[col] = pd.concat([df[col].iloc[:-diff], pd.Series([last_val]*diff)], ignore_index=True)
+    return df
 
-    legend_elements = [
-        Patch(facecolor="b", label="mean"),
-        Patch(facecolor="navy", label="median"),
-        Patch(facecolor="g", label="std"),
-    ]
-    ax2.legend(handles=legend_elements)
-    ax.set_title(title)
-    if out_file is None:
-        plt.show()
+
+initial_pool_size = {
+    "Splice": 2,
+    "SpliceEncoded": 2,
+    "DNA": 3,
+    "DNAEncoded": 3,
+    "USPS": 10,
+    "USPSEncoded": 10,
+    "Cifar10": 1000,
+    "Cifar10Encoded":10,
+    "FashionMnist": 1000,
+    "FashionMnistEncoded": 10,
+    "TopV2": 7,
+    "News": 15,
+    "Mnist": 10,
+    "DivergingSin": 2,
+    "ThreeClust": 2
+}
+
+def get_init_pool_size(dataset_agent:str):
+    dataset, _ = dataset_agent.split("/")
+    if dataset not in initial_pool_size:
+        print(f"Dataset {dataset} has no initial pool size")
+        return 0
     else:
-        fig.savefig(out_file, dpi=100, bbox_inches='tight')
-    plt.close(fig)
+        return initial_pool_size[dataset]
 
+def moving_avrg(curve, weight):
+    # moving average for a tuple of trajectory and std
+    stdCurve = curve[1]
+    curve = curve[0]
+    avrg_mean = []
+    avrg_std = []
+    moving_mean = curve[0]
+    moving_std = stdCurve[0]
+    for i in range(1, len(curve)):
+        moving_mean = weight * moving_mean + (1 - weight) * curve[i]
+        moving_std = weight * moving_std + (1 - weight) * stdCurve[i]
+        avrg_mean.append(moving_mean)
+        avrg_std.append(moving_std)
+    return np.array(avrg_mean), np.array(avrg_std)
+
+def plot_upper_bound(dataset, budget, color, alpha=0.8, percentile=0.99, linewidth=2, run_name="UpperBound"):
+    file = os.path.join("/home/thorben/phd/projects/al-benchmark/runs", dataset, f"{run_name}/accuracies.csv")
+    all_runs = pd.read_csv(file, header=0, index_col=0)
+    # mean = np.mean(all_runs.values, axis=1)
+    mean = np.median(all_runs.values, axis=1)
+    mean_percentile = percentile * mean
+    # mean_percentile = percentile * mean
+    mean = [float(mean)]*budget
+    mean_percentile = [float(mean_percentile)]*budget
+    x = np.arange(budget) + get_init_pool_size(dataset)
+    plt.plot(x, mean, label="Full Dataset", linewidth=linewidth, c=color, alpha=alpha)
+    plt.plot(x, mean_percentile, label="99% Percentile", linewidth=1, linestyle='--', c=color, alpha=0.6)
+
+def plot_benchmark(dataset, color, display_name, smoothing_weight=0.0, alpha=0.8, linewidth=1.5, plot_std=False, show_auc=False):
+    full_name = f"{display_name}"
+    file = os.path.join("/home/thorben/phd/projects/al-benchmark/runs", dataset, "accuracies.csv")
+    all_runs = pd.read_csv(file, header=0, index_col=0)
+    if show_auc:
+        values = all_runs.values
+        auc = np.sum(values, axis=0) / values.shape[0]
+        full_name += " - AUC: %1.3f"%(np.median(auc).item())
+    # mean = np.median(all_runs.values, axis=1)
+    mean = np.mean(all_runs.values, axis=1)
+    std = np.std(all_runs.values, axis=1)
+    curve = np.stack([mean, std])
+    if smoothing_weight > 0.0:
+        avrg_curve, std_curve = moving_avrg(curve, smoothing_weight)
+    else:
+        avrg_curve, std_curve = mean, std
+    x = np.arange(len(avrg_curve)) + get_init_pool_size(dataset)
+    if plot_std:
+        if show_auc:
+            avrg_std = round(sum(std) / len(std), 3)
+            full_name += f"+-{avrg_std}"
+        plt.fill_between(x, avrg_curve-std_curve, avrg_curve+std_curve, alpha=0.5, facecolor=color)
+    plt.plot(x, avrg_curve, label=full_name, linewidth=linewidth, c=color, alpha=alpha)
+    return len(x)
+
+def plot_batch_benchmark(dataset, color, display_name, alpha=0.8, linewidth=1.5, plot_std=False, show_auc=True):
+    full_name = f"{display_name}"
+    file = os.path.join("/home/thorben/phd/projects/al-benchmark/runs", dataset, "accuracies.csv")
+    all_runs = pd.read_csv(file, header=0, index_col=0)
+    all_runs = all_runs.dropna(axis=0)
+    if show_auc:
+        values = all_runs.values
+        auc = np.sum(values, axis=0) / values.shape[0]
+        full_name += " - AUC: %1.3f"%(np.median(auc).item())
+    x = list(all_runs.index)
+    x = [i + get_init_pool_size(dataset) for i in x]
+    mean = np.mean(all_runs.values, axis=1)
+    # mean = np.median(all_runs.values, axis=1)
+    std = np.std(all_runs.values, axis=1)
+    if plot_std:
+        plt.fill_between(x, mean-std, mean+std, alpha=0.5, facecolor=color)
+    plt.plot(x, mean, label=full_name, linewidth=linewidth, c=color, alpha=alpha)
+    return len(x)
 
 def plot_learning_curves(list_of_accs:list, out_file:str=None):
     for accs in list_of_accs:
