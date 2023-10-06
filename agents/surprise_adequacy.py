@@ -45,6 +45,9 @@ class LSA(BaseAgent):
             else:
                 lsa = -kde.logpdf(at.reshape(-1, 1))[0]
                 lsa_list.append(lsa)
+        missing_entries = self.query_size - len(lsa_list)
+        if missing_entries > 0:
+            lsa_list += [-torch.inf]*missing_entries
         del kdes
         return torch.topk(torch.Tensor(lsa_list), self.query_size).indices.tolist()
 
