@@ -5,7 +5,8 @@
 - [Randomness is the Root of All Evil](https://openaccess.thecvf.com/content/WACV2023/papers/Ji_Randomness_Is_the_Root_of_All_Evil_More_Reliable_Evaluation_WACV_2023_paper.pdf)
 
 ## Version 2.0
-- use one from-scratch tuning of the classifier
+- from-scratch or finetuning? (finetuning has less variance)
+  - Might as well use xgboost
 - include batch-AL: each dataset supports a range of batch-sizes - we can use lager image datasets
 - set sample-size: Maybe by RAM usage?
 - Revise the evaluation: Is the "sets of experiments" protocol from the CD-diagram what we need?

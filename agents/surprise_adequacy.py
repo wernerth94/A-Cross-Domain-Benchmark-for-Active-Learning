@@ -43,7 +43,7 @@ class LSA(BaseAgent):
             if kde is None:
                 lsa_list.append(-torch.inf)
             else:
-                lsa = -kde.logpdf(at.reshape(-1, 1))
+                lsa = -kde.logpdf(at.reshape(-1, 1))[0]
                 lsa_list.append(lsa)
         del kdes
         return torch.topk(torch.Tensor(lsa_list), self.query_size).indices.tolist()

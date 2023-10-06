@@ -6,48 +6,50 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+from scipy.stats import t
 
-def two_tailed_paired_t_test(df:pd.DataFrame):
+def _t_value_for_samplesize(n_samples, sig_level= 0.95):
+    return t.ppf(sig_level, n_samples)
+
+def two_tailed_paired_t_test(df:pd.DataFrame, treatment_col, sample_col):
     """
     Based on: Randomness is the Root of All Evil: More Reliable Evaluation of Deep Active Learning
     Github: https://intellisec.de/research/eval-al/
     """
     all_agents = list(df['agent'].unique())
-    all_iterations = list(df['iteration'].unique())
-    max_iter = max(all_iterations)
     t_values = []
-    n_N = 0
-    n_N_scores_dict = {}
-    for m_pair in tqdm(itertools.combinations(all_agents, 2)):
-        avg_b = df.groupby(['iteration'])
-        for (N_label), sub_df in avg_b:
-            sub_df = sub_df.loc[(sub_df['agent'] == m_pair[0]) | (sub_df['agent'] == m_pair[1])]
+    avg_b = df.groupby(treatment_col)
+    for agent_pair in tqdm(itertools.combinations(all_agents, 2)):
+        for treatment, sub_df in avg_b:
+            sub_df = sub_df.loc[(sub_df['agent'] == agent_pair[0]) | (sub_df['agent'] == agent_pair[1])]
             if len(list(sub_df['agent'].unique())) == 2:
-                n_N += 1
-                sub_df_g = sub_df.groupby(['trial'])
+                n_samples = len(sub_df[sample_col].unique())
+                sub_df_g = sub_df.groupby(sample_col)
                 acc_diff = []
-                for _, sub_sub_df in sub_df_g:
-                    acc_diff.append(sub_sub_df.loc[sub_df['agent'] == m_pair[0]]['acc'].values[0] -
-                                    sub_sub_df.loc[sub_df['agent'] == m_pair[1]]['acc'].values[0])
+                for sample, sub_sub_df in sub_df_g:
+                    try:
+                        acc_diff.append(sub_sub_df.loc[sub_df['agent'] == agent_pair[0]]['acc'].values[0] -
+                                        sub_sub_df.loc[sub_df['agent'] == agent_pair[1]]['acc'].values[0])
+                    except:
+                        print(f"Problem for {agent_pair} at treatment {treatment} and sample {sample}")
                 mean_difference = np.array(acc_diff).mean()
                 std = np.array(acc_diff).std()
                 n = len(acc_diff)
                 std_error = std / math.sqrt(n)
                 t_value = mean_difference / std_error
+                t_value_s = t.ppf(0.95, n_samples)
                 # t_value_s = 2.920  # trials 3
-                t_value_s = 1.676  # trials 50
+                # t_value_s = 1.676  # trials 50
                 if t_value > t_value_s:
-                    t_values.append([m_pair[0], m_pair[1], N_label, t_value, True])
+                    t_values.append([agent_pair[0], agent_pair[1], treatment, t_value, True])
                 elif t_value < - t_value_s:
-                    t_values.append([m_pair[1], m_pair[0], N_label, t_value, True])
+                    t_values.append([agent_pair[1], agent_pair[0], treatment, t_value, True])
                 else:
-                    t_values.append([m_pair[0], m_pair[1], N_label, t_value, False])
-                    t_values.append([m_pair[1], m_pair[0], N_label, t_value, False])
-        # n_N_scores_dict[BS] = n_N
-        n_N = 0
+                    t_values.append([agent_pair[0], agent_pair[1], treatment, t_value, False])
+                    t_values.append([agent_pair[1], agent_pair[0], treatment, t_value, False])
 
-    t_values_df = pd.DataFrame(t_values, columns=['M0', 'M1', 'iteration', 't_value', 'score'])
-    return t_values_df, n_N_scores_dict
+    t_values_df = pd.DataFrame(t_values, columns=['M0', 'M1', treatment_col, 't_value', 'score'])
+    return t_values_df
 
 
 def plot_heatmap_individual(t_tables, means, plots_path):
@@ -102,38 +104,62 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None):
 
     df_data = {
         "dataset": [],
+        "query_size": [],
         "agent": [],
         "trial": [],
+        "iteration": [],
         "acc": []
     }
     dataset_list = _query_to_list(dataset, base_folder)
-    for dataset in dataset_list:
-        dataset_folder = join(base_folder, dataset)
+    for dataset_name in dataset_list:
+        dataset_folder = join(base_folder, dataset_name)
         query_size_list = _query_to_list(query_size, dataset_folder)
-        for query_size in query_size_list:
-            if query_size in ["UpperBound"]:
+        for query_size_name in query_size_list:
+            if query_size_name in ["UpperBound", "Oracle"]:
                 continue
-            query_size_folder = join(dataset_folder, query_size)
+            query_size_folder = join(dataset_folder, query_size_name)
             agent_list = _query_to_list(agent, query_size_folder)
-            for agent in agent_list:
-                agent_folder = join(query_size_folder, agent)
+            for agent_name in agent_list:
+                agent_folder = join(query_size_folder, agent_name)
                 acc_file = join(agent_folder, "accuracies.csv")
                 if exists(acc_file):
                     accuracies = pd.read_csv(acc_file, header=0, index_col=0).values
-                    # accuracies = np.mean(accuracies, axis=1)
                     for trial in range(accuracies.shape[1]):
-                        #for iteration in range(accuracies.shape[0]):
-                        df_data["dataset"].append(dataset)
-                        df_data["agent"].append(agent)
-                        df_data["trial"].append(trial)
-                        df_data["acc"].append(accuracies[:, trial])
+                        for iteration in range(accuracies.shape[0]):
+                            if not np.isnan(accuracies[iteration, trial]):
+                                df_data["dataset"].append(dataset_name)
+                                df_data["query_size"].append(query_size_name)
+                                df_data["agent"].append(agent_name)
+                                df_data["trial"].append(trial)
+                                df_data["iteration"].append(iteration)
+                                df_data["acc"].append(accuracies[iteration, trial])
     df = pd.DataFrame(df_data)
-    return df
+    return df.sort_values(["dataset", "query_size", "agent", "trial", "iteration"])
+
+
+def average_out_columns(df:pd.DataFrame, columns:list):
+    result_df = df.copy(deep=True)
+    for col in columns:
+        other_columns = [c for c in result_df.columns if c not in [col, "acc"] ]
+        result_list = []
+        grouped_df = result_df.groupby(other_columns)
+        for key, sub_df in grouped_df:
+            mean = sub_df["acc"].mean()
+            sub_df = sub_df.drop(col, axis=1)
+            sub_df = sub_df.drop(sub_df.index[1:])
+            sub_df["acc"] = mean
+            result_list.append(sub_df)
+        result_df = pd.concat(result_list)
+    return result_df
 
 
 
 if __name__ == '__main__':
     run = "runs/Splice"
     df = combine_agents_into_df(dataset="Splice")
-    t_table, _ = two_tailed_paired_t_test(df)
-    plot_heatmap_individual(t_table, None, None)
+    df = average_out_columns(df, ["iteration"])
+    df = df.drop("dataset", axis=1)
+    t_table = two_tailed_paired_t_test(df, treatment_col="query_size", sample_col="trial")
+    heatmap_data = t_table[t_table["query_size"] == "1"].drop(["query_size", "score"], axis=1).pivot(index="M0", columns="M1", values="t_value")
+    plot_heatmap_individual(heatmap_data, None, None)
+    # plot_heatmap_individual(t_table.pivot(index="M0", columns="M1", values="t_value"), None, None)

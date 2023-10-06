@@ -77,7 +77,7 @@ initial_pool_size = {
 }
 
 def get_init_pool_size(dataset_agent:str):
-    dataset, _ = dataset_agent.split("/")
+    dataset = dataset_agent.split("/")[0]
     if dataset not in initial_pool_size:
         print(f"Dataset {dataset} has no initial pool size")
         return 0
@@ -269,5 +269,5 @@ def get_agent_by_name(name:str)->Callable:
 
 
 if __name__ == '__main__':
-    base_path = "runs/Splice/BatchBALD_100"
+    base_path = "runs/Splice/50/TypiClust"
     collect_results(base_path, "run_")
