@@ -11,15 +11,16 @@ from scipy.stats import t
 def _t_value_for_samplesize(n_samples, sig_level= 0.95):
     return t.ppf(sig_level, n_samples)
 
-def two_tailed_paired_t_test(df:pd.DataFrame, treatment_col, sample_col):
+def two_tailed_paired_t_test(df:pd.DataFrame, treatment_col, sample_col, max_sample=50):
     """
     Based on: Randomness is the Root of All Evil: More Reliable Evaluation of Deep Active Learning
     Github: https://intellisec.de/research/eval-al/
     """
+    df = df[ df[sample_col] < max_sample ]
     all_agents = list(df['agent'].unique())
     t_values = []
     avg_b = df.groupby(treatment_col)
-    for agent_pair in tqdm(itertools.combinations(all_agents, 2)):
+    for agent_pair in tqdm(itertools.combinations(all_agents, 2), total=int((len(all_agents)**2 - len(all_agents))/2)):
         for treatment, sub_df in avg_b:
             sub_df = sub_df.loc[(sub_df['agent'] == agent_pair[0]) | (sub_df['agent'] == agent_pair[1])]
             if len(list(sub_df['agent'].unique())) == 2:
@@ -38,8 +39,6 @@ def two_tailed_paired_t_test(df:pd.DataFrame, treatment_col, sample_col):
                 std_error = std / math.sqrt(n)
                 t_value = mean_difference / std_error
                 t_value_s = t.ppf(0.95, n_samples)
-                # t_value_s = 2.920  # trials 3
-                # t_value_s = 1.676  # trials 50
                 if t_value > t_value_s:
                     t_values.append([agent_pair[0], agent_pair[1], treatment, t_value, True])
                 elif t_value < - t_value_s:
@@ -52,7 +51,7 @@ def two_tailed_paired_t_test(df:pd.DataFrame, treatment_col, sample_col):
     return t_values_df
 
 
-def plot_heatmap_individual(t_tables, means, plots_path):
+def plot_heatmap_individual(t_tables:pd.DataFrame, means, plots_path):
     """
     Based on: Randomness is the Root of All Evil: More Reliable Evaluation of Deep Active Learning
     Github: https://intellisec.de/research/eval-al/
@@ -69,13 +68,15 @@ def plot_heatmap_individual(t_tables, means, plots_path):
     # cbar_ax.tick_params(labelsize=50)
     # fname = f'B4000_3trials_t.png'
 
-    h_det = sns.heatmap(data=t_tables, robust=True, annot=True, cmap=cmap, #xticklabels=x,
+    pivot_df = t_tables.pivot_table(values="score", index="M1", columns="M0", aggfunc="mean")
+
+    h_det = sns.heatmap(data=pivot_df, robust=True, annot=True, cmap=cmap, #xticklabels=x,
                         yticklabels=False,
                         #cbar_ax=cbar_ax,
                         cbar_kws={'format': '%.2f'},
-                        vmin=0, vmax=1, annot_kws={"fontsize": 50}, fmt='.2f')
+                        vmin=0, vmax=1, annot_kws={"fontsize": 10}, fmt='.2f')
     plt.tick_params(axis='both', which='major', pad=18)
-    h_det.set_xticklabels(h_det.get_xticklabels(), rotation=0, fontsize=50)
+    h_det.set_xticklabels(h_det.get_xticklabels(), rotation=45, fontsize=10)
     # m_h = sns.heatmap(data=means[key].transpose(), robust=True, annot=True, cmap=cmap,
     #                   xticklabels=False,
     #                   yticklabels=False, cbar=None, vmin=0, vmax=1, annot_kws={"fontsize": 50}, fmt='.2f')
@@ -85,6 +86,7 @@ def plot_heatmap_individual(t_tables, means, plots_path):
     # print("Saved at: ", fpath)
     # os.makedirs(plots_path, exist_ok=True)
     # plt.savefig(fpath)
+    plt.tight_layout()
     plt.show()
 
 
@@ -160,6 +162,6 @@ if __name__ == '__main__':
     df = average_out_columns(df, ["iteration"])
     df = df.drop("dataset", axis=1)
     t_table = two_tailed_paired_t_test(df, treatment_col="query_size", sample_col="trial")
-    heatmap_data = t_table[t_table["query_size"] == "1"].drop(["query_size", "score"], axis=1).pivot(index="M0", columns="M1", values="t_value")
+    heatmap_data = t_table[t_table["query_size"] == "1"]#.drop(["query_size"], axis=1)
     plot_heatmap_individual(heatmap_data, None, None)
     # plot_heatmap_individual(t_table.pivot(index="M0", columns="M1", values="t_value"), None, None)
