@@ -138,7 +138,7 @@ class ALGame(gym.Env):
                 val_loss_list.append(loss_sum)
                 if early_stop.check_stop(loss_sum):
                     break
-        self.current_val_loss = loss_sum
+        self.current_test_loss = loss_sum
 
         #
         with torch.no_grad():
@@ -216,10 +216,10 @@ class OracleALGame(ALGame):
     def _get_internal_state(self):
         initial_weights = copy.deepcopy(self.classifier.state_dict())
         initial_optimizer_state = copy.deepcopy(self.optimizer.state_dict())
-        initial_val_loss = self.current_test_loss
-        initial_val_acc = self.current_test_accuracy
+        initial_test_loss = self.current_test_loss
+        initial_test_acc = self.current_test_accuracy
         return (initial_weights, initial_optimizer_state,
-                initial_val_loss, initial_val_acc)
+                initial_test_loss, initial_test_acc)
 
     def _set_internal_state(self, state_tuple):
         self.classifier.load_state_dict(state_tuple[0])

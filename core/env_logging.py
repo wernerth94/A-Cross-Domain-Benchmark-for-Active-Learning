@@ -45,7 +45,7 @@ class EnvironmentLogger:
         self.current_run += 1
         self.current_timestep = 0
         self.accuracies[self.current_run] = [self.env.current_test_accuracy]
-        self.losses[self.current_run] = [self.env.current_val_loss]
+        self.losses[self.current_run] = [self.env.current_test_loss]
         return return_values
 
 
@@ -56,6 +56,6 @@ class EnvironmentLogger:
             self.losses[self.current_run].append(np.NaN)
             self.current_timestep += 1
         self.accuracies[self.current_run].append(self.env.current_test_accuracy)
-        self.losses[self.current_run].append(self.env.current_val_loss)
+        self.losses[self.current_run].append(self.env.current_test_loss)
         self.current_timestep += 1
         return return_values

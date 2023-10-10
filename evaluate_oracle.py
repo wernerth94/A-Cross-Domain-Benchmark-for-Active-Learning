@@ -12,7 +12,7 @@ parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--dataset", type=str, default="ThreeClust")
+parser.add_argument("--dataset", type=str, default="dna")
 parser.add_argument("--encoded", type=int, default=0)
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=3)
@@ -59,14 +59,14 @@ while run_id < max_run_id:
             if done or truncated:
                 break # fail save; should not happen
 
-        save_meta_data(log_path, None, env, dataset, config)
-        if args.store_dataset:
-            # store dataset for later HP optimization
-            out_file = os.path.join(log_path, "labeled_data.pt")
-            torch.save({
-                "x_train": env.env.x_labeled, # specific naming convention to
-                "y_train": env.env.y_labeled  # be consistent with normal dataset files
-            }, out_file)
+    save_meta_data(log_path, None, env, dataset, config)
+    if args.store_dataset:
+        # store dataset for later HP optimization
+        out_file = os.path.join(log_path, "labeled_data.pt")
+        torch.save({
+            "x_train": env.env.x_labeled, # specific naming convention to
+            "y_train": env.env.y_labeled  # be consistent with normal dataset files
+        }, out_file)
 
 
     # collect results from all runs
