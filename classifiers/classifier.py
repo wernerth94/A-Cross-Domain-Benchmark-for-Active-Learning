@@ -151,7 +151,6 @@ def fit_and_evaluate(dataset:BaseDataset,
                      patience:int=40):
 
     from core.helper_functions import EarlyStopping
-    import optim.gdtuo as gdtuo
     loss = nn.CrossEntropyLoss()
     model = dataset.get_classifier(model_rng)
     model = model.to(dataset.device)
@@ -161,8 +160,7 @@ def fit_and_evaluate(dataset:BaseDataset,
     else:
         optim_cfg = dataset.config["optimizer"]
     # optim = gdtuo.Adam(0.086)
-    optim = gdtuo.Adam(0.086, weight_decay=0.000002, optimizer=gdtuo.SGD(1e-3))
-    module_wrapper = gdtuo.ModuleWrapper(model, optim)
+    optimizer = torch.optim.Adam(model.parameters(), lr=optim_cfg["lr"], weight_decay=optim_cfg["weight_decay"])
 
     train_dataloader = DataLoader(TensorDataset(dataset.x_train, dataset.y_train),
                                   batch_size=dataset.classifier_batch_size,
@@ -175,16 +173,11 @@ def fit_and_evaluate(dataset:BaseDataset,
     for e in iterator:
         model.train()
         for batch_x, batch_y in train_dataloader:
-            module_wrapper.begin()
             yHat = model(batch_x)
             loss_value = loss(yHat, batch_y)
-            # optimizer.zero_grad()
-            # loss_value.backward()
-            # optimizer.step()
-            module_wrapper.zero_grad()
-            loss_value.backward(create_graph=True)
-            module_wrapper.step()
-        lr = module_wrapper.optimizer.parameters["alpha"].cpu().item()
+            optimizer.zero_grad()
+            loss_value.backward()
+            optimizer.step()
 
         # early stopping on validation
         model.eval()
@@ -209,7 +202,7 @@ def fit_and_evaluate(dataset:BaseDataset,
             test_loss += class_loss.detach().cpu().numpy()
         test_acc = correct / len(dataset.x_test)
         all_accs.append(test_acc)
-        iterator.set_postfix({"lr": lr, "test loss": "%1.4f"%test_loss, "test acc": "%1.4f"%test_acc})
+        iterator.set_postfix({"test loss": "%1.4f"%test_loss, "test acc": "%1.4f"%test_acc})
     return all_accs
 
 
