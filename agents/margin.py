@@ -22,6 +22,5 @@ class MarginScore(BaseAgent):
             pred = torch.softmax(pred, dim=1)
             two_highest, _ = pred.topk(2, dim=1)
             bVsSB = 1 - (two_highest[:, -2] - two_highest[:, -1])
-            torch.unsqueeze(bVsSB, dim=-1)
         return torch.topk(bVsSB, self.query_size).indices.tolist()
 

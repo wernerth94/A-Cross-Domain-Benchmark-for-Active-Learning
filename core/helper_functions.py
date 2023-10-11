@@ -84,20 +84,21 @@ def get_init_pool_size(dataset_agent:str):
     else:
         return initial_pool_size[dataset]
 
-def moving_avrg(curve, weight):
+def _moving_avrg(line, weight):
+    moving_mean = line[0]
+    result = [moving_mean]
+    for i in range(1, len(line)):
+        moving_mean = weight * moving_mean + (1 - weight) * line[i]
+        result.append(moving_mean)
+    return np.array(result)
+
+
+def moving_avrg(trajectory, weight):
     # moving average for a tuple of trajectory and std
-    stdCurve = curve[1]
-    curve = curve[0]
-    avrg_mean = []
-    avrg_std = []
-    moving_mean = curve[0]
-    moving_std = stdCurve[0]
-    for i in range(1, len(curve)):
-        moving_mean = weight * moving_mean + (1 - weight) * curve[i]
-        moving_std = weight * moving_std + (1 - weight) * stdCurve[i]
-        avrg_mean.append(moving_mean)
-        avrg_std.append(moving_std)
-    return np.array(avrg_mean), np.array(avrg_std)
+    stdCurve = trajectory[1]
+    trajectory = trajectory[0]
+    return _moving_avrg(trajectory, weight), _moving_avrg(stdCurve, weight)
+
 
 def plot_upper_bound(dataset, budget, color, alpha=0.8, percentile=0.99, linewidth=2, run_name="UpperBound"):
     file = os.path.join("/home/thorben/phd/projects/al-benchmark/runs", dataset, f"{run_name}/accuracies.csv")

@@ -8,6 +8,38 @@ import numpy as np
 from tqdm import tqdm
 from scipy.stats import t
 
+def _find_missing_runs():
+    datasets = ["Splice", "SpliceEncoded", "DNA", "DNAEncoded", "USPS", "USPSEncoded", "TopV2", "News",
+                "Cifar10", "Cifar10Encoded", "FashionMnist", "FashionMnistEncoded",
+                "ThreeClust", "DivergingSin"]
+    agents = ["Badge", "BALD", "CoreGCN", "Coreset_Greedy", "DSA", "LSA", "MarginScore", "RandomAgent", "ShannonEntropy", "TypiClust"]
+    for dataset in datasets:
+        dataset_folder = join("runs", dataset)
+        if not exists(dataset_folder):
+            print(f"Folder missing {dataset_folder}")
+            continue
+        for query_size in ["1", "5", "20", "50", "100", "Oracle", "UpperBound"]:
+            query_folder = join(dataset_folder, query_size)
+            if not exists(query_folder):
+                print(f"Folder missing {query_folder}")
+                continue
+            if query_size not in ["Oracle", "UpperBound"]:
+                for agent in agents:
+                    agent_folder = join(query_folder, agent)
+                    if not exists(agent_folder):
+                        print(f"Folder missing {agent_folder}")
+                        continue
+                    acc_file = join(agent_folder, "accuracies.csv")
+                    if exists(acc_file):
+                        accuracies = pd.read_csv(acc_file, header=0, index_col=0)
+                        if len(accuracies.columns) < 50:
+                            print(f"Missing runs for {acc_file} (found {len(accuracies.columns)})")
+                    else:
+                        print(f"Accuracy file missing {acc_file}")
+
+
+
+
 def _t_value_for_samplesize(n_samples, sig_level= 0.95):
     return t.ppf(sig_level, n_samples)
 
@@ -157,6 +189,8 @@ def average_out_columns(df:pd.DataFrame, columns:list):
 
 
 if __name__ == '__main__':
+    _find_missing_runs()
+    exit(0)
     run = "runs/Splice"
     df = combine_agents_into_df(dataset="Splice")
     df = average_out_columns(df, ["iteration"])

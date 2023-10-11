@@ -22,6 +22,5 @@ class ShannonEntropy(BaseAgent):
             pred = torch.softmax(pred, dim=1)
             eps = 1e-7
             entropy = -torch.mean(pred * torch.log(eps + pred) + (1 + eps - pred) * torch.log(1 + eps - pred), dim=1)
-            entropy = torch.unsqueeze(entropy, dim=-1)
         return torch.topk(entropy, self.query_size).indices.tolist()
 
