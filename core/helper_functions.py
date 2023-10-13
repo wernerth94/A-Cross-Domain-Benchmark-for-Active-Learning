@@ -270,5 +270,6 @@ def get_agent_by_name(name:str)->Callable:
 
 
 if __name__ == '__main__':
+    # plot_batch_benchmark("Splice/5/RandomAgent", "b", "random")
     base_path = "runs/Splice/50/TypiClust"
     collect_results(base_path, "run_")

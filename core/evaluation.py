@@ -29,11 +29,28 @@ def _find_missing_runs():
                     if not exists(agent_folder):
                         print(f"Folder missing {agent_folder}")
                         continue
+                    # Check individual runs
+                    for i in range(1, 51):
+                        run_folder = join(agent_folder, f"run_{i}")
+                        if not exists(run_folder):
+                            print(f"Folder missing {run_folder}")
+                            continue
+                        run_acc_file = join(run_folder, "accuracies.csv")
+                        if not exists(run_acc_file):
+                            print(f"Accuracy file missing {run_acc_file}")
+                    # Check collection of runs
                     acc_file = join(agent_folder, "accuracies.csv")
                     if exists(acc_file):
                         accuracies = pd.read_csv(acc_file, header=0, index_col=0)
                         if len(accuracies.columns) < 50:
                             print(f"Missing runs for {acc_file} (found {len(accuracies.columns)})")
+                        target_count = None
+                        for c in accuracies.columns:
+                            count_non_zero = (accuracies[c] != 0).sum()
+                            if target_count is None:
+                                target_count = count_non_zero
+                            if count_non_zero != target_count:
+                                print(f"Uneven number of values in run {c} of {agent_folder}")
                     else:
                         print(f"Accuracy file missing {acc_file}")
 

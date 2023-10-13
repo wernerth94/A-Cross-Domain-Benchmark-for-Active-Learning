@@ -226,17 +226,19 @@ class CoreGCN(BaseAgent):
                 per_class_instances: dict,
                 budget: int, added_images: int,
                 initial_test_acc: float, current_test_acc: float,
-                classifier: Module, optimizer: Optimizer) -> Union[int, list[int]]:
+                classifier: Module, optimizer: Optimizer,
+                sample_size=10000) -> Union[int, list[int]]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
+        sample_size = min(sample_size, len(x_unlabeled))
+        sample_ids = np.random.choice(len(x_unlabeled),  sample_size, replace=False)
+        x_unlabeled = x_unlabeled[sample_ids]
+
         device = x_unlabeled.device
         all_points = torch.cat([x_unlabeled, x_labeled], dim=0)
         features = self._embed(all_points, classifier)
         features = functional.normalize(features)
         adj = aff_to_adj(features)
-
-        binary_labels = torch.cat([torch.zeros([len(x_unlabeled), 1]),
-                                   torch.ones([len(x_labeled), 1])], 0)
 
         gcn = GCN(nfeat=features.shape[1],
                   nhid=self.gcn_n_hidden,
@@ -263,7 +265,6 @@ class CoreGCN(BaseAgent):
         gcn.eval()
         with torch.no_grad():
             inputs = features
-            # labels = binary_labels.to(device)
             scores, _, feat = gcn(inputs, adj)
 
             feat = feat.detach().cpu().numpy()
@@ -271,5 +272,6 @@ class CoreGCN(BaseAgent):
             sampling2 = kCenterGreedy(feat)
             selected_indices = sampling2.select_batch_(new_av_idx, 1)
 
-        return list(selected_indices)
+        selected_indices = list(selected_indices)
+        return sample_ids[selected_indices]
 
