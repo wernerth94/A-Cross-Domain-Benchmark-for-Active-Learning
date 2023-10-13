@@ -28,12 +28,17 @@ class Badge(BaseAgent):
                       per_class_instances: dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier: nn.Module, optimizer: Optimizer) -> list[int]:
+                      classifier: nn.Module, optimizer: Optimizer,
+                      sample_size=10000) -> list[int]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
+        sample_size = min(sample_size, len(x_unlabeled))
+        sample_ids = np.random.choice(len(x_unlabeled),  sample_size, replace=False)
+        x_unlabeled = x_unlabeled[sample_ids]
+
         gradEmbedding = self._get_grad_embedding(x_unlabeled, classifier)
         chosen = self._init_centers(gradEmbedding, self.query_size)
-        return chosen
+        return sample_ids[chosen]
 
 
     def _get_grad_embedding(self, X, model):
