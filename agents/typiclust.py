@@ -21,44 +21,50 @@ class TypiClust(BaseAgent):
                       per_class_instances:dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier:Module, optimizer:Optimizer)->Union[int, list[int]]:
+                      classifier:Module, optimizer:Optimizer,
+                      sample_size=10000)->Union[int, list[int]]:
 
-        all_data = torch.concat([self._embed(x_unlabeled, classifier),
-                                 self._embed(x_labeled, classifier)], dim=0).cpu()
+        with torch.no_grad():
+            sample_size = min(sample_size, len(x_unlabeled))
+            sample_ids = np.random.choice(len(x_unlabeled),  sample_size, replace=False)
+            x_unlabeled = x_unlabeled[sample_ids]
 
-        num_clusters = min(len(x_labeled) + 1, self.MAX_NUM_CLUSTERS)
-        clusters = self._kmeans(all_data, num_clusters=num_clusters)
-        labels = np.copy(clusters)
-        # counting cluster sizes and number of labeled samples per cluster
-        cluster_ids, cluster_sizes = np.unique(labels, return_counts=True)
-        cluster_ids, cluster_sizes = self._fill_in_zero_size_clusters(cluster_ids, cluster_sizes)
-        existing_indices = np.arange(len(x_unlabeled), len(x_unlabeled)+len(x_labeled))
-        cluster_labeled_counts = np.bincount(labels[existing_indices], minlength=len(cluster_ids))
-        clusters_df = pd.DataFrame({'cluster_id': cluster_ids,
-                                    'cluster_size': cluster_sizes,
-                                    'existing_count': cluster_labeled_counts,
-                                    'neg_cluster_size': -1 * cluster_sizes})
-        # drop too small clusters
-        clusters_df = clusters_df[clusters_df.cluster_size > self.MIN_CLUSTER_SIZE]
+            all_data = torch.concat([self._embed(x_unlabeled, classifier),
+                                     self._embed(x_labeled, classifier)], dim=0).cpu()
 
-        # sort clusters by lowest number of existing samples, and then by cluster sizes (large to small)
-        clusters_df = clusters_df.sort_values(['existing_count', 'neg_cluster_size'])
-        labels[existing_indices] = -1
+            num_clusters = min(len(x_labeled) + 1, self.MAX_NUM_CLUSTERS)
+            clusters = self._kmeans(all_data, num_clusters=num_clusters)
+            labels = np.copy(clusters)
+            # counting cluster sizes and number of labeled samples per cluster
+            cluster_ids, cluster_sizes = np.unique(labels, return_counts=True)
+            cluster_ids, cluster_sizes = self._fill_in_zero_size_clusters(cluster_ids, cluster_sizes)
+            existing_indices = np.arange(len(x_unlabeled), len(x_unlabeled)+len(x_labeled))
+            cluster_labeled_counts = np.bincount(labels[existing_indices], minlength=len(cluster_ids))
+            clusters_df = pd.DataFrame({'cluster_id': cluster_ids,
+                                        'cluster_size': cluster_sizes,
+                                        'existing_count': cluster_labeled_counts,
+                                        'neg_cluster_size': -1 * cluster_sizes})
+            # drop too small clusters
+            clusters_df = clusters_df[clusters_df.cluster_size > self.MIN_CLUSTER_SIZE]
 
-        selected = []
-        # pick the most typical example from the top-ranked clusters
-        for i in range(self.query_size):
-            cluster_id = clusters_df.iloc[0].cluster_id
-            indices = (labels == cluster_id).nonzero()[0]
-            rel_feats = all_data[indices].numpy()
-            if len(rel_feats) > 0:
-                typicality = self._calculate_typicality(rel_feats, min(self.K_NN, len(indices) // 2))
-                idx = indices[typicality.argmax()]
-            else:
-                idx = self.agent_rng.choice(len(x_unlabeled))
-            selected.append(idx)
-            labels[idx] = -1
-        return selected
+            # sort clusters by lowest number of existing samples, and then by cluster sizes (large to small)
+            clusters_df = clusters_df.sort_values(['existing_count', 'neg_cluster_size'])
+            labels[existing_indices] = -1
+
+            selected = []
+            # pick the most typical example from the top-ranked clusters
+            for i in range(self.query_size):
+                cluster_id = clusters_df.iloc[0].cluster_id
+                indices = (labels == cluster_id).nonzero()[0]
+                rel_feats = all_data[indices].numpy()
+                if len(rel_feats) > 0:
+                    typicality = self._calculate_typicality(rel_feats, min(self.K_NN, len(indices) // 2))
+                    idx = indices[typicality.argmax()]
+                else:
+                    idx = self.agent_rng.choice(len(x_unlabeled))
+                selected.append(idx)
+                labels[idx] = -1
+        return sample_ids[selected]
 
 
     def _get_nn(self, features:np.ndarray, num_neighbors:int):

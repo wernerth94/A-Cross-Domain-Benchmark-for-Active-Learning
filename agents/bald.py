@@ -31,9 +31,14 @@ class BALD(BaseAgent):
                       per_class_instances: dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier: Module, optimizer: Optimizer) -> list[int]:
+                      classifier: Module, optimizer: Optimizer,
+                      sample_size=10000) -> list[int]:
 
         with torch.no_grad():
+            sample_size = min(sample_size, len(x_unlabeled))
+            sample_ids = np.random.choice(len(x_unlabeled),  sample_size, replace=False)
+            x_unlabeled = x_unlabeled[sample_ids]
+
             classifier.train()
             for m in classifier.modules():
                 if isinstance(m, torch.nn.BatchNorm2d) or isinstance(m, torch.nn.BatchNorm1d):
@@ -68,5 +73,5 @@ class BALD(BaseAgent):
         # return torch.topk(u_x, self.query_size).indices.tolist()
             res = get_batchbald_batch(y_hat_collection, self.query_size, 100)
         ids = res.indices
-        return ids
+        return sample_ids[ids]
 

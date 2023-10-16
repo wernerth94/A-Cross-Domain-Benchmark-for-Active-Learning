@@ -14,13 +14,17 @@ class ShannonEntropy(BaseAgent):
                       per_class_instances: dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier: Module, optimizer: Optimizer) -> list[int]:
+                      classifier: Module, optimizer: Optimizer,
+                      sample_size=10000) -> list[int]:
 
         with torch.no_grad():
-            x_sample = x_unlabeled
-            pred = self._predict(x_sample, classifier)
+            sample_size = min(sample_size, len(x_unlabeled))
+            sample_ids = np.random.choice(len(x_unlabeled),  sample_size, replace=False)
+            x_unlabeled = x_unlabeled[sample_ids]
+            pred = self._predict(x_unlabeled, classifier)
             pred = torch.softmax(pred, dim=1)
             eps = 1e-7
             entropy = -torch.mean(pred * torch.log(eps + pred) + (1 + eps - pred) * torch.log(1 + eps - pred), dim=1)
-        return torch.topk(entropy, self.query_size).indices.tolist()
+            chosen = torch.topk(entropy, self.query_size).indices.tolist()
+        return sample_ids[chosen]
 

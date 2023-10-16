@@ -32,12 +32,13 @@ class Badge(BaseAgent):
                       sample_size=10000) -> list[int]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
-        sample_size = min(sample_size, len(x_unlabeled))
-        sample_ids = np.random.choice(len(x_unlabeled),  sample_size, replace=False)
-        x_unlabeled = x_unlabeled[sample_ids]
+        with torch.no_grad():
+            sample_size = min(sample_size, len(x_unlabeled))
+            sample_ids = np.random.choice(len(x_unlabeled),  sample_size, replace=False)
+            x_unlabeled = x_unlabeled[sample_ids]
 
-        gradEmbedding = self._get_grad_embedding(x_unlabeled, classifier)
-        chosen = self._init_centers(gradEmbedding, self.query_size)
+            gradEmbedding = self._get_grad_embedding(x_unlabeled, classifier)
+            chosen = self._init_centers(gradEmbedding, self.query_size)
         return sample_ids[chosen]
 
 

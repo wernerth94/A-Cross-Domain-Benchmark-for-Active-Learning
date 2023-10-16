@@ -14,13 +14,18 @@ class MarginScore(BaseAgent):
                       per_class_instances: dict,
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
-                      classifier: Module, optimizer: Optimizer) -> list[int]:
+                      classifier: Module, optimizer: Optimizer,
+                      sample_size=10000) -> list[int]:
 
         with torch.no_grad():
-            x_sample = x_unlabeled
-            pred = self._predict(x_sample, classifier)
+            sample_size = min(sample_size, len(x_unlabeled))
+            sample_ids = np.random.choice(len(x_unlabeled),  sample_size, replace=False)
+            x_unlabeled = x_unlabeled[sample_ids]
+
+            pred = self._predict(x_unlabeled, classifier)
             pred = torch.softmax(pred, dim=1)
             two_highest, _ = pred.topk(2, dim=1)
             bVsSB = 1 - (two_highest[:, -2] - two_highest[:, -1])
-        return torch.topk(bVsSB, self.query_size).indices.tolist()
+            chosen = torch.topk(bVsSB, self.query_size).indices.tolist()
+        return sample_ids[chosen]
 
