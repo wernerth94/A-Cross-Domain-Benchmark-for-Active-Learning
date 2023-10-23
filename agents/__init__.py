@@ -7,5 +7,4 @@ from agents.badge import Badge
 from agents.typiclust import TypiClust
 from agents.core_gcn import CoreGCN
 from agents.surprise_adequacy import DSA, LSA
-from agents.normalizing_flow import NSF
 

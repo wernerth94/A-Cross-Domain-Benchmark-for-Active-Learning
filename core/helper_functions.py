@@ -265,8 +265,6 @@ def get_agent_by_name(name:str)->Callable:
         return agents.DSA
     elif name == "lsa":
         return agents.LSA
-    elif name == "nsf":
-        return agents.NSF
     else:
         raise ValueError(f"Agent name '{name}' not recognized")
 
