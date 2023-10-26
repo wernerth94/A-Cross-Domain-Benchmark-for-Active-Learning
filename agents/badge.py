@@ -29,7 +29,7 @@ class Badge(BaseAgent):
                       budget:int, added_images:int,
                       initial_test_acc:float, current_test_acc:float,
                       classifier: nn.Module, optimizer: Optimizer,
-                      sample_size=10000) -> list[int]:
+                      sample_size=5000) -> list[int]:
 
         assert hasattr(classifier, "_encode"), "The provided model needs the '_encode' function"
         with torch.no_grad():

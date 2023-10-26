@@ -16,9 +16,9 @@
 Python >= 3.10 
 
 Via pip:
-- tianshou
-- gym
+- torch
 - torchvision
+- gym
 - matplotlib
 - Pandas
 - scikit-learn
