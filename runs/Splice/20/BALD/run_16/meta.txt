@@ -22,4 +22,4 @@ pretext_optimizer: {'type': 'NAdam', 'lr': 0.000454846257936763, 'weight_decay':
 pretext_transforms: {'gauss_scale': 0.171781355095294} 
 pretext_clr_loss: {'temperature': 0.106187809603207} 
 pretext_training: {'batch_size': 292, 'epochs': 200} 
-current_run_info: {'data_folder': '../datasets', 'run_id': 11, 'agent_seed': 1, 'pool_seed': 1, 'model_seed': 1, 'agent': 'bald', 'dataset': 'splice', 'query_size': 20, 'encoded': False, 'restarts': 10, 'experiment_postfix': None} 
+current_run_info: {'data_folder': '../datasets', 'run_id': 16, 'agent_seed': 1, 'pool_seed': 1, 'model_seed': 1, 'agent': 'bald', 'dataset': 'splice', 'query_size': 20, 'encoded': False, 'restarts': 1, 'experiment_postfix': None} 
