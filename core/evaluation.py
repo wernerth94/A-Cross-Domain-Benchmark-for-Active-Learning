@@ -18,7 +18,7 @@ def _find_missing_runs():
         if not exists(dataset_folder):
             print(f"Folder missing {dataset_folder}")
             continue
-        for query_size in ["1", "5", "20", "50", "100", "Oracle", "UpperBound"]:
+        for query_size in ["1", "5", "20", "50", "100", "500", "Oracle", "UpperBound"]:
             query_folder = join(dataset_folder, query_size)
             if not exists(query_folder):
                 print(f"Folder missing {query_folder}")
@@ -216,3 +216,5 @@ if __name__ == '__main__':
     heatmap_data = t_table[t_table["query_size"] == "1"]#.drop(["query_size"], axis=1)
     plot_heatmap_individual(heatmap_data, None, None)
     # plot_heatmap_individual(t_table.pivot(index="M0", columns="M1", values="t_value"), None, None)
+
+

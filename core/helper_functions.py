@@ -138,7 +138,7 @@ def plot_benchmark(dataset, color, display_name, smoothing_weight=0.0, alpha=0.8
     plt.plot(x, avrg_curve, label=full_name, linewidth=linewidth, c=color, alpha=alpha)
     return len(x)
 
-def plot_batch_benchmark(dataset, color, display_name, alpha=0.8, linewidth=1.5, plot_std=False, show_auc=True):
+def plot_batch_benchmark(dataset, color, display_name, alpha=0.8, linewidth=1.5, plot_std=False, show_auc=True, smoothing_weight=0.0):
     full_name = f"{display_name}"
     file = os.path.join("/home/thorben/phd/projects/al-benchmark/runs", dataset, "accuracies.csv")
     all_runs = pd.read_csv(file, header=0, index_col=0)
@@ -150,8 +150,9 @@ def plot_batch_benchmark(dataset, color, display_name, alpha=0.8, linewidth=1.5,
     x = list(all_runs.index)
     x = [i + get_init_pool_size(dataset) for i in x]
     mean = np.mean(all_runs.values, axis=1)
-    # mean = np.median(all_runs.values, axis=1)
     std = np.std(all_runs.values, axis=1)
+    if smoothing_weight > 0.0:
+        mean, std = moving_avrg([mean, std], smoothing_weight)
     if plot_std:
         plt.fill_between(x, mean-std, mean+std, alpha=0.5, facecolor=color)
     plt.plot(x, mean, label=full_name, linewidth=linewidth, c=color, alpha=alpha)

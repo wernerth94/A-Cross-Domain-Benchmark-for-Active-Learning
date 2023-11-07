@@ -159,8 +159,8 @@ def fit_and_evaluate(dataset:BaseDataset,
         optim_cfg = dataset.config["optimizer_embedded"]
     else:
         optim_cfg = dataset.config["optimizer"]
-    # optim = gdtuo.Adam(0.086)
-    optimizer = torch.optim.Adam(model.parameters(), lr=optim_cfg["lr"], weight_decay=optim_cfg["weight_decay"])
+    optimizer = dataset.get_optimizer(model)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=optim_cfg["lr"], weight_decay=optim_cfg["weight_decay"])
 
     train_dataloader = DataLoader(TensorDataset(dataset.x_train, dataset.y_train),
                                   batch_size=dataset.classifier_batch_size,
