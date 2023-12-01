@@ -1,4 +1,6 @@
+import copy
 import functools
+import math
 from typing import Callable
 import os
 from os.path import join, exists
@@ -6,6 +8,7 @@ import torch
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
 from matplotlib.patches import Patch
 
 class EarlyStopping:
@@ -46,16 +49,6 @@ def save_meta_data(logpath, agent, env, dataset, config:dict):
         f.write("# Config: \n")
         for key, value in config.items():
             f.write(f"{key}: {value} \n")
-
-
-def _pad_nans_with_last_value(df:pd.DataFrame):
-    max_len = len(df)
-    for col in df:
-        diff = max_len - sum(pd.notna(df[col]))
-        if diff > 0:
-            last_val = df[col][sum(pd.notna(df[col])) - 1]
-            df[col] = pd.concat([df[col].iloc[:-diff], pd.Series([last_val]*diff)], ignore_index=True)
-    return df
 
 
 initial_pool_size = {
@@ -100,63 +93,118 @@ def moving_avrg(trajectory, weight):
     return _moving_avrg(trajectory, weight), _moving_avrg(stdCurve, weight)
 
 
-def plot_upper_bound(dataset, budget, color, alpha=0.8, percentile=0.99, linewidth=2, run_name="UpperBound"):
+def plot_upper_bound(ax, dataset, x_values, color, alpha=0.8, percentile=0.99, linewidth=2, run_name="UpperBound"):
     file = os.path.join("/home/thorben/phd/projects/al-benchmark/runs", dataset, f"{run_name}/accuracies.csv")
     all_runs = pd.read_csv(file, header=0, index_col=0)
-    # mean = np.mean(all_runs.values, axis=1)
-    mean = np.median(all_runs.values, axis=1)
-    mean_percentile = percentile * mean
-    # mean_percentile = percentile * mean
-    mean = [float(mean)]*budget
-    mean_percentile = [float(mean_percentile)]*budget
-    x = np.arange(budget) + get_init_pool_size(dataset)
-    plt.plot(x, mean, label="Full Dataset", linewidth=linewidth, c=color, alpha=alpha)
-    plt.plot(x, mean_percentile, label="99% Percentile", linewidth=1, linestyle='--', c=color, alpha=0.6)
-
-def plot_benchmark(dataset, color, display_name, smoothing_weight=0.0, alpha=0.8, linewidth=1.5, plot_std=False, show_auc=False):
-    full_name = f"{display_name}"
-    file = os.path.join("/home/thorben/phd/projects/al-benchmark/runs", dataset, "accuracies.csv")
-    all_runs = pd.read_csv(file, header=0, index_col=0)
-    if show_auc:
-        values = all_runs.values
-        auc = np.sum(values, axis=0) / values.shape[0]
-        full_name += " - AUC: %1.3f"%(np.median(auc).item())
-    # mean = np.median(all_runs.values, axis=1)
     mean = np.mean(all_runs.values, axis=1)
-    std = np.std(all_runs.values, axis=1)
-    curve = np.stack([mean, std])
-    if smoothing_weight > 0.0:
-        avrg_curve, std_curve = moving_avrg(curve, smoothing_weight)
-    else:
-        avrg_curve, std_curve = mean, std
-    x = np.arange(len(avrg_curve)) + get_init_pool_size(dataset)
-    if plot_std:
-        if show_auc:
-            avrg_std = round(sum(std) / len(std), 3)
-            full_name += f"+-{avrg_std}"
-        plt.fill_between(x, avrg_curve-std_curve, avrg_curve+std_curve, alpha=0.5, facecolor=color)
-    plt.plot(x, avrg_curve, label=full_name, linewidth=linewidth, c=color, alpha=alpha)
-    return len(x)
+    # mean = np.median(all_runs.values, axis=1)
+    mean_percentile = percentile * mean
+    mean = [float(mean)]*2
+    mean_percentile = [float(mean_percentile)]*2
+    x = [min(x_values), max(x_values)]
+    ax.plot(x, mean, label="Full Dataset", linewidth=linewidth, c=color, alpha=alpha)
+    ax.plot(x, mean_percentile, label="99% Percentile", linewidth=1, linestyle='--', c=color, alpha=0.6)
 
-def plot_batch_benchmark(dataset, color, display_name, alpha=0.8, linewidth=1.5, plot_std=False, show_auc=True, smoothing_weight=0.0):
-    full_name = f"{display_name}"
-    file = os.path.join("/home/thorben/phd/projects/al-benchmark/runs", dataset, "accuracies.csv")
+
+_all_query_sizes = [1, 5, 20, 50, 100, 500]
+_all_agents = ["Badge", "BALD", "CoreGCN", "Coreset_Greedy", "DSA", "LSA", "MarginScore", "RandomAgent",
+               "ShannonEntropy", "TypiClust", "Oracle"]
+_agent_colors = {
+    "Oracle": "red",
+    "UpperBound": "black",
+    "Badge": "orange",
+    "BALD": "y",
+    "CoreGCN": "violet",
+    "Coreset_Greedy": "purple",
+    "DSA": "olive",
+    "LSA": "brown",
+    "MarginScore": "blue",
+    "RandomAgent": "grey",
+    "ShannonEntropy": "green",
+    "TypiClust": "pink"
+}
+_agent_names = { # only corrected names
+    "Coreset_Greedy": "Coreset",
+    "MarginScore": "Margin",
+    "RandomAgent": "Random",
+    "ShannonEntropy": "Entropy",
+}
+
+def _load_eval_data(dataset, query_size, agent, smoothing_weight=0.0):
+    if agent in ["Oracle", "UpperBound"]:
+        file = os.path.join("/home/thorben/phd/projects/al-benchmark/runs", dataset, agent, "accuracies.csv")
+    else:
+        file = os.path.join("/home/thorben/phd/projects/al-benchmark/runs", dataset, str(query_size), agent, "accuracies.csv")
     all_runs = pd.read_csv(file, header=0, index_col=0)
     all_runs = all_runs.dropna(axis=0)
-    if show_auc:
-        values = all_runs.values
-        auc = np.sum(values, axis=0) / values.shape[0]
-        full_name += " - AUC: %1.3f"%(np.median(auc).item())
     x = list(all_runs.index)
     x = [i + get_init_pool_size(dataset) for i in x]
     mean = np.mean(all_runs.values, axis=1)
     std = np.std(all_runs.values, axis=1)
     if smoothing_weight > 0.0:
         mean, std = moving_avrg([mean, std], smoothing_weight)
-    if plot_std:
-        plt.fill_between(x, mean-std, mean+std, alpha=0.5, facecolor=color)
-    plt.plot(x, mean, label=full_name, linewidth=linewidth, c=color, alpha=alpha)
-    return len(x)
+    return x, mean, std
+
+
+def _create_plot_for_query_size(ax, dataset, query_size, y_label, title, smoothing_weight, show_auc):
+    inferred_x_axis = None
+    sorted_agents = []
+    for agent in _all_agents:
+        try:
+            display_name = _agent_names.get(agent, agent)
+            color = _agent_colors[agent]
+            x, mean, _ = _load_eval_data(dataset, query_size, agent, smoothing_weight)
+            inferred_x_axis = x
+            sorted_agents.append( [np.mean(mean), x, mean, color, display_name] )
+        except FileNotFoundError:
+            pass
+    for _, x, mean, color, display_name in sorted(sorted_agents)[::-1]:
+        plot_batch_benchmark(ax, x, mean, color, display_name, show_auc=show_auc)
+    plot_upper_bound(ax, dataset, inferred_x_axis, "black")
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+    ax.set_ylabel(y_label)
+    ax.set_title(title)
+    ax.grid(True)
+
+def full_plot(dataset, query_size=None, y_label="Accuracy", show_auc=True, smoothing_weight=0.0, radjust=0.8):
+    if query_size is None:
+        base_path = os.path.join("runs", dataset)
+        query_size = list(os.listdir(base_path))
+        if "Oracle" in query_size:
+            query_size.remove("Oracle")
+        if "UpperBound" in query_size:
+            query_size.remove("UpperBound")
+        query_size = sorted(query_size, key=lambda x: int(x))
+
+    if isinstance(query_size, list):
+        n_rows = math.ceil(len(query_size) / 2)
+        fig, ax = plt.subplots(n_rows, 2, figsize=(12, 5*n_rows))
+        ax = ax.flatten()
+        legend_created = False
+        for i in range(len(query_size)):
+            _create_plot_for_query_size(ax[i], dataset, query_size[i], y_label if i%2==0 else "",
+                                        f"{dataset} - {query_size[i]}", smoothing_weight, show_auc)
+            if not legend_created:
+                fig.legend(loc=7)
+                legend_created = True
+        fig.tight_layout()
+        fig.subplots_adjust(right=radjust, hspace=0.2, wspace=0.3)
+    elif isinstance(query_size, int):
+        fig, ax = plt.subplots(figsize=(8, 5))
+        _create_plot_for_query_size(ax, dataset, query_size, y_label, dataset, smoothing_weight, show_auc)
+        plt.legend(bbox_to_anchor=(1.03, 0.5), loc="center left")
+        plt.tight_layout()
+    else:
+        raise ValueError()
+
+def plot_batch_benchmark(ax, x, y, color, display_name, alpha=0.8, linewidth=1.5, show_auc=True):
+    full_name = f"{display_name}"
+    if show_auc:
+        full_name += " - AUC: %1.3f"%(np.mean(y))
+    # if plot_std:
+    #     ax.fill_between(x, mean-std, mean+std, alpha=0.5, facecolor=color)
+    ax.plot(x, y, label=full_name, linewidth=linewidth, c=color, alpha=alpha)
+
 
 def plot_learning_curves(list_of_accs:list, out_file:str=None):
     for accs in list_of_accs:
@@ -270,7 +318,35 @@ def get_agent_by_name(name:str)->Callable:
         raise ValueError(f"Agent name '{name}' not recognized")
 
 
+# def plot_benchmark(dataset, color, display_name, smoothing_weight=0.0, alpha=0.8, linewidth=1.5, plot_std=False, show_auc=False):
+#     full_name = f"{display_name}"
+#     file = os.path.join("/home/thorben/phd/projects/al-benchmark/runs", dataset, "accuracies.csv")
+#     all_runs = pd.read_csv(file, header=0, index_col=0)
+#     if show_auc:
+#         values = all_runs.values
+#         auc = np.sum(values, axis=0) / values.shape[0]
+#         full_name += " - AUC: %1.3f"%(np.median(auc).item())
+#     # mean = np.median(all_runs.values, axis=1)
+#     mean = np.mean(all_runs.values, axis=1)
+#     std = np.std(all_runs.values, axis=1)
+#     curve = np.stack([mean, std])
+#     if smoothing_weight > 0.0:
+#         avrg_curve, std_curve = moving_avrg(curve, smoothing_weight)
+#     else:
+#         avrg_curve, std_curve = mean, std
+#     x = np.arange(len(avrg_curve)) + get_init_pool_size(dataset)
+#     if plot_std:
+#         if show_auc:
+#             avrg_std = round(sum(std) / len(std), 3)
+#             full_name += f"+-{avrg_std}"
+#         plt.fill_between(x, avrg_curve-std_curve, avrg_curve+std_curve, alpha=0.5, facecolor=color)
+#     plt.plot(x, avrg_curve, label=full_name, linewidth=linewidth, c=color, alpha=alpha)
+#     return len(x)
+
+
 if __name__ == '__main__':
     # plot_batch_benchmark("Splice/5/Badge", "b", "random")
-    base_path = "runs/Splice/50/TypiClust"
-    collect_results(base_path, "run_")
+    # base_path = "runs/Splice/50/TypiClust"
+    # collect_results(base_path, "run_")
+    full_plot("DNA", query_size=None)
+    plt.show()

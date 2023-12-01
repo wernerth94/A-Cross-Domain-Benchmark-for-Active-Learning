@@ -270,7 +270,7 @@ class CoreGCN(BaseAgent):
             feat = feat.detach().cpu().numpy()
             new_av_idx = np.arange(len(x_unlabeled), len(x_unlabeled) + len(x_labeled))
             sampling2 = kCenterGreedy(feat)
-            selected_indices = sampling2.select_batch_(new_av_idx, 1)
+            selected_indices = sampling2.select_batch_(new_av_idx, self.query_size)
 
         selected_indices = list(selected_indices)
         return sample_ids[selected_indices]
