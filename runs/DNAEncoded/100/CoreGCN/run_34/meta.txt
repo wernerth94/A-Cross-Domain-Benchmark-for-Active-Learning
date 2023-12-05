@@ -1,0 +1,25 @@
+# Dataset: 
+DNAEncoded
+Budget: 40
+Seeding points per class: 1
+Classifier Batch Size: 64
+Source: LibSVMTools
+Normalization: Linear between [0..1]
+Classifier: DenseNet 
+
+# Agent: 
+CoreGCN 
+
+# Config: 
+dataset: {'budget': 300, 'classifier_fitting_mode': 'finetuning', 'initial_points_per_class': 1, 'classifier_batch_size': 64, 'validation_split': 0.2} 
+classifier: {'type': 'MLP', 'hidden': [24, 12]} 
+optimizer: {'type': 'Adam', 'lr': 0.0124621073251144, 'weight_decay': 0.000714770463686342} 
+dataset_embedded: {'encoder_checkpoint': 'encoder_checkpoints/dna_31.03/model_seed1.pth.tar', 'budget': 40, 'classifier_fitting_mode': 'from_scratch', 'initial_points_per_class': 1, 'classifier_batch_size': 64} 
+classifier_embedded: {'type': 'linear'} 
+optimizer_embedded: {'type': 'NAdam', 'lr': 0.00169614021475768, 'weight_decay': 0.00040818747656179} 
+pretext_encoder: {'type': 'MLP', 'hidden': [128, 64, 128], 'feature_dim': 48} 
+pretext_optimizer: {'type': 'NAdam', 'lr': 0.000162802713647628, 'weight_decay': 1.08159693756567e-07, 'lr_scheduler': 'cosine', 'lr_scheduler_decay': 0.000750346800353391} 
+pretext_transforms: {'gauss_scale': 0.262018383720752} 
+pretext_clr_loss: {'temperature': 0.717529256104704} 
+pretext_training: {'batch_size': 457, 'epochs': 200} 
+current_run_info: {'data_folder': '../datasets', 'run_id': 34, 'agent_seed': 1, 'pool_seed': 1, 'model_seed': 1, 'agent': 'coregcn', 'dataset': 'dna', 'query_size': 100, 'encoded': True, 'restarts': 1, 'experiment_postfix': None} 

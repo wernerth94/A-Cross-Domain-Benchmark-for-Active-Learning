@@ -13,7 +13,7 @@ CoreGCN
 # Config: 
 dataset: {'budget': 400, 'classifier_fitting_mode': 'from_scratch', 'initial_points_per_class': 1, 'classifier_batch_size': 43, 'validation_split': 0.2} 
 classifier: {'type': 'MLP', 'hidden': [24, 12]} 
-optimizer: {'type': 'SGD', 'lr': 0.0861866000246704, 'weight_decay': 1.69225294586817e-06} 
+optimizer: {'type': 'NAdam', 'lr': 0.00121352609529121, 'weight_decay': 5.95501370565999e-05} 
 dataset_embedded: {'encoder_checkpoint': 'encoder_checkpoints/splice_31.03/model_seed1.pth.tar', 'budget': 60, 'classifier_fitting_mode': 'from_scratch', 'initial_points_per_class': 1, 'classifier_batch_size': 64} 
 classifier_embedded: {'type': 'Linear'} 
 optimizer_embedded: {'type': 'NAdam', 'lr': 0.000623159145739371, 'weight_decay': 5.93318060155352e-06} 
@@ -22,4 +22,4 @@ pretext_optimizer: {'type': 'NAdam', 'lr': 0.000454846257936763, 'weight_decay':
 pretext_transforms: {'gauss_scale': 0.171781355095294} 
 pretext_clr_loss: {'temperature': 0.106187809603207} 
 pretext_training: {'batch_size': 292, 'epochs': 200} 
-current_run_info: {'data_folder': '../datasets', 'run_id': 41, 'agent_seed': 1, 'pool_seed': 1, 'model_seed': 1, 'agent': 'coregcn', 'dataset': 'splice', 'query_size': 5, 'encoded': True, 'restarts': 10, 'experiment_postfix': None} 
+current_run_info: {'data_folder': '../datasets', 'run_id': 45, 'agent_seed': 1, 'pool_seed': 1, 'model_seed': 1, 'agent': 'coregcn', 'dataset': 'splice', 'query_size': 5, 'encoded': True, 'restarts': 1, 'experiment_postfix': None} 

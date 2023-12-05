@@ -22,4 +22,4 @@ pretext_optimizer: {'type': 'NAdam', 'lr': 0.000162802713647628, 'weight_decay':
 pretext_transforms: {'gauss_scale': 0.262018383720752} 
 pretext_clr_loss: {'temperature': 0.717529256104704} 
 pretext_training: {'batch_size': 457, 'epochs': 200} 
-current_run_info: {'data_folder': '../datasets', 'run_id': 41, 'agent_seed': 1, 'pool_seed': 1, 'model_seed': 1, 'agent': 'coregcn', 'dataset': 'dna', 'query_size': 50, 'encoded': True, 'restarts': 10, 'experiment_postfix': None} 
+current_run_info: {'data_folder': '../datasets', 'run_id': 47, 'agent_seed': 1, 'pool_seed': 1, 'model_seed': 1, 'agent': 'coregcn', 'dataset': 'dna', 'query_size': 50, 'encoded': True, 'restarts': 1, 'experiment_postfix': None} 
