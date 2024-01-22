@@ -202,8 +202,10 @@ class OracleALGame(ALGame):
                  pool_rng: np.random.Generator,
                  model_seed: int,
                  data_loader_seed: int = 2023,
+                 points_added_per_round=1,
                  device=None):
         super().__init__(dataset, pool_rng, model_seed, data_loader_seed, device)
+        self.points_added_per_round = points_added_per_round
         self.starting_state_rng = np.random.default_rng(self.data_loader_seed)
         self.oracle_counter = 0
         self.sample_size = labeled_sample_size
@@ -223,18 +225,9 @@ class OracleALGame(ALGame):
         self.current_test_accuracy = state_tuple[3]
         self.data_loader_rng.manual_seed(self.data_loader_seed_i)
 
-    def step(self, *args, **kwargs):
-        """
-        Custom step function that ignores any passed action and searches for the best point in a greedy fashion
-        """
-        max_reward = 0.0
-        best_i = -1
-        best_action = -1
-        # preserve the initial state for this iteration
-        self.initial_state = self._get_internal_state()
-        self.data_loader_seed_i = int(self.starting_state_rng.integers(1, 1000, 1)[0])
-        replacement_needed = len(self.x_unlabeled) < self.sample_size
-        state_ids = self.pool_rng.choice(len(self.x_unlabeled), self.sample_size, replace=replacement_needed)
+
+    def _get_scores(self, state_ids)->torch.Tensor:
+        scores = torch.zeros(len(state_ids))
         for act, i in enumerate(state_ids):
             with torch.no_grad():
                 # restore initial states
@@ -244,35 +237,64 @@ class OracleALGame(ALGame):
                 self.y_labeled = torch.cat([self.y_labeled, self.y_unlabeled[i:i + 1]], dim=0)
             reward = self.fit_classifier()
             with torch.no_grad():
-                if reward > max_reward:
-                    max_reward = reward
-                    best_i = i
-                    best_action = act
+                scores[act] = reward
                 # remove the testing point
                 self.x_labeled = self.x_labeled[:-1]
                 self.y_labeled = self.y_labeled[:-1]
-        # restore initial states one last time
-        self._set_internal_state(self.initial_state)
-        if max_reward == 0.0:
-            # No point with positive impact was found. Defaulting to Margin sampling
+        return scores
+
+    def _get_margin_scores(self, state_ids):
+        with torch.no_grad():
             x_sample = self.x_unlabeled[state_ids]
             pred = self.classifier(x_sample).detach()
             pred = torch.softmax(pred, dim=1)
             two_highest, _ = pred.topk(2, dim=1)
             bVsSB = 1 - (two_highest[:, -2] - two_highest[:, -1])
             torch.unsqueeze(bVsSB, dim=-1)
-            action = torch.argmax(bVsSB, dim=0)
-            best_i = state_ids[action]
-        with torch.no_grad():
-            self.per_class_instances[int(torch.argmax(self.y_unlabeled[best_i]).cpu())] += 1
-            # add the point to the labeled set
-            self.x_labeled = torch.cat([self.x_labeled, self.x_unlabeled[best_i:best_i + 1]], dim=0)
-            self.y_labeled = torch.cat([self.y_labeled, self.y_unlabeled[best_i:best_i + 1]], dim=0)
-            # remove the point from the unlabeled set
-            self.x_unlabeled = torch.cat([self.x_unlabeled[:best_i], self.x_unlabeled[best_i + 1:]], dim=0)
-            self.y_unlabeled = torch.cat([self.y_unlabeled[:best_i], self.y_unlabeled[best_i + 1:]], dim=0)
+            # action = torch.argmax(bVsSB, dim=0)
+            # best_i = state_ids[action]
+        return bVsSB
+
+    def step(self, *args, **kwargs):
+        """
+        Custom step function that ignores any passed action and searches for the best point in a greedy fashion
+        """
+        # preserve the initial state for this iteration
+        self.initial_state = self._get_internal_state()
+        self.data_loader_seed_i = int(self.starting_state_rng.integers(1, 1000, 1)[0])
+        replacement_needed = len(self.x_unlabeled) < self.sample_size
+        state_ids = self.pool_rng.choice(len(self.x_unlabeled), self.sample_size, replace=replacement_needed)
+
+        scores = self._get_scores(state_ids)
+        chosen = torch.topk(scores, self.points_added_per_round).indices.tolist()
+        # restore initial states one last time
+        self._set_internal_state(self.initial_state)
+
+        margin_scores = self._get_margin_scores(state_ids)
+        margin_sorted_ids = torch.sort(margin_scores, descending=True).indices
+
+
+        used_ids = []
+        used_ids.extend(chosen) # deep copy
+        for id in chosen:
+            if scores[id] <= 0.0:
+                # No point with positive impact was found. Defaulting to Margin sampling
+                for m_id in margin_sorted_ids:
+                    m_id = m_id.item()
+                    if m_id not in used_ids:
+                        id = m_id
+                        used_ids.append(m_id)
+                        break
+            with torch.no_grad():
+                self.per_class_instances[int(torch.argmax(self.y_unlabeled[id]).cpu())] += 1
+                # add the point to the labeled set
+                self.x_labeled = torch.cat([self.x_labeled, self.x_unlabeled[id:id + 1]], dim=0)
+                self.y_labeled = torch.cat([self.y_labeled, self.y_unlabeled[id:id + 1]], dim=0)
+                # remove the point from the unlabeled set
+                self.x_unlabeled = torch.cat([self.x_unlabeled[:id], self.x_unlabeled[id + 1:]], dim=0)
+                self.y_unlabeled = torch.cat([self.y_unlabeled[:id], self.y_unlabeled[id + 1:]], dim=0)
         reward = self.fit_classifier()
         self.added_images += 1
         done = self.added_images >= self.budget
-        truncated, info = False, {"action": best_action}
+        truncated, info = False, {"action": chosen}
         return self.create_state(), reward, done, truncated, info
