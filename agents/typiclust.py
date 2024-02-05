@@ -61,7 +61,10 @@ class TypiClust(BaseAgent):
                     typicality = self._calculate_typicality(rel_feats, min(self.K_NN, len(indices) // 2))
                     idx = indices[typicality.argmax()]
                 else:
-                    idx = self.agent_rng.choice(len(x_unlabeled))
+                    available_ids = [i for i in range(len(x_unlabeled)) if i not in selected]
+                    idx = self.agent_rng.choice(available_ids)
+                if idx in selected:
+                    raise ValueError(f"Double selection of idx {idx}")
                 selected.append(idx)
                 labels[idx] = -1
         return sample_ids[selected]

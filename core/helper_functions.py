@@ -10,6 +10,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.patches import Patch
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
 
 class EarlyStopping:
     def __init__(self, patience=7, lower_is_better=True):
@@ -104,6 +106,7 @@ def plot_upper_bound(ax, dataset, x_values, color, alpha=0.8, percentile=0.99, l
     x = [min(x_values), max(x_values)]
     ax.plot(x, mean, label="Full Dataset", linewidth=linewidth, c=color, alpha=alpha)
     ax.plot(x, mean_percentile, label="99% Percentile", linewidth=1, linestyle='--', c=color, alpha=0.6)
+    return np.mean(all_runs.values, axis=1)
 
 
 _all_query_sizes = [1, 5, 20, 50, 100, 500]
@@ -145,28 +148,78 @@ def _load_eval_data(dataset, query_size, agent, smoothing_weight=0.0):
         mean, std = moving_avrg([mean, std], smoothing_weight)
     return x, mean, std
 
+class SigmoidRegression(torch.nn.Module):
+    def __init__(self, max_value):
+        super(SigmoidRegression, self).__init__()
+        self.max_value = max_value
+        self.lin = torch.nn.Linear(1, 1)
+    def forward(self, x):
+        z = self.lin(x)
+        # z = z * (1 - x) # entropy function
+        # z = self.max_value * torch.sigmoid(z)
+        z = self.max_value / (1 + torch.exp(-(z - 2.0))) # right-shifted sigmoid
+        return z
 
-def _create_plot_for_query_size(ax, dataset, query_size, y_label, title, smoothing_weight, show_auc):
+def _get_sigmoid_regression(x, y, x_test, upper_bound):
+    max_value = max(x_test)
+    x_train = torch.tensor(x).float().unsqueeze(-1)
+    x_train /= max_value
+    y_train = torch.from_numpy(y).float().unsqueeze(-1)
+    model = SigmoidRegression(torch.tensor(upper_bound).float())
+    loss_fn = torch.nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
+    for epoch in range(300):
+        optimizer.zero_grad()
+        outputs = model(x_train)
+        loss = loss_fn(outputs, y_train)
+        loss.backward()
+        optimizer.step()
+        # if epoch % 50 == 0:
+        #     print(epoch, loss.item())
+    with torch.no_grad():
+        x_test = torch.linspace(max(x), max(x_test), 100).reshape(-1, 1)
+        # x_test_poly = poly.transform(x_test)
+        return x_test, model(x_test/max_value)
+
+
+def _create_plot_for_query_size(ax, dataset, query_size, y_label, title, smoothing_weight, show_auc, forecast_oracle=True):
     inferred_x_axis = None
     sorted_agents = []
+    # Normal Agents
     for agent in _all_agents:
         try:
             display_name = _agent_names.get(agent, agent)
             color = _agent_colors[agent]
             x, mean, _ = _load_eval_data(dataset, query_size, agent, smoothing_weight)
-            inferred_x_axis = x
+            if agent != "Oracle":
+                if inferred_x_axis is not None and x != inferred_x_axis:
+                    print(f"[Warning]: axis of agent {agent} is different from others")
+                    print(f"{agent}: {x}")
+                    print(f"Previous: {inferred_x_axis}")
+                    print("Ignoring...")
+                else:
+                    inferred_x_axis = x
             sorted_agents.append( [np.mean(mean), x, mean, color, display_name] )
         except FileNotFoundError:
             pass
+    upper_bound = plot_upper_bound(ax, dataset, inferred_x_axis, "black")
+    # Oracle Forecasting
+    try:
+        color = _agent_colors["Oracle"]
+        x, mean, _ = _load_eval_data(dataset, query_size, "Oracle", smoothing_weight)
+        if forecast_oracle and max(x) < max(inferred_x_axis):
+            x_axis, forecast = _get_sigmoid_regression(x, mean, inferred_x_axis, upper_bound)
+            ax.plot(x_axis, forecast, linewidth=1.5, c=color, alpha=0.8, linestyle="--")
+    except FileNotFoundError:
+        pass
     for _, x, mean, color, display_name in sorted(sorted_agents)[::-1]:
         plot_batch_benchmark(ax, x, mean, color, display_name, show_auc=show_auc)
-    plot_upper_bound(ax, dataset, inferred_x_axis, "black")
     ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
     ax.set_ylabel(y_label)
     ax.set_title(title)
     ax.grid(True)
 
-def full_plot(dataset, query_size=None, y_label="Accuracy", show_auc=True, smoothing_weight=0.0, radjust=0.8):
+def full_plot(dataset, query_size=None, y_label="Accuracy", show_auc=True, smoothing_weight=0.0, radjust=0.8, forecast_oracle=True):
     if query_size is None:
         base_path = os.path.join("runs", dataset)
         query_size = list(os.listdir(base_path))
@@ -183,7 +236,8 @@ def full_plot(dataset, query_size=None, y_label="Accuracy", show_auc=True, smoot
         legend_created = False
         for i in range(len(query_size)):
             _create_plot_for_query_size(ax[i], dataset, query_size[i], y_label if i%2==0 else "",
-                                        f"{dataset} - {query_size[i]}", smoothing_weight, show_auc)
+                                        f"{dataset} - {query_size[i]}", smoothing_weight, show_auc,
+                                        forecast_oracle)
             if not legend_created:
                 fig.legend(loc=7)
                 legend_created = True
@@ -191,7 +245,7 @@ def full_plot(dataset, query_size=None, y_label="Accuracy", show_auc=True, smoot
         fig.subplots_adjust(right=radjust, hspace=0.2, wspace=0.3)
     elif isinstance(query_size, int):
         fig, ax = plt.subplots(figsize=(8, 5))
-        _create_plot_for_query_size(ax, dataset, query_size, y_label, dataset, smoothing_weight, show_auc)
+        _create_plot_for_query_size(ax, dataset, query_size, y_label, dataset, smoothing_weight, show_auc, forecast_oracle)
         plt.legend(bbox_to_anchor=(1.03, 0.5), loc="center left")
         plt.tight_layout()
     else:
@@ -348,5 +402,5 @@ if __name__ == '__main__':
     # plot_batch_benchmark("Splice/5/Badge", "b", "random")
     # base_path = "runs/Splice/50/TypiClust"
     # collect_results(base_path, "run_")
-    full_plot("DNA", query_size=None)
+    full_plot("FashionMnist", query_size=None)
     plt.show()
