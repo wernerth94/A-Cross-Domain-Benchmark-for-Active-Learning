@@ -150,6 +150,49 @@ def _query_to_list(query, current_folder):
         raise ValueError(f"Query not recognized: {query}")
     return result_list
 
+def generate_full_overview(precision=2):
+    datasets_raw = ["Splice", "DNA", "USPS", "Cifar10", "FashionMnist", "TopV2", "News",]
+                    #"DivergingSin", "ThreeClust"]
+    datasets_encoded = ["SpliceEncoded", "DNAEncoded", "USPSEncoded",
+                        "Cifar10Encoded", "FashionMnistEncoded"]
+    df_raw = combine_agents_into_df(dataset=datasets_raw)
+    df_raw = average_out_columns(df_raw, ["iteration", "query_size"])
+    df_raw = compute_ranks_over_trials(df_raw)
+
+    df_enc = combine_agents_into_df(dataset=datasets_encoded)
+    df_enc = average_out_columns(df_enc, ["iteration", "query_size"])
+    df_enc = compute_ranks_over_trials(df_enc)
+
+    leaderboard = average_out_columns(df_raw, ["dataset"]).sort_values("rank")
+    leaderboard.index = leaderboard["agent"]
+    leaderboard = leaderboard.drop(["agent", "acc"], axis=1)
+    # add single unencoded datasets
+    for dataset in datasets_raw:
+        values = []
+        for index, _ in leaderboard.iterrows():
+            r = df_raw[(df_raw["agent"] == index) & (df_raw["dataset"] == dataset)]["rank"]
+            values.append(round(r.item(), precision))
+        leaderboard[dataset] = values
+    leaderboard["Unencoded"] = leaderboard["rank"].round(precision)
+    leaderboard = leaderboard.drop(["rank"], axis=1)
+    # add average of all encoded datasets
+    df_enc = average_out_columns(df_enc, ["dataset"])
+    values = []
+    for index, _ in leaderboard.iterrows():
+        r = df_enc[(df_enc["agent"] == index)]["rank"]
+        values.append(round(r.item(), precision))
+    leaderboard["Encoded"] = values
+    return leaderboard
+
+
+def compute_ranks_over_trials(df:pd.DataFrame):
+    assert "trial" in df.columns
+    df["rank"] = df.groupby(["dataset", "trial"])["acc"].rank(ascending=False)
+    df = average_out_columns(df, ["trial"])
+    return df
+
+
+
 def combine_agents_into_df(dataset=None, query_size=None, agent=None):
     base_folder = "runs"
 
@@ -162,7 +205,7 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None):
         "acc": []
     }
     dataset_list = _query_to_list(dataset, base_folder)
-    for dataset_name in dataset_list:
+    for dataset_name in tqdm(dataset_list):
         dataset_folder = join(base_folder, dataset_name)
         query_size_list = _query_to_list(query_size, dataset_folder)
         for query_size_name in query_size_list:
@@ -191,14 +234,17 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None):
 def average_out_columns(df:pd.DataFrame, columns:list):
     result_df = df.copy(deep=True)
     for col in columns:
-        other_columns = [c for c in result_df.columns if c not in [col, "acc"] ]
+        other_columns = [c for c in result_df.columns if c not in [col, "acc", "rank"] ]
         result_list = []
         grouped_df = result_df.groupby(other_columns)
         for key, sub_df in grouped_df:
             mean = sub_df["acc"].mean()
-            sub_df = sub_df.drop(col, axis=1)
-            sub_df = sub_df.drop(sub_df.index[1:])
             sub_df["acc"] = mean
+            if "rank" in df.columns:
+                mean = sub_df["rank"].mean()
+                sub_df["rank"] = mean
+            sub_df = sub_df.drop(col, axis=1) # drop averaged col from sub-dataframe
+            sub_df = sub_df.drop(sub_df.index[1:]) # drop all the other useless rows
             result_list.append(sub_df)
         result_df = pd.concat(result_list)
     return result_df
@@ -206,15 +252,18 @@ def average_out_columns(df:pd.DataFrame, columns:list):
 
 
 if __name__ == '__main__':
-    _find_missing_runs()
-    exit(0)
-    run = "runs/Splice"
-    df = combine_agents_into_df(dataset="Splice")
-    df = average_out_columns(df, ["iteration"])
-    df = df.drop("dataset", axis=1)
-    t_table = two_tailed_paired_t_test(df, treatment_col="query_size", sample_col="trial")
-    heatmap_data = t_table[t_table["query_size"] == "1"]#.drop(["query_size"], axis=1)
-    plot_heatmap_individual(heatmap_data, None, None)
+    leaderboard = generate_full_overview()
+    leaderboard.to_csv("results/overview.csv")
+
+    # _find_missing_runs()
+
+    # run = "runs/Splice"
+    # df = combine_agents_into_df(dataset="Splice")
+    # df = average_out_columns(df, ["iteration"])
+    # df = df.drop("dataset", axis=1)
+    # t_table = two_tailed_paired_t_test(df, treatment_col="query_size", sample_col="trial")
+    # heatmap_data = t_table[t_table["query_size"] == "1"]#.drop(["query_size"], axis=1)
+    # plot_heatmap_individual(heatmap_data, None, None)
     # plot_heatmap_individual(t_table.pivot(index="M0", columns="M1", values="t_value"), None, None)
 
 

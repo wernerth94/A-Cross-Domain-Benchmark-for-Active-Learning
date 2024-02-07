@@ -372,30 +372,6 @@ def get_agent_by_name(name:str)->Callable:
         raise ValueError(f"Agent name '{name}' not recognized")
 
 
-# def plot_benchmark(dataset, color, display_name, smoothing_weight=0.0, alpha=0.8, linewidth=1.5, plot_std=False, show_auc=False):
-#     full_name = f"{display_name}"
-#     file = os.path.join("/home/thorben/phd/projects/al-benchmark/runs", dataset, "accuracies.csv")
-#     all_runs = pd.read_csv(file, header=0, index_col=0)
-#     if show_auc:
-#         values = all_runs.values
-#         auc = np.sum(values, axis=0) / values.shape[0]
-#         full_name += " - AUC: %1.3f"%(np.median(auc).item())
-#     # mean = np.median(all_runs.values, axis=1)
-#     mean = np.mean(all_runs.values, axis=1)
-#     std = np.std(all_runs.values, axis=1)
-#     curve = np.stack([mean, std])
-#     if smoothing_weight > 0.0:
-#         avrg_curve, std_curve = moving_avrg(curve, smoothing_weight)
-#     else:
-#         avrg_curve, std_curve = mean, std
-#     x = np.arange(len(avrg_curve)) + get_init_pool_size(dataset)
-#     if plot_std:
-#         if show_auc:
-#             avrg_std = round(sum(std) / len(std), 3)
-#             full_name += f"+-{avrg_std}"
-#         plt.fill_between(x, avrg_curve-std_curve, avrg_curve+std_curve, alpha=0.5, facecolor=color)
-#     plt.plot(x, avrg_curve, label=full_name, linewidth=linewidth, c=color, alpha=alpha)
-#     return len(x)
 
 
 if __name__ == '__main__':
