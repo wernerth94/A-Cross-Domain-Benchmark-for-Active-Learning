@@ -1,6 +1,6 @@
 dataset:
   domain: alarm
-  budget: 125
+  budget: 200
   classifier_fitting_mode: finetuning
   initial_points_per_class: 1
   classifier_batch_size: 64

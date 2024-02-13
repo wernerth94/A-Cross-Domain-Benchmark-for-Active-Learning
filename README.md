@@ -1,4 +1,5 @@
 # Active Learning Benchmark
+
 ## Reading List
 - [Munjal_Towards_Robust_and_Reproducible_Active_Learning](https://openaccess.thecvf.com/content/CVPR2022/papers/Munjal_Towards_Robust_and_Reproducible_Active_Learning_Using_Neural_Networks_CVPR_2022_paper.pdf)
 - [A Comparative Survey of Deep Active Learning](https://arxiv.org/pdf/2203.13450.pdf)
@@ -29,9 +30,9 @@ Via pip:
 - ray\[tune\] (Optional)
 
 ## Quick Start
-Prepare the data `download_all_datasets.py --data_folder <your_folder>`\
+[Optional] Pre-download all datasets `download_all_datasets.py --data_folder <your_folder>`\
 `--data_folder` sets the folder, where dataset files will be downloaded to \
-You can run an evaluation with `evaluate.py --data_folder "<my_folder>" --agent <name> --dataset <name>`\
+You can run an evaluation with `evaluate.py --data_folder "<my_folder>" --agent <name> --dataset <name> --query_size <int>`\
 Available Agents:
 - `random`
 - `margin`
@@ -40,6 +41,9 @@ Available Agents:
 - `typiclust`
 - `bald`
 - `badge`
+- `coregcn`
+- `dsa`
+- `lsa`
 
 Available Datasets:
 - `splice`
@@ -74,7 +78,7 @@ Each dataset class needs to inherit from BaseDataset and implement a set of func
 - `__init__()`: Sets hyperparameters for this dataset:
   - data_file: name of the file that will hold the preprocessed data
   - cache_folder: location for downloaded and processed files
-- `_download_data()`: Automatically downloads the data source files into self.cache_folder, stores the data in self.x_train, self.y_train, self.x_test and self.y_test and normalizes self.x_train and self.x_test. <br>
+- `_download_data()`: Automatically downloads the data source files into self.cache_folder, stores the data in `self.x_train, self.y_train, self.x_test and self.y_test` and normalizes `self.x_train` and `self.x_test`. <br>
 - `load_pretext_data()`: Loads the version of the data that can be used for the pretext task, like SimCLR
 - `get_pretext_transforms()`: Returns PyTorch data transforms for pretext training
 - `get_pretext_validation_transforms()`: Returns PyTorch data transforms for pretext training
@@ -98,7 +102,8 @@ with core.EnvironmentLogger(env, log_path, util.is_cluster) as env:
     done = False
     dataset.reset()
     state = env.reset()
-    iterator = tqdm(range(env.env.budget), miniters=2)
+    iterations = math.ceil(env.env.budget / args.query_size)
+    iterator = tqdm(range(iterations), miniters=2)
     for i in iterator:
         action = agent.predict(*state)
         state, reward, done, truncated, info = env.step(action)

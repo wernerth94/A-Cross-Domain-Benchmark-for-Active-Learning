@@ -121,6 +121,7 @@ class ALGame(gym.Env):
                 loss_value = self.loss(yHat, batch_y)
                 loss_value.backward()
                 self.optimizer.step()
+
             # early stopping on validation
             with torch.no_grad():
                 self.classifier.eval()
@@ -135,13 +136,14 @@ class ALGame(gym.Env):
                     break
         self.current_test_loss = loss_sum
 
-        #
+        # create reward on the testing set
         with torch.no_grad():
             self.classifier.eval()
             correct = 0.0
             for batch_x, batch_y in test_dataloader:
                 yHat = self.classifier(batch_x)
                 predicted = torch.argmax(yHat, dim=1)
+                # count correct predictions
                 correct += (predicted == torch.argmax(batch_y, dim=1)).sum().item()
             accuracy = correct / len(self.dataset.x_test)
             reward = accuracy - self.current_test_accuracy

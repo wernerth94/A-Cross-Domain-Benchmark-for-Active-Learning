@@ -8,6 +8,13 @@ import numpy as np
 from tqdm import tqdm
 from scipy.stats import t
 
+name_corrections = {
+    "RandomAgent": "Random",
+    "Coreset_Greedy": "Coreset",
+    "ShannonEntropy": "Entropy",
+    "MarginScore": "Margin"
+}
+
 def _find_missing_runs():
     datasets = ["Splice", "SpliceEncoded", "DNA", "DNAEncoded", "USPS", "USPSEncoded", "TopV2", "News",
                 "Cifar10", "Cifar10Encoded", "FashionMnist", "FashionMnistEncoded",
@@ -53,8 +60,6 @@ def _find_missing_runs():
                                 print(f"Uneven number of values in run {c} of {agent_folder}")
                     else:
                         print(f"Accuracy file missing {acc_file}")
-
-
 
 
 def _t_value_for_samplesize(n_samples, sig_level= 0.95):
@@ -155,17 +160,17 @@ def generate_full_overview(precision=2):
                     #"DivergingSin", "ThreeClust"]
     datasets_encoded = ["SpliceEncoded", "DNAEncoded", "USPSEncoded",
                         "Cifar10Encoded", "FashionMnistEncoded"]
-    df_raw = combine_agents_into_df(dataset=datasets_raw)
+    df_raw = combine_agents_into_df(dataset=datasets_raw, include_oracle=True)
     df_raw = average_out_columns(df_raw, ["iteration", "query_size"])
     df_raw = compute_ranks_over_trials(df_raw)
 
-    df_enc = combine_agents_into_df(dataset=datasets_encoded)
+    df_enc = combine_agents_into_df(dataset=datasets_encoded, include_oracle=True)
     df_enc = average_out_columns(df_enc, ["iteration", "query_size"])
     df_enc = compute_ranks_over_trials(df_enc)
 
     leaderboard = average_out_columns(df_raw, ["dataset"]).sort_values("rank")
     leaderboard.index = leaderboard["agent"]
-    leaderboard = leaderboard.drop(["agent", "acc"], axis=1)
+    leaderboard = leaderboard.drop(["agent", "auc"], axis=1)
     # add single unencoded datasets
     for dataset in datasets_raw:
         values = []
@@ -187,13 +192,39 @@ def generate_full_overview(precision=2):
 
 def compute_ranks_over_trials(df:pd.DataFrame):
     assert "trial" in df.columns
-    df["rank"] = df.groupby(["dataset", "trial"])["acc"].rank(ascending=False)
+    df["rank"] = df.groupby(["dataset", "trial"])["auc"].rank(ascending=False)
     df = average_out_columns(df, ["trial"])
     return df
 
 
 
-def combine_agents_into_df(dataset=None, query_size=None, agent=None):
+def combine_agents_into_df(dataset=None, query_size=None, agent=None,
+                           max_loaded_runs=None, include_oracle=False):
+    def _load_trials_for_agent(dataset_name, query_size_name, agent_name):
+        if query_size_name is not None:
+            agent_folder = join(base_folder, dataset_name, query_size_name, agent_name)
+        else:
+            agent_folder = join(base_folder, dataset_name, agent_name)
+        acc_file = join(agent_folder, "accuracies.csv")
+        if exists(acc_file):
+            accuracies = pd.read_csv(acc_file, header=0, index_col=0).values
+            if max_loaded_runs is not None:
+                N = max_loaded_runs
+            else:
+                N = accuracies.shape[1]
+            for trial in range(N):
+                for iteration in range(accuracies.shape[0]):
+                    if not np.isnan(accuracies[iteration, trial]):
+                        df_data["dataset"].append(dataset_name)
+                        if query_size_name is not None:
+                            df_data["query_size"].append(query_size_name)
+                        else:
+                            df_data["query_size"].append(1)
+                        df_data["agent"].append(name_corrections.get(agent_name, agent_name))
+                        df_data["trial"].append(trial)
+                        df_data["iteration"].append(iteration)
+                        df_data["auc"].append(accuracies[iteration, trial])
+
     base_folder = "runs"
 
     df_data = {
@@ -202,7 +233,7 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None):
         "agent": [],
         "trial": [],
         "iteration": [],
-        "acc": []
+        "auc": []
     }
     dataset_list = _query_to_list(dataset, base_folder)
     for dataset_name in tqdm(dataset_list):
@@ -214,19 +245,9 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None):
             query_size_folder = join(dataset_folder, query_size_name)
             agent_list = _query_to_list(agent, query_size_folder)
             for agent_name in agent_list:
-                agent_folder = join(query_size_folder, agent_name)
-                acc_file = join(agent_folder, "accuracies.csv")
-                if exists(acc_file):
-                    accuracies = pd.read_csv(acc_file, header=0, index_col=0).values
-                    for trial in range(accuracies.shape[1]):
-                        for iteration in range(accuracies.shape[0]):
-                            if not np.isnan(accuracies[iteration, trial]):
-                                df_data["dataset"].append(dataset_name)
-                                df_data["query_size"].append(query_size_name)
-                                df_data["agent"].append(agent_name)
-                                df_data["trial"].append(trial)
-                                df_data["iteration"].append(iteration)
-                                df_data["acc"].append(accuracies[iteration, trial])
+                _load_trials_for_agent(dataset_name, query_size_name, agent_name)
+        if include_oracle:
+            _load_trials_for_agent(dataset_name, None, "Oracle")
     df = pd.DataFrame(df_data)
     return df.sort_values(["dataset", "query_size", "agent", "trial", "iteration"])
 
@@ -234,12 +255,12 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None):
 def average_out_columns(df:pd.DataFrame, columns:list):
     result_df = df.copy(deep=True)
     for col in columns:
-        other_columns = [c for c in result_df.columns if c not in [col, "acc", "rank"] ]
+        other_columns = [c for c in result_df.columns if c not in [col, "auc", "rank"] ]
         result_list = []
         grouped_df = result_df.groupby(other_columns)
         for key, sub_df in grouped_df:
-            mean = sub_df["acc"].mean()
-            sub_df["acc"] = mean
+            mean = sub_df["auc"].mean()
+            sub_df["auc"] = mean
             if "rank" in df.columns:
                 mean = sub_df["rank"].mean()
                 sub_df["rank"] = mean

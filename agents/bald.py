@@ -53,24 +53,6 @@ class BALD(BaseAgent):
                 y_hat = self._predict(x_sample, classifier)
                 y_hat = torch.nn.functional.softmax(y_hat, dim=-1)
                 y_hat_collection[:, trial, :] = y_hat
-            #     y_hat_sum += y_hat
-            #
-            #     y_hat_log = torch.log2(y_hat + 1e-6)  # Add 1e-6 to avoid log(0)
-            #     entropy_matrix = -torch.multiply(y_hat, y_hat_log)
-            #     entropy_per_instance = torch.sum(entropy_matrix, dim=1)
-            #     entropy_sum += entropy_per_instance
-            #
-            # avg_pi = torch.divide(y_hat_sum, self.dropout_trials)
-            # log_avg_pi = torch.log2(avg_pi + 1e-6)
-            # entropy_avg_pi = -torch.multiply(avg_pi, log_avg_pi)
-            # entropy_avg_pi = torch.sum(entropy_avg_pi, dim=1)
-            # g_x = entropy_avg_pi
-            # avg_entropy = torch.divide(entropy_sum, self.dropout_trials)
-            # f_x = avg_entropy
-            # u_x = g_x - f_x
-
-            # taken from https://github.com/cure-lab/deep-active-learning/blob/main/query_strategies/batch_BALD.py
-        # return torch.topk(u_x, self.query_size).indices.tolist()
             res = get_batchbald_batch(y_hat_collection, self.query_size, 100)
         ids = res.indices
         return sample_ids[ids]

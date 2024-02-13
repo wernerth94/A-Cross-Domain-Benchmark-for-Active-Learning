@@ -251,12 +251,20 @@ def full_plot(dataset, query_size=None, y_label="Accuracy", show_auc=True, smoot
     else:
         raise ValueError()
 
+
+def plot_single(ax, dataset, query_size, agent, label, color, show_auc=True, smoothing_weight=0.0):
+    x, mean, _ = _load_eval_data(dataset, query_size, agent, smoothing_weight)
+    if show_auc:
+        auc = np.mean(mean)
+        label += f" auc: {auc:.3f}"
+    ax.plot(x, mean, label=label, color=color)
+
+
+
 def plot_batch_benchmark(ax, x, y, color, display_name, alpha=0.8, linewidth=1.5, show_auc=True):
     full_name = f"{display_name}"
     if show_auc:
         full_name += " - AUC: %1.3f"%(np.mean(y))
-    # if plot_std:
-    #     ax.fill_between(x, mean-std, mean+std, alpha=0.5, facecolor=color)
     ax.plot(x, y, label=full_name, linewidth=linewidth, c=color, alpha=alpha)
 
 
