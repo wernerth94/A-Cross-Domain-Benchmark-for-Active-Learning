@@ -15,4 +15,4 @@ LSA
 dataset: {'domain': 'alarm', 'budget': 125, 'classifier_fitting_mode': 'finetuning', 'initial_points_per_class': 1, 'classifier_batch_size': 64, 'validation_split': 0.25} 
 classifier: {'type': 'BiLSTM', 'dropout': 0.05} 
 optimizer: {'type': 'NAdam', 'lr': 0.00155412888113029, 'weight_decay': 1.77805840656653e-07} 
-current_run_info: {'data_folder': '../datasets', 'run_id': 21, 'agent_seed': 1, 'pool_seed': 1, 'model_seed': 1, 'agent': 'lsa', 'dataset': 'topv2', 'query_size': 5, 'encoded': False, 'restarts': 10, 'experiment_postfix': None} 
+current_run_info: {'data_folder': '../datasets', 'run_id': 25, 'agent_seed': 1, 'pool_seed': 1, 'model_seed': 1, 'agent': 'lsa', 'dataset': 'topv2', 'query_size': 5, 'encoded': False, 'restarts': 1, 'experiment_postfix': None} 
