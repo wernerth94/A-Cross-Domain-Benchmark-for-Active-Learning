@@ -19,7 +19,7 @@ parser.add_argument("--agent", type=str, default="margin")
 parser.add_argument("--dataset", type=str, default="splice")
 parser.add_argument("--query_size", type=int, default=1)
 parser.add_argument("--encoded", type=int, default=0)
-parser.add_argument("--restarts", type=int, default=1)
+parser.add_argument("--restarts", type=int, default=30)
 ##########################################################
 parser.add_argument("--experiment_postfix", type=str, default=None)
 args = parser.parse_args()

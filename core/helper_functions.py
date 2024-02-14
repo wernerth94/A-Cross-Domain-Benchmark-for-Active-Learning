@@ -395,6 +395,10 @@ if __name__ == '__main__':
                 show_auc=show_auc, show_std=True)
     plot_single(axes, "Splice", 1, "MarginScore_finetuning", label="Finetuning", color="green",
                 show_auc=show_auc, show_std=True)
+    plot_single(axes, "Splice", 1, "MarginScore", label="Finetuning", color="green",
+                show_auc=show_auc, show_std=True)
+    plot_single(axes, "Splice", 1, "MarginScore_shrinking", label="Shrinking", color="orange",
+                show_auc=show_auc, show_std=True)
     axes.set_title('Splice')
     axes.set_ylabel('Accuracy')
     axes.set_xlabel('# labeled datapoints')
