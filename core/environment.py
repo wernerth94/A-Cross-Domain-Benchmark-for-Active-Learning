@@ -96,7 +96,7 @@ class ALGame(gym.Env):
         return next_state, reward, done, truncated, {}
 
 
-    def _apply_shrinking(self, model, shrink=0.8, perturb=0.005):
+    def _apply_shrinking(self, model, shrink=0.95, perturb=0.005):
         fresh_init = self.dataset.get_classifier(self.model_rng)
         fresh_init.to(self.device)
         for p1, p2 in zip(*[fresh_init.parameters(), model.parameters()]):
