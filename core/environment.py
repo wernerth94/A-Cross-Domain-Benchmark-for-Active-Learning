@@ -86,22 +86,32 @@ class ALGame(gym.Env):
             with torch.no_grad():
                 self._add_point_to_labeled_pool(a)
 
-            if self.fitting_mode == "finetuning":
+            if self.fitting_mode in  ["finetuning", "shrinking"]:
                 reward = self.fit_classifier()
         if self.fitting_mode == "from_scratch":
-                reward = self.fit_classifier()
+            reward = self.fit_classifier()
         next_state = self.create_state()
         done = self.added_images >= self.budget
         truncated = False
         return next_state, reward, done, truncated, {}
 
 
-    def _fit_classifier(self, epochs=50, from_scratch=False):
+    def _apply_shrinking(self, model, shrink=0.4, perturb=0.1):
+        fresh_init = self.dataset.get_classifier(self.model_rng)
+        fresh_init.to(self.device)
+        for p1, p2 in zip(*[model.parameters(), fresh_init.parameters()]):
+            p2.data = copy.deepcopy(shrink * p2.data + perturb * p1.data)
+
+
+    def _fit_classifier(self, epochs=50, from_scratch=False, shrinking=False):
         if from_scratch:
             self.classifier.load_state_dict(self.initial_weights)
             early_stop = EarlyStopping(patience=50)
         else:
             early_stop = EarlyStopping(patience=0)
+
+        if shrinking:
+            self._apply_shrinking(self.classifier)
 
         # If drop_last is True, the first iterations i < batch_size have no training data
         drop_last = self.dataset.classifier_batch_size < len(self.x_labeled)
@@ -153,9 +163,11 @@ class ALGame(gym.Env):
 
     def fit_classifier(self, epochs=100):
         if self.fitting_mode == "from_scratch":
-            return self._fit_classifier(epochs, from_scratch=True)
+            return self._fit_classifier(epochs, from_scratch=True, shrinking=False)
         elif self.fitting_mode == "finetuning":
-            return self._fit_classifier(epochs, from_scratch=False)
+            return self._fit_classifier(epochs, from_scratch=False, shrinking=False)
+        elif self.fitting_mode == "shrinking":
+            return self._fit_classifier(epochs, from_scratch=False, shrinking=True)
         elif self.fitting_mode == "one_epoch":
             return self._fit_classifier(1, from_scratch=False)
         else:

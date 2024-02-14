@@ -45,7 +45,7 @@ class BaseDataset(ABC):
             self.initial_points_per_class = config["dataset"]["initial_points_per_class"]
             self.classifier_batch_size = config["dataset"]["classifier_batch_size"]
             self.class_fitting_mode = config["dataset"]["classifier_fitting_mode"]
-        assert self.class_fitting_mode in ["from_scratch", "finetuning"], "Unkown fitting mode"
+        assert self.class_fitting_mode in ["from_scratch", "finetuning", "shrinking"], "Unkown fitting mode"
 
         self.name = str(self.__class__).split('.')[-1][:-2]
         if encoded:

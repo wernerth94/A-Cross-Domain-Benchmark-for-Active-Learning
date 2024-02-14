@@ -252,11 +252,14 @@ def full_plot(dataset, query_size=None, y_label="Accuracy", show_auc=True, smoot
         raise ValueError()
 
 
-def plot_single(ax, dataset, query_size, agent, label, color, show_auc=True, smoothing_weight=0.0):
-    x, mean, _ = _load_eval_data(dataset, query_size, agent, smoothing_weight)
+def plot_single(ax, dataset, query_size, agent, label, color, show_auc=True, smoothing_weight=0.0, show_std=False):
+    x, mean, std = _load_eval_data(dataset, query_size, agent, smoothing_weight)
     if show_auc:
         auc = np.mean(mean)
         label += f" auc: {auc:.3f}"
+    if show_std:
+        label += f" +- {np.mean(std):.3f}"
+        ax.fill_between(x, mean-std, mean+std, color=color, alpha=0.5)
     ax.plot(x, mean, label=label, color=color)
 
 
@@ -383,8 +386,26 @@ def get_agent_by_name(name:str)->Callable:
 
 
 if __name__ == '__main__':
-    # plot_batch_benchmark("Splice/5/Badge", "b", "random")
+    font = {'size': 16}
+    import matplotlib
+    matplotlib.rc('font', **font)
+    fig, axes = plt.subplots(1, 1, dpi=150, figsize=(5, 5))
+    show_auc = True
+    plot_single(axes, "Splice", 1, "MarginScore_scratch", label="Scratch", color="red",
+                show_auc=show_auc, show_std=True)
+    plot_single(axes, "Splice", 1, "MarginScore_finetuning", label="Finetuning", color="green",
+                show_auc=show_auc, show_std=True)
+    axes.set_title('Splice')
+    axes.set_ylabel('Accuracy')
+    axes.set_xlabel('# labeled datapoints')
+    plt.grid(visible=True)
+    axes.legend(fontsize='x-small')
+    axes.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+    plt.tight_layout()
+    plt.show()
+
     # base_path = "runs/Splice/50/TypiClust"
     # collect_results(base_path, "run_")
-    full_plot("FashionMnist", query_size=None)
-    plt.show()
+
+    # full_plot("FashionMnist", query_size=None)
+    # plt.show()
