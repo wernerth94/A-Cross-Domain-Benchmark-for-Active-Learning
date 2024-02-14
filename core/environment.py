@@ -99,7 +99,7 @@ class ALGame(gym.Env):
     def _apply_shrinking(self, model, shrink=0.4, perturb=0.1):
         fresh_init = self.dataset.get_classifier(self.model_rng)
         fresh_init.to(self.device)
-        for p1, p2 in zip(*[model.parameters(), fresh_init.parameters()]):
+        for p1, p2 in zip(*[fresh_init.parameters(), model.parameters()]):
             p2.data = copy.deepcopy(shrink * p2.data + perturb * p1.data)
 
 
