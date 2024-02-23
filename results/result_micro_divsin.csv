@@ -1,9 +1,0 @@
-,DivergingSin
-Oracle,0.948 $\pm$ 0.198
-ShannonEntropy,0.936 $\pm$ 0.202
-TypiClust,0.930 $\pm$ 0.196
-MarginScore,0.929 $\pm$ 0.201
-RandomAgent,0.919 $\pm$ 0.191
-Badge,0.914 $\pm$ 0.202
-Coreset_Greedy,0.914 $\pm$ 0.197
-BALD,0.661 $\pm$ 0.167

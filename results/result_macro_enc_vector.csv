@@ -1,9 +1,0 @@
-,SpliceEncoded,DNAEncoded,USPSEncoded
-Oracle,0.728 $\pm$ 0.02,0.709 $\pm$ 0.02,0.522 $\pm$ 0.02
-TypiClust,0.645 $\pm$ 0.04,0.672 $\pm$ 0.03,0.507 $\pm$ 0.03
-MarginScore,0.636 $\pm$ 0.03,0.648 $\pm$ 0.05,0.496 $\pm$ 0.03
-RandomAgent,0.643 $\pm$ 0.04,0.626 $\pm$ 0.04,0.468 $\pm$ 0.02
-ShannonEntropy,0.636 $\pm$ 0.03,0.629 $\pm$ 0.06,0.459 $\pm$ 0.02
-Coreset_Greedy,0.648 $\pm$ 0.03,0.640 $\pm$ 0.04,0.435 $\pm$ 0.03
-Badge,0.627 $\pm$ 0.04,0.647 $\pm$ 0.04,0.440 $\pm$ 0.03
-BALD,0.565 $\pm$ 0.05,0.594 $\pm$ 0.04,0.402 $\pm$ 0.05

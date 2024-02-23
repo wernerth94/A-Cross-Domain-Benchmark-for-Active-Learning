@@ -160,6 +160,21 @@ class SigmoidRegression(torch.nn.Module):
         z = self.max_value / (1 + torch.exp(-(z - 2.0))) # right-shifted sigmoid
         return z
 
+
+def _insert_oracle_forecast(df:pd.DataFrame):
+    max_iterations = len(df)
+    datasets = df["dataset"].unique()
+    for dataset in datasets:
+        df_oracles = df[(df["dataset"] == dataset) &
+                        (df["query_size"] == 1) &    # fixed for oracles entries
+                        (df["agent"] == "Oracle")
+                        ]
+        oracle_data = df_oracles.drop(["agent", "dataset", "query_size", "trial"], axis=1)
+        lr_model = LinearRegression()
+        lr_model.fit(oracle_data["iteration"].values, oracle_data["auc"].values)
+        _, ub, _ = _load_eval_data(dataset, None, "UpperBound")
+
+
 def _get_sigmoid_regression(x, y, x_test, upper_bound):
     max_value = max(x_test)
     x_train = torch.tensor(x).float().unsqueeze(-1)
@@ -252,7 +267,8 @@ def full_plot(dataset, query_size=None, y_label="Accuracy", show_auc=True, smoot
         raise ValueError()
 
 
-def plot_single(ax, dataset, query_size, agent, label, color, show_auc=True, smoothing_weight=0.0, show_std=False):
+def plot_single(ax, dataset, query_size, agent, label, color,
+                show_auc=True, smoothing_weight=0.0, show_std=False):
     x, mean, std = _load_eval_data(dataset, query_size, agent, smoothing_weight)
     if show_auc:
         auc = np.mean(mean)
@@ -386,18 +402,26 @@ def get_agent_by_name(name:str)->Callable:
 
 
 if __name__ == '__main__':
+
+
     font = {'size': 16}
     import matplotlib
     matplotlib.rc('font', **font)
-    fig, axes = plt.subplots(1, 1, dpi=150, figsize=(5, 5))
+    fig, axes = plt.subplots(2, 1, dpi=150, figsize=(5, 5))
     show_auc = True
-    plot_single(axes, "Splice", 1, "MarginScore_scratch", label="Scratch", color="red",
+    qs = 20
+
+    _create_plot_for_query_size(axes[1], "USPS", 1, "Acc", f"USPS: Query Size {qs}",
+                               smoothing_weight=0.0, show_auc=show_auc, forecast_oracle=False)
+    plt.show()
+
+    plot_single(axes, "Splice", qs, "MarginScore_scratch", label="Scratch", color="red",
                 show_auc=show_auc, show_std=True)
-    plot_single(axes, "Splice", 1, "MarginScore_finetuning", label="Finetuning", color="green",
+    plot_single(axes, "Splice", qs, "MarginScore_finetuning", label="Finetuning", color="green",
                 show_auc=show_auc, show_std=True)
-    plot_single(axes, "Splice", 1, "MarginScore", label="Shrinking", color="blue",
+    plot_single(axes, "Splice", qs, "MarginScore", label="Shrinking", color="blue",
                 show_auc=show_auc, show_std=True)
-    plot_single(axes, "Splice", 1, "MarginScore_shrinking", label="Shrinking", color="orange",
+    plot_single(axes, "Splice", qs, "MarginScore_shrinking", label="Shrinking", color="orange",
                 show_auc=show_auc, show_std=True)
     axes.set_title('Splice')
     axes.set_ylabel('Accuracy')

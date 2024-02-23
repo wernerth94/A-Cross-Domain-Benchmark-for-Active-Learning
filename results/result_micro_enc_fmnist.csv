@@ -1,9 +1,0 @@
-,FashionMnistEncoded
-Oracle,0.732 $\pm$ 0.006
-Coreset_Greedy,0.686 $\pm$ 0.008
-Badge,0.685 $\pm$ 0.008
-ShannonEntropy,0.684 $\pm$ 0.009
-MarginScore,0.682 $\pm$ 0.011
-BALD,0.668 $\pm$ 0.009
-TypiClust,0.652 $\pm$ 0.009
-RandomAgent,0.640 $\pm$ 0.011

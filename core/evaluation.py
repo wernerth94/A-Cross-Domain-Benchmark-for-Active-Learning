@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from scipy.stats import t
+from helper_functions import _insert_oracle_forecast
 
 name_corrections = {
     "RandomAgent": "Random",
@@ -169,6 +170,8 @@ def generate_full_overview(precision=2):
     df_enc = compute_ranks_over_trials(df_enc)
 
     leaderboard = average_out_columns(df_raw, ["dataset"]).sort_values("rank")
+    intersection = leaderboard["agent"].isin(df_enc["agent"])
+    leaderboard = leaderboard[intersection]
     leaderboard.index = leaderboard["agent"]
     leaderboard = leaderboard.drop(["agent", "auc"], axis=1)
     # add single unencoded datasets
@@ -176,6 +179,9 @@ def generate_full_overview(precision=2):
         values = []
         for index, _ in leaderboard.iterrows():
             r = df_raw[(df_raw["agent"] == index) & (df_raw["dataset"] == dataset)]["rank"]
+            if len(r) == 0:
+                print(f"No runs found for {index} on {dataset}")
+                continue
             values.append(round(r.item(), precision))
         leaderboard[dataset] = values
     leaderboard["Unencoded"] = leaderboard["rank"].round(precision)
@@ -225,6 +231,7 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None,
                         df_data["iteration"].append(iteration)
                         df_data["auc"].append(accuracies[iteration, trial])
 
+
     base_folder = "runs"
 
     df_data = {
@@ -249,7 +256,10 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None,
         if include_oracle:
             _load_trials_for_agent(dataset_name, None, "Oracle")
     df = pd.DataFrame(df_data)
-    return df.sort_values(["dataset", "query_size", "agent", "trial", "iteration"])
+    df = df.sort_values(["dataset", "query_size", "agent", "trial", "iteration"])
+    if include_oracle:
+        _insert_oracle_forecast(df)
+    return df
 
 
 def average_out_columns(df:pd.DataFrame, columns:list):

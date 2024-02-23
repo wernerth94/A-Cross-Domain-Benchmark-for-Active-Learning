@@ -17,7 +17,7 @@ parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
 parser.add_argument("--agent", type=str, default="margin")
 parser.add_argument("--dataset", type=str, default="splice")
-parser.add_argument("--query_size", type=int, default=1)
+parser.add_argument("--query_size", type=int, default=20)
 parser.add_argument("--encoded", type=int, default=0)
 parser.add_argument("--restarts", type=int, default=30)
 ##########################################################

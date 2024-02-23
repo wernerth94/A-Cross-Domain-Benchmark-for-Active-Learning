@@ -1,9 +1,0 @@
-,SpliceEncoded
-Oracle,0.728 $\pm$ 0.022
-Coreset_Greedy,0.648 $\pm$ 0.027
-TypiClust,0.645 $\pm$ 0.042
-RandomAgent,0.643 $\pm$ 0.036
-ShannonEntropy,0.636 $\pm$ 0.033
-MarginScore,0.636 $\pm$ 0.033
-Badge,0.627 $\pm$ 0.040
-BALD,0.565 $\pm$ 0.049

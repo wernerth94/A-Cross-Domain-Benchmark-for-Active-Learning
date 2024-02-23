@@ -1,9 +1,0 @@
-,DNA
-Oracle,0.842 $\pm$ 0.021
-MarginScore,0.807 $\pm$ 0.035
-ShannonEntropy,0.805 $\pm$ 0.038
-Coreset_Greedy,0.796 $\pm$ 0.028
-Badge,0.789 $\pm$ 0.056
-TypiClust,0.788 $\pm$ 0.036
-RandomAgent,0.768 $\pm$ 0.024
-BALD,0.749 $\pm$ 0.044

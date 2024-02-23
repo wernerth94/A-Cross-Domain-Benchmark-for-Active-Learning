@@ -1,9 +1,0 @@
-,ThreeClust
-Oracle,1.07 $\pm$ 0.14
-Coreset_Greedy,1.04 $\pm$ 0.09
-TypiClust,1.04 $\pm$ 0.08
-ShannonEntropy,1.02 $\pm$ 0.15
-RandomAgent,1.00 $\pm$ 0.10
-MarginScore,1.00 $\pm$ 0.14
-Badge,0.78 $\pm$ 0.13
-BALD,0.76 $\pm$ 0.07

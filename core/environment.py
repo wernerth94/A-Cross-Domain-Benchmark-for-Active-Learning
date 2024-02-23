@@ -96,7 +96,7 @@ class ALGame(gym.Env):
         return next_state, reward, done, truncated, {}
 
 
-    def _apply_shrinking(self, model, shrink=0.95, perturb=0.005):
+    def _apply_shrinking(self, model, shrink=0.8, perturb=0.01):
         fresh_init = self.dataset.get_classifier(self.model_rng)
         fresh_init.to(self.device)
         for p1, p2 in zip(*[fresh_init.parameters(), model.parameters()]):
@@ -307,8 +307,8 @@ class OracleALGame(ALGame):
                 # remove the point from the unlabeled set
                 self.x_unlabeled = torch.cat([self.x_unlabeled[:id], self.x_unlabeled[id + 1:]], dim=0)
                 self.y_unlabeled = torch.cat([self.y_unlabeled[:id], self.y_unlabeled[id + 1:]], dim=0)
+                self.added_images += 1
         reward = self.fit_classifier()
-        self.added_images += 1
         done = self.added_images >= self.budget
         truncated, info = False, {"action": chosen}
         return self.create_state(), reward, done, truncated, info
