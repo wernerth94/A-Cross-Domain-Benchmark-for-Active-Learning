@@ -162,39 +162,48 @@ class SigmoidRegression(torch.nn.Module):
 
 
 def _insert_oracle_forecast(df:pd.DataFrame):
-    max_iterations = len(df)
+    from core.evaluation import average_out_columns
     datasets = df["dataset"].unique()
     for dataset in datasets:
         df_oracles = df[(df["dataset"] == dataset) &
                         (df["query_size"] == 1) &    # fixed for oracles entries
                         (df["agent"] == "Oracle")
                         ]
-        oracle_data = df_oracles.drop(["agent", "dataset", "query_size", "trial"], axis=1)
-        lr_model = LinearRegression()
-        lr_model.fit(oracle_data["iteration"].values, oracle_data["auc"].values)
-        _, ub, _ = _load_eval_data(dataset, None, "UpperBound")
+        oracle_data = df_oracles.drop(["agent", "dataset", "query_size"], axis=1)
+        oracle_data = average_out_columns(oracle_data, ["trial"])
+        full_range = df[df["dataset"] == dataset]["iteration"].unique().tolist()
+        oracle_max = oracle_data["iteration"].max()
+        if oracle_max < max(full_range):
+            oracle_data = oracle_data.sort_values(["iteration"], ascending=True)
+            x, y = _get_oracle_regression(x=oracle_data["iteration"].to_list(), y=oracle_data["auc"].to_list(),
+                                          x_test=full_range, upper_bound=None)
+            forecast_data = pd.DataFrame({
+                "dataset": [dataset]*len(x),
+                "query_size": [1]*len(x),
+                "agent": ["Oracle"]*len(x),
+                "trial": [1]*len(x),
+                "iteration": x,
+                "auc": y
+            })
+            df = pd.concat([df, forecast_data])
+    return df
 
 
-def _get_sigmoid_regression(x, y, x_test, upper_bound):
-    max_value = max(x_test)
-    x_train = torch.tensor(x).float().unsqueeze(-1)
-    x_train /= max_value
-    y_train = torch.from_numpy(y).float().unsqueeze(-1)
-    model = SigmoidRegression(torch.tensor(upper_bound).float())
-    loss_fn = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
-    for epoch in range(300):
-        optimizer.zero_grad()
-        outputs = model(x_train)
-        loss = loss_fn(outputs, y_train)
-        loss.backward()
-        optimizer.step()
-        # if epoch % 50 == 0:
-        #     print(epoch, loss.item())
-    with torch.no_grad():
-        x_test = torch.linspace(max(x), max(x_test), 100).reshape(-1, 1)
-        # x_test_poly = poly.transform(x_test)
-        return x_test, model(x_test/max_value)
+def _get_oracle_regression(x, y, x_test, upper_bound):
+    max_value = float(max(x_test))
+    cutoff = int(len(x)*0.5)
+    x_train = np.array(x[cutoff:], dtype=float) / max_value # drop the first 50 percent of data
+    y_train = np.array(y[cutoff:], dtype=float)
+    lr_model = LinearRegression()
+    lr_model.fit(x_train.reshape(-1, 1), y_train)
+    x_test = [i for i in x_test if i >= max(x)]
+    x_test_array = np.array(x_test, dtype=float) / max_value
+    # x_test = np.arange(max(x), max(x_test))
+    y_test = lr_model.predict(x_test_array.reshape(-1, 1))
+    for i in range(1, len(y_test)):
+        multiplicator = 1 / i
+        y_test[i] = y_test[i-1] * (1-multiplicator) + y_test[i] * multiplicator
+    return x_test, y_test
 
 
 def _create_plot_for_query_size(ax, dataset, query_size, y_label, title, smoothing_weight, show_auc, forecast_oracle=True):
@@ -223,7 +232,7 @@ def _create_plot_for_query_size(ax, dataset, query_size, y_label, title, smoothi
         color = _agent_colors["Oracle"]
         x, mean, _ = _load_eval_data(dataset, query_size, "Oracle", smoothing_weight)
         if forecast_oracle and max(x) < max(inferred_x_axis):
-            x_axis, forecast = _get_sigmoid_regression(x, mean, inferred_x_axis, upper_bound)
+            x_axis, forecast = _get_oracle_regression(x, mean, inferred_x_axis, upper_bound)
             ax.plot(x_axis, forecast, linewidth=1.5, c=color, alpha=0.8, linestyle="--")
     except FileNotFoundError:
         pass
@@ -411,8 +420,8 @@ if __name__ == '__main__':
     show_auc = True
     qs = 20
 
-    _create_plot_for_query_size(axes[1], "USPS", 1, "Acc", f"USPS: Query Size {qs}",
-                               smoothing_weight=0.0, show_auc=show_auc, forecast_oracle=False)
+    _create_plot_for_query_size(axes[1], "Cifar10", 500, "Acc", f"Cifar10 - 500",
+                               smoothing_weight=0.0, show_auc=show_auc, forecast_oracle=True)
     plt.show()
 
     plot_single(axes, "Splice", qs, "MarginScore_scratch", label="Scratch", color="red",

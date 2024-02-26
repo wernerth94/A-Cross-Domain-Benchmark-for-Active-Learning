@@ -258,7 +258,7 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None,
     df = pd.DataFrame(df_data)
     df = df.sort_values(["dataset", "query_size", "agent", "trial", "iteration"])
     if include_oracle:
-        _insert_oracle_forecast(df)
+        df = _insert_oracle_forecast(df)
     return df
 
 
@@ -283,6 +283,8 @@ def average_out_columns(df:pd.DataFrame, columns:list):
 
 
 if __name__ == '__main__':
+    # combine_agents_into_df(["Cifar10", "FashionMnist"], include_oracle=True)
+
     leaderboard = generate_full_overview()
     leaderboard.to_csv("results/overview.csv")
 
