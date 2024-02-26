@@ -1,6 +1,6 @@
 # Dataset: 
 Cifar10Encoded
-Budget: 350
+Budget: 450
 Seeding points per class: 1
 Classifier Batch Size: 64
 Source: TorchVision
@@ -11,10 +11,10 @@ Classifier: ResNet18
 CoreGCN 
 
 # Config: 
-dataset: {'budget': 5000, 'classifier_fitting_mode': 'finetuning', 'initial_points_per_class': 100, 'classifier_batch_size': 64, 'validation_split': 0.04} 
+dataset: {'budget': 10000, 'classifier_fitting_mode': 'finetuning', 'initial_points_per_class': 100, 'classifier_batch_size': 64, 'validation_split': 0.04} 
 classifier: {'type': 'Resnet18'} 
 optimizer: {'type': 'NAdam', 'lr': 0.001, 'weight_decay': 0.0} 
-dataset_embedded: {'encoder_checkpoint': 'encoder_checkpoints/cifar10_27.03/model_seed1.pth.tar', 'budget': 350, 'classifier_fitting_mode': 'from_scratch', 'initial_points_per_class': 1, 'classifier_batch_size': 64} 
+dataset_embedded: {'encoder_checkpoint': 'encoder_checkpoints/cifar10_27.03/model_seed1.pth.tar', 'budget': 450, 'classifier_fitting_mode': 'from_scratch', 'initial_points_per_class': 1, 'classifier_batch_size': 64} 
 classifier_embedded: {'type': 'Linear'} 
 optimizer_embedded: {'type': 'NAdam', 'lr': 0.00171578341563099, 'weight_decay': 2.38432342659786e-05} 
 pretext_encoder: {'type': 'Resnet18', 'feature_dim': 128} 
