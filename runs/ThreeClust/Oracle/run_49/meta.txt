@@ -1,0 +1,11 @@
+# Dataset: 
+ThreeClust
+Budget: 60
+Seeding points per class: 1
+Classifier Batch Size: 32 
+
+# Config: 
+dataset: {'budget': 60, 'classifier_fitting_mode': 'from_scratch', 'initial_points_per_class': 1, 'classifier_batch_size': 32, 'validation_split': 0.2} 
+classifier: {'type': 'MLP', 'hidden': [12, 16]} 
+optimizer: {'type': 'NAdam', 'lr': 0.001, 'weight_decay': 0.0} 
+current_run_info: {'data_folder': '../datasets', 'run_id': 49, 'pool_seed': 1, 'model_seed': 1, 'dataset': 'threeclust', 'encoded': False, 'sample_size': 20, 'restarts': 1, 'store_dataset': False, 'max_budget': 2000, 'points_per_iter': 1} 
