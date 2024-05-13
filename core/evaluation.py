@@ -256,9 +256,9 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None,
         if include_oracle:
             _load_trials_for_agent(dataset_name, None, "Oracle")
     df = pd.DataFrame(df_data)
-    df = df.sort_values(["dataset", "query_size", "agent", "trial", "iteration"])
     if include_oracle:
         df = _insert_oracle_forecast(df)
+    df = df.sort_values(["dataset", "query_size", "agent", "trial", "iteration"])
     return df
 
 

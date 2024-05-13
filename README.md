@@ -67,7 +67,7 @@ All graphics from the paper are generated via the two notebooks `eval_plots.ipyn
 Parallelism is controlled by two parameters: `run_id`(default 1) and `restarts`(default 50)\
 This starts one run with seed 1 that sequentially executes the evaluation 50 times. \
 For full parallelism set `restarts` to 1 and execute 50 runs with increasing `run_ids`\
-This will automatically collect the results after each finished run and store it in `<dataset>/<agent>/accuracies.csv`
+This will automatically collect the results after each finished run and store it in `<dataset>/<query_size>/<agent>/accuracies.csv`
 
 Here is an example how to run 6 seeded runs in three different levels of parallelism \
 ![](doc/img/parallel_runs_example.png)
@@ -122,3 +122,66 @@ The run script will collect all intermediate results and aggregate them into one
   1. Normal classification
   2. Embedded classification
   3. Pretext 
+
+
+### Config Template
+```yaml
+dataset: # general settings for un-encoded data
+  budget: 10000
+  classifier_fitting_mode: finetuning # finetuning or from_scratch
+  initial_points_per_class: 100 # seed set size
+  classifier_batch_size: 64 # batch size for training the classifier
+  validation_split: 0.04 # size of the validation set in percentage
+
+classifier: # classifier architecture for un-encoded data
+  type: Resnet18
+
+optimizer: # optimizer settings for un-encoded data
+  type: NAdam
+  lr: 0.001
+  weight_decay: 0.0
+
+dataset_embedded: # general settings for encoded data
+  encoder_checkpoint: encoder_checkpoints/cifar10_27.03/model_seed1.pth.tar
+  budget: 450
+  classifier_fitting_mode: from_scratch
+  initial_points_per_class: 1
+  classifier_batch_size: 64
+
+classifier_embedded: # classifier architecture for encoded data
+#  type: MLP
+#  hidden: [24, 12]
+  type: Linear
+
+optimizer_embedded: # optimizer settings for encoded data
+  # Linear
+  type: NAdam
+  lr: 0.00171578341563099
+  weight_decay: 2.38432342659786E-05
+  # MLP
+#  type: Adam
+#  lr: 0.00422210204014432
+#  weight_decay: 1.62121435184421E-08
+
+# Settings for the Pretext Task (SimCLR)
+# This is used for creating the encoder checkpoint that encodes the encoded data
+pretext_encoder: 
+  type: Resnet18
+  feature_dim: 128
+
+pretext_optimizer:
+  type: SGD
+  lr: 0.4
+  nesterov: False
+  weight_decay: 0.0001
+  momentum: 0.9
+  lr_scheduler: cosine
+  lr_scheduler_decay: 0.1
+
+pretext_clr_loss:
+  temperature: 0.1
+
+pretext_training:
+  batch_size: 512
+  epochs: 500
+```

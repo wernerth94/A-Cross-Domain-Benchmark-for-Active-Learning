@@ -108,8 +108,8 @@ class ALGame(gym.Env):
             self.classifier.load_state_dict(self.initial_weights)
             early_stop = EarlyStopping(patience=50)
         else:
-            early_stop = EarlyStopping(patience=0)
-            # early_stop = EarlyStopping(patience=2) # TODO probably revert this
+            # early_stop = EarlyStopping(patience=0)
+            early_stop = EarlyStopping(patience=2) # TODO probably revert this
 
         if shrinking:
             self._apply_shrinking(self.classifier)

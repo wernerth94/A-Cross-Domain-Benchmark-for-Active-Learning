@@ -1,7 +1,6 @@
 # Normal Classification
 dataset:
-  budget: 150
-#  budget: 400
+  budget: 60
   classifier_fitting_mode: from_scratch
   initial_points_per_class: 10
   classifier_batch_size: 32
@@ -9,7 +8,7 @@ dataset:
 
 classifier:
   type: MLP
-  hidden: [24, 2]
+  hidden: [12, 16]
 
 optimizer:
   type: NAdam

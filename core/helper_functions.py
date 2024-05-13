@@ -175,17 +175,22 @@ def _insert_oracle_forecast(df:pd.DataFrame):
         oracle_max = oracle_data["iteration"].max()
         if oracle_max < max(full_range):
             oracle_data = oracle_data.sort_values(["iteration"], ascending=True)
+            # construct prediction horizon
+            oracle_iterations = df_oracles["iteration"].unique().tolist()
+            oracle_stepsize = round(float(max(oracle_iterations) - min(oracle_iterations)) / len(oracle_iterations), 0)
+            testing_range = range(max(oracle_iterations), max(full_range), int(oracle_stepsize))
             x, y = _get_oracle_regression(x=oracle_data["iteration"].to_list(), y=oracle_data["auc"].to_list(),
-                                          x_test=full_range, upper_bound=None)
-            forecast_data = pd.DataFrame({
-                "dataset": [dataset]*len(x),
-                "query_size": [1]*len(x),
-                "agent": ["Oracle"]*len(x),
-                "trial": [1]*len(x),
-                "iteration": x,
-                "auc": y
-            })
-            df = pd.concat([df, forecast_data])
+                                          x_test=testing_range, upper_bound=None)
+            for trial in df_oracles["trial"].unique().tolist():
+                forecast_data = pd.DataFrame({
+                    "dataset": [dataset]*len(x),
+                    "query_size": [1]*len(x),
+                    "agent": ["Oracle"]*len(x),
+                    "trial": [trial]*len(x),
+                    "iteration": x,
+                    "auc": y
+                })
+                df = pd.concat([df, forecast_data])
     return df
 
 
@@ -420,9 +425,11 @@ if __name__ == '__main__':
     show_auc = True
     qs = 20
 
-    _create_plot_for_query_size(axes[1], "Cifar10", 500, "Acc", f"Cifar10 - 500",
-                               smoothing_weight=0.0, show_auc=show_auc, forecast_oracle=True)
-    plt.show()
+    full_plot("Cifar10", 500)
+
+    # _create_plot_for_query_size(axes[1], "Cifar10", 500, "Acc", f"Cifar10 - 500",
+    #                            smoothing_weight=0.0, show_auc=show_auc, forecast_oracle=True)
+    # plt.show()
 
     plot_single(axes, "Splice", qs, "MarginScore_scratch", label="Scratch", color="red",
                 show_auc=show_auc, show_std=True)
