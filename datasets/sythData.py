@@ -15,6 +15,14 @@ class SynthData(BaseDataset):
         super().__init__(cache_folder, config, pool_rng, encoded, data_file)
 
 
+    def create_large_moons(self, n_samples:int=1000):
+        x_samples = self.pool_rng.uniform(0, 1, n_samples)
+        y_samples = self.pool_rng.beta(0.5, 0.5, n_samples)
+        labels = y_samples > (0.1 * np.sin(10.0 * x_samples)) + 0.5
+        labels = labels.astype(float)
+        data = np.stack((x_samples, y_samples, labels), axis=1)
+        return data
+
 
     def createToy_ThreeClust(self, n_perClust=150, cov=[[1, 0], [0, 1]] ):
 
@@ -70,6 +78,8 @@ class SynthData(BaseDataset):
             data = self.createToy_ThreeClust()
         elif self.dataset == 'DivergingSin':
             data = self.createDivergingSin()
+        elif self.dataset == 'LargeMoons':
+            data = self.create_large_moons()
         else:
             raise NotImplementedError
 
@@ -111,6 +121,12 @@ class ThreeClust(SynthData):
         super().__init__(cache_folder, config, pool_rng, encoded,
                          data_file, dataset)
 
+class LargeMoons(SynthData):
+    def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
+                 data_file=None, dataset='LargeMoons'):
+        super().__init__(cache_folder, config, pool_rng, encoded,
+                         data_file, dataset)
+
 
 class DivergingSin(SynthData):
     def __init__(self, cache_folder:str, config:dict, pool_rng, encoded:bool,
@@ -118,3 +134,40 @@ class DivergingSin(SynthData):
         super().__init__(cache_folder, config, pool_rng, encoded,
                          data_file, dataset)
 
+
+if __name__ == '__main__':
+    import yaml
+    with open(f"../configs/largemoons.yaml", 'r') as f:
+        config = yaml.load(f, yaml.Loader)
+    pool_rng = np.random.default_rng(1)
+    dataset = LargeMoons("", config, pool_rng, False)
+    import matplotlib.pyplot as plt
+
+    y = torch.cat((dataset.y_train, dataset.y_val, dataset.y_test), dim=0)
+    y = y.cpu()
+    X = torch.cat((dataset.x_train, dataset.x_val, dataset.x_test), dim=0)
+    X = X.cpu()
+
+    # print(y)
+    class_indices = np.argmax(y, axis=1)
+    matched_data = [(X[i], class_indices[i]) for i in range(len(X))]
+
+    pos_cls = []
+    neg_cls = []
+
+    for data in matched_data:
+        if data[1] == 0:
+            pos_cls.append(data[0])
+        else:
+            neg_cls.append(data[0])
+
+    pos_x = [tensor[0].item() for tensor in pos_cls]
+    pos_y = [tensor[1].item() for tensor in pos_cls]
+
+    neg_x = [tensor[0].item() for tensor in neg_cls]
+    neg_y = [tensor[1].item() for tensor in neg_cls]
+
+    fig, ax = plt.subplots()
+    ax.scatter(pos_x, pos_y, s=2, label='Class A')
+    ax.scatter(neg_x, neg_y, s=2, label='Class B')
+    plt.show()

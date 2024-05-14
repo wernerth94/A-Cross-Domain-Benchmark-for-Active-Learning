@@ -68,7 +68,8 @@ initial_pool_size = {
     "News": 15,
     "Mnist": 10,
     "DivergingSin": 2,
-    "ThreeClust": 2
+    "ThreeClust": 2,
+    "LargeMoons": 2,
 }
 
 def get_init_pool_size(dataset_agent:str):
@@ -211,7 +212,8 @@ def _get_oracle_regression(x, y, x_test, upper_bound):
     return x_test, y_test
 
 
-def _create_plot_for_query_size(ax, dataset, query_size, y_label, title, smoothing_weight, show_auc, forecast_oracle=True):
+def _create_plot_for_query_size(ax, dataset, query_size, y_label, title, smoothing_weight, show_auc, forecast_oracle=True,
+                                y_lim=None):
     inferred_x_axis = None
     sorted_agents = []
     # Normal Agents
@@ -246,9 +248,12 @@ def _create_plot_for_query_size(ax, dataset, query_size, y_label, title, smoothi
     ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
     ax.set_ylabel(y_label)
     ax.set_title(title)
+    if y_lim is not None:
+        ax.set_ylim(*y_lim)
     ax.grid(True)
 
-def full_plot(dataset, query_size=None, y_label="Accuracy", show_auc=True, smoothing_weight=0.0, radjust=0.8, forecast_oracle=True):
+def full_plot(dataset, query_size=None, show_auc=True, radjust=0.8, forecast_oracle=True,
+              smoothing_weight=0.0, y_label="Accuracy", y_lim=None):
     if query_size is None:
         base_path = os.path.join("runs", dataset)
         query_size = list(os.listdir(base_path))
@@ -266,7 +271,7 @@ def full_plot(dataset, query_size=None, y_label="Accuracy", show_auc=True, smoot
         for i in range(len(query_size)):
             _create_plot_for_query_size(ax[i], dataset, query_size[i], y_label if i%2==0 else "",
                                         f"{dataset} - {query_size[i]}", smoothing_weight, show_auc,
-                                        forecast_oracle)
+                                        forecast_oracle, y_lim)
             if not legend_created:
                 fig.legend(loc=7)
                 legend_created = True
@@ -274,7 +279,7 @@ def full_plot(dataset, query_size=None, y_label="Accuracy", show_auc=True, smoot
         fig.subplots_adjust(right=radjust, hspace=0.2, wspace=0.3)
     elif isinstance(query_size, int):
         fig, ax = plt.subplots(figsize=(8, 5))
-        _create_plot_for_query_size(ax, dataset, query_size, y_label, dataset, smoothing_weight, show_auc, forecast_oracle)
+        _create_plot_for_query_size(ax, dataset, query_size, y_label, dataset, smoothing_weight, show_auc, forecast_oracle, y_lim)
         plt.legend(bbox_to_anchor=(1.03, 0.5), loc="center left")
         plt.tight_layout()
     else:
@@ -381,6 +386,8 @@ def get_dataset_by_name(name:str)->Callable:
         return datasets.ThreeClust
     elif name == 'divergingsin':
         return datasets.DivergingSin
+    elif name == 'largemoons':
+        return datasets.LargeMoons
 
     else:
         raise ValueError(f"Dataset name '{name}' not recognized")
@@ -421,11 +428,13 @@ if __name__ == '__main__':
     font = {'size': 16}
     import matplotlib
     matplotlib.rc('font', **font)
-    fig, axes = plt.subplots(2, 1, dpi=150, figsize=(5, 5))
-    show_auc = True
-    qs = 20
+    # fig, axes = plt.subplots(2, 1, dpi=150, figsize=(5, 5))
+    # show_auc = True
+    # qs = 20
 
-    full_plot("Cifar10", 500)
+    full_plot("Cifar10", 500, y_lim=[0.5, 1.0])
+    plt.show()
+    exit(0)
 
     # _create_plot_for_query_size(axes[1], "Cifar10", 500, "Acc", f"Cifar10 - 500",
     #                            smoothing_weight=0.0, show_auc=show_auc, forecast_oracle=True)
