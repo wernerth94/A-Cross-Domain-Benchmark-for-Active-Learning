@@ -17,7 +17,9 @@ class SynthData(BaseDataset):
 
     def create_large_moons(self, n_samples:int=1000):
         x_samples = self.pool_rng.uniform(0, 1, n_samples)
-        y_samples = self.pool_rng.beta(0.5, 0.5, n_samples)
+        y_samples_pos = self.pool_rng.beta(5.0, 1.0, int(n_samples/2))
+        y_samples_neg = 1.0 - self.pool_rng.beta(5.0, 1.0, int(n_samples/2))
+        y_samples = np.concatenate([y_samples_pos, y_samples_neg])
         labels = y_samples > (0.1 * np.sin(10.0 * x_samples)) + 0.5
         labels = labels.astype(float)
         data = np.stack((x_samples, y_samples, labels), axis=1)
