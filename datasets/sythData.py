@@ -15,18 +15,30 @@ class SynthData(BaseDataset):
         super().__init__(cache_folder, config, pool_rng, encoded, data_file)
 
 
-    def create_large_moons(self, n_samples:int=1000):
-        x_samples = self.pool_rng.uniform(0, 1, n_samples)
-        y_samples_pos = self.pool_rng.beta(5.0, 1.0, int(n_samples/2))
-        y_samples_neg = 1.0 - self.pool_rng.beta(5.0, 1.0, int(n_samples/2))
+    def create_large_moons(self, n_samples:int=1000, test_ratio=0.8):
+        train_samples = int(n_samples * (1.0 - test_ratio))
+        test_samples = int(n_samples * test_ratio)
+
+        x_samples = self.pool_rng.uniform(0, 1, train_samples)
+        y_samples_pos = self.pool_rng.beta(5.0, 1.0, int(train_samples/2))
+        y_samples_neg = 1.0 - self.pool_rng.beta(5.0, 1.0, int(train_samples/2))
         y_samples = np.concatenate([y_samples_pos, y_samples_neg])
         labels = y_samples > (0.1 * np.sin(10.0 * x_samples)) + 0.5
         labels = labels.astype(float)
-        data = np.stack((x_samples, y_samples, labels), axis=1)
-        return data
+        x_train = np.stack((x_samples, y_samples), axis=1)
+        y_train = labels.copy()
+
+        x_samples = self.pool_rng.uniform(0, 1, test_samples)
+        y_samples = self.pool_rng.normal(0.5, 0.1, test_samples)
+        labels = y_samples > (0.1 * np.sin(10.0 * x_samples)) + 0.5
+        labels = labels.astype(float)
+        x_test = np.stack((x_samples, y_samples), axis=1)
+        y_test = labels.copy()
+
+        return x_train, y_train, x_test, y_test
 
 
-    def createToy_ThreeClust(self, n_perClust=150, cov=[[1, 0], [0, 1]] ):
+    def createToy_ThreeClust(self, n_perClust=150, test_ratio=0.8, cov=[[1, 0], [0, 1]] ):
 
         mean1 = [0, 0]
         cluster1 = self.pool_rng.multivariate_normal(mean1, cov, n_perClust)
@@ -43,13 +55,24 @@ class SynthData(BaseDataset):
         data_pos = np.concatenate((cluster1, cluster2), axis=0)
         data_neg = np.concatenate((cluster3, cluster4), axis=0)
 
-        data_pos = np.c_[data_pos, np.ones(len(data_pos))]
-        data_neg = np.c_[data_neg, np.zeros(len(data_neg))]
+        x = np.concatenate((data_pos, data_neg), axis=0)
+        y = np.concatenate((np.ones(len(data_pos)), np.zeros(len(data_neg))), axis=0)
 
-        return np.concatenate((data_pos, data_neg), axis=0)
+        ids = np.arange(len(x), dtype=int)
+        self.pool_rng.shuffle(ids)
+        cut = int(len(ids) * test_ratio)
+        train_ids = ids[cut:]
+        test_ids = ids[:cut]
+
+        x_train = x[train_ids]
+        y_train = y[train_ids]
+        x_test = x[test_ids]
+        y_test = y[test_ids]
+
+        return x_train, y_train, x_test, y_test
 
 
-    def createDivergingSin(self, n_samples=1000, divergence_factor=0.5, sin_freq=2, cov=0.3):
+    def createDivergingSin(self, n_samples=1000, test_ratio=0.8, divergence_factor=0.5, sin_freq=2, cov=0.3):
 
         x = np.linspace(0, 10, n_samples)
         sin_curve = np.sin(sin_freq*x)
@@ -64,37 +87,33 @@ class SynthData(BaseDataset):
         cluster_below_y = sin_curve - divergence_factor * x + self.pool_rng.normal(0, cov, n_samples)
         cluster_below = np.c_[cluster_below_x, cluster_below_y]
 
-
         data_pos = np.c_[cluster_above, np.ones(len(cluster_above_y))]
         data_neg = np.c_[cluster_below, np.zeros(len(cluster_below_y))]
 
-        return np.concatenate((data_pos, data_neg), axis=0)
-
-    def _download_data(self, dataset='ThreeClust', train_ratio=0.8, test_ratio=0.20):
         raise NotImplementedError
-
-    def _load_data(self, dataset='ThreeClust', train_ratio=0.8, test_ratio=0.20):
-        assert train_ratio + test_ratio == 1, "The sum of train, val, and test should be equal to 1."
-
-        if self.dataset == 'ThreeClust':
-            data = self.createToy_ThreeClust()
-        elif self.dataset == 'DivergingSin':
-            data = self.createDivergingSin()
-        elif self.dataset == 'LargeMoons':
-            data = self.create_large_moons()
-        else:
-            raise NotImplementedError
-
         ids = np.arange(data.shape[0], dtype=int)
         self.pool_rng.shuffle(ids)
         cut = int(len(ids) * test_ratio)
         train_ids = ids[cut:]
         test_ids = ids[:cut]
 
-        x_train = data[train_ids, :2]
-        y_train = to_one_hot(data[train_ids, -1].astype(int))
-        x_test = data[test_ids, :2]
-        y_test = to_one_hot(data[test_ids, -1].astype(int))
+        return np.concatenate((data_pos, data_neg), axis=0)
+
+
+    def _load_data(self, dataset='ThreeClust', train_ratio=0.8, test_ratio=0.20):
+        assert train_ratio + test_ratio == 1, "The sum of train, val, and test should be equal to 1."
+
+        if self.dataset == 'ThreeClust':
+            x_train, y_train, x_test, y_test = self.createToy_ThreeClust(test_ratio=test_ratio)
+        elif self.dataset == 'DivergingSin':
+            x_train, y_train, x_test, y_test = self.createDivergingSin(test_ratio=test_ratio)
+        elif self.dataset == 'LargeMoons':
+            x_train, y_train, x_test, y_test = self.create_large_moons(test_ratio=test_ratio)
+        else:
+            raise NotImplementedError
+
+        y_train = to_one_hot(y_train.astype(int))
+        y_test = to_one_hot(y_test.astype(int))
 
         x_train, x_test = normalize(x_train, x_test, mode="min_max")
         x_train = x_train.astype('float32')
@@ -104,6 +123,12 @@ class SynthData(BaseDataset):
                to_torch(y_train, torch.float32, device=self.device), \
                to_torch(x_test, torch.float32, device=self.device), \
                to_torch(y_test, torch.float32, device=self.device),
+
+
+
+
+    def _download_data(self, dataset='ThreeClust', train_ratio=0.8, test_ratio=0.20):
+        raise NotImplementedError
 
 
     # Abstract methods from the Parent
@@ -145,31 +170,35 @@ if __name__ == '__main__':
     dataset = LargeMoons("", config, pool_rng, False)
     import matplotlib.pyplot as plt
 
-    y = torch.cat((dataset.y_train, dataset.y_val, dataset.y_test), dim=0)
-    y = y.cpu()
-    X = torch.cat((dataset.x_train, dataset.x_val, dataset.x_test), dim=0)
-    X = X.cpu()
+    def plot_toy(X, y):
+        y = y.cpu()
+        X = X.cpu()
+        class_indices = np.argmax(y, axis=1)
+        matched_data = [(X[i], class_indices[i]) for i in range(len(X))]
 
-    # print(y)
-    class_indices = np.argmax(y, axis=1)
-    matched_data = [(X[i], class_indices[i]) for i in range(len(X))]
+        pos_cls = []
+        neg_cls = []
 
-    pos_cls = []
-    neg_cls = []
+        for data in matched_data:
+            if data[1] == 0:
+                pos_cls.append(data[0])
+            else:
+                neg_cls.append(data[0])
 
-    for data in matched_data:
-        if data[1] == 0:
-            pos_cls.append(data[0])
-        else:
-            neg_cls.append(data[0])
+        pos_x = [tensor[0].item() for tensor in pos_cls]
+        pos_y = [tensor[1].item() for tensor in pos_cls]
 
-    pos_x = [tensor[0].item() for tensor in pos_cls]
-    pos_y = [tensor[1].item() for tensor in pos_cls]
+        neg_x = [tensor[0].item() for tensor in neg_cls]
+        neg_y = [tensor[1].item() for tensor in neg_cls]
 
-    neg_x = [tensor[0].item() for tensor in neg_cls]
-    neg_y = [tensor[1].item() for tensor in neg_cls]
+        fig, ax = plt.subplots()
+        ax.scatter(pos_x, pos_y, s=2, label='Class A')
+        ax.scatter(neg_x, neg_y, s=2, label='Class B')
+        plt.show()
 
-    fig, ax = plt.subplots()
-    ax.scatter(pos_x, pos_y, s=2, label='Class A')
-    ax.scatter(neg_x, neg_y, s=2, label='Class B')
-    plt.show()
+
+    plot_toy(dataset.x_train, dataset.y_train)
+    plot_toy(dataset.x_test, dataset.y_test)
+    # y = torch.cat((dataset.y_train, dataset.y_val, dataset.y_test), dim=0)
+    # X = torch.cat((dataset.x_train, dataset.x_val, dataset.x_test), dim=0)
+    # plot_toy(X, y)
