@@ -87,17 +87,21 @@ class SynthData(BaseDataset):
         cluster_below_y = sin_curve - divergence_factor * x + self.pool_rng.normal(0, cov, n_samples)
         cluster_below = np.c_[cluster_below_x, cluster_below_y]
 
-        data_pos = np.c_[cluster_above, np.ones(len(cluster_above_y))]
-        data_neg = np.c_[cluster_below, np.zeros(len(cluster_below_y))]
+        x = np.concatenate((cluster_above, cluster_below), axis=0)
+        y = np.concatenate((np.ones(len(cluster_above_y)), np.zeros(len(cluster_below_y))), axis=0)
 
-        raise NotImplementedError
-        ids = np.arange(data.shape[0], dtype=int)
+        ids = np.arange(len(x), dtype=int)
         self.pool_rng.shuffle(ids)
         cut = int(len(ids) * test_ratio)
         train_ids = ids[cut:]
         test_ids = ids[:cut]
 
-        return np.concatenate((data_pos, data_neg), axis=0)
+        x_train = x[train_ids]
+        y_train = y[train_ids]
+        x_test = x[test_ids]
+        y_test = y[test_ids]
+
+        return x_train, y_train, x_test, y_test
 
 
     def _load_data(self, dataset='ThreeClust', train_ratio=0.8, test_ratio=0.20):
@@ -164,10 +168,10 @@ class DivergingSin(SynthData):
 
 if __name__ == '__main__':
     import yaml
-    with open(f"../configs/largemoons.yaml", 'r') as f:
+    with open(f"../configs/divergingsin.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
     pool_rng = np.random.default_rng(1)
-    dataset = LargeMoons("", config, pool_rng, False)
+    dataset = DivergingSin("", config, pool_rng, False)
     import matplotlib.pyplot as plt
 
     def plot_toy(X, y):

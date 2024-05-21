@@ -112,7 +112,7 @@ def plot_upper_bound(ax, dataset, x_values, color, alpha=0.8, percentile=0.99, l
 
 _all_query_sizes = [1, 5, 20, 50, 100, 500]
 _all_agents = ["Badge", "BALD", "CoreGCN", "Coreset_Greedy", "DSA", "LSA", "MarginScore", "RandomAgent",
-               "ShannonEntropy", "TypiClust", "Oracle"]
+               "ShannonEntropy", "TypiClust", "Coreset_Raw", "Oracle"]
 _agent_colors = {
     "Oracle": "red",
     "UpperBound": "black",
@@ -125,7 +125,8 @@ _agent_colors = {
     "MarginScore": "blue",
     "RandomAgent": "grey",
     "ShannonEntropy": "green",
-    "TypiClust": "pink"
+    "TypiClust": "pink",
+    "Coreset_Raw": "magenta",
 }
 _agent_names = { # only corrected names
     "Coreset_Greedy": "Coreset",
@@ -434,7 +435,7 @@ if __name__ == '__main__':
     # show_auc = True
     # qs = 20
 
-    full_plot("Cifar10", 500, y_lim=[0.5, 1.0])
+    full_plot("LargeMoons", None)
     plt.show()
     exit(0)
 
