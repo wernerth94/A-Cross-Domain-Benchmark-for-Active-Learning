@@ -404,6 +404,8 @@ def get_agent_by_name(name:str)->Callable:
         return agents.MarginScore
     elif name == "coreset":
         return agents.Coreset_Greedy
+    elif name == "coresetraw":
+        return agents.coreset.Coreset_Raw
     elif name == "bald":
         return agents.BALD
     elif name == "badge":
