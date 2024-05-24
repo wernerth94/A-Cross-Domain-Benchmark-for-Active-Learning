@@ -288,11 +288,10 @@ class OracleALGame(ALGame):
         margin_scores = self._get_margin_scores(state_ids)
         margin_sorted_ids = torch.sort(margin_scores, descending=True).indices
 
-
         used_ids = []
         used_ids.extend(chosen) # deep copy
-        for id in chosen:
-            if scores[id] <= 0.0:
+        for action in chosen:
+            if scores[action] <= 0.0:
                 # No point with positive impact was found. Defaulting to Margin sampling
                 for m_id in margin_sorted_ids:
                     m_id = m_id.item()
@@ -301,6 +300,7 @@ class OracleALGame(ALGame):
                         used_ids.append(m_id)
                         break
             with torch.no_grad():
+                id = state_ids[action]
                 self.per_class_instances[int(torch.argmax(self.y_unlabeled[id]).cpu())] += 1
                 # add the point to the labeled set
                 self.x_labeled = torch.cat([self.x_labeled, self.x_unlabeled[id:id + 1]], dim=0)
@@ -309,7 +309,10 @@ class OracleALGame(ALGame):
                 self.x_unlabeled = torch.cat([self.x_unlabeled[:id], self.x_unlabeled[id + 1:]], dim=0)
                 self.y_unlabeled = torch.cat([self.y_unlabeled[:id], self.y_unlabeled[id + 1:]], dim=0)
                 self.added_images += 1
-        reward = self.fit_classifier()
+            if self.fitting_mode in ["finetuning", "shrinking"]:
+                reward = self.fit_classifier()
+        if self.fitting_mode == "from_scratch":
+            reward = self.fit_classifier()
         done = self.added_images >= self.budget
         truncated, info = False, {"action": chosen}
         return self.create_state(), reward, done, truncated, info
