@@ -19,4 +19,4 @@ pretext_optimizer: {'type': 'NAdam', 'lr': 0.000454846257936763, 'weight_decay':
 pretext_transforms: {'gauss_scale': 0.171781355095294} 
 pretext_clr_loss: {'temperature': 0.106187809603207} 
 pretext_training: {'batch_size': 292, 'epochs': 200} 
-current_run_info: {'data_folder': '../datasets', 'run_id': 1, 'pool_seed': 1, 'model_seed': 1, 'dataset': 'splice', 'encoded': False, 'sample_size': 20, 'restarts': 1, 'store_dataset': False, 'max_budget': 2000, 'points_per_iter': 1} 
+current_run_info: {'data_folder': '../datasets', 'run_id': 1, 'pool_seed': 1, 'model_seed': 1, 'dataset': 'splice', 'encoded': False, 'sample_size': 20, 'restarts': 1, 'store_dataset': False, 'points_per_iter': 1} 
