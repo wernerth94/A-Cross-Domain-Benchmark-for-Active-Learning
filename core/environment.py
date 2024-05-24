@@ -86,10 +86,11 @@ class ALGame(gym.Env):
             with torch.no_grad():
                 self._add_point_to_labeled_pool(a)
 
-            if self.fitting_mode in  ["finetuning", "shrinking"]:
-                reward = self.fit_classifier()
-        if self.fitting_mode == "from_scratch":
-            reward = self.fit_classifier()
+        #     if self.fitting_mode in  ["finetuning", "shrinking"]:
+        #         reward = self.fit_classifier()
+        # if self.fitting_mode == "from_scratch":
+        #     reward = self.fit_classifier()
+        reward = self.fit_classifier()
         next_state = self.create_state()
         done = self.added_images >= self.budget
         truncated = False
@@ -106,10 +107,10 @@ class ALGame(gym.Env):
     def _fit_classifier(self, epochs=50, from_scratch=False, shrinking=False):
         if from_scratch:
             self.classifier.load_state_dict(self.initial_weights)
-            early_stop = EarlyStopping(patience=50)
+            early_stop = EarlyStopping(patience=5)
         else:
-            early_stop = EarlyStopping(patience=0)
-            # early_stop = EarlyStopping(patience=2)
+            # early_stop = EarlyStopping(patience=0)
+            early_stop = EarlyStopping(patience=2)
 
         if shrinking:
             self._apply_shrinking(self.classifier)
@@ -309,10 +310,7 @@ class OracleALGame(ALGame):
                 self.x_unlabeled = torch.cat([self.x_unlabeled[:id], self.x_unlabeled[id + 1:]], dim=0)
                 self.y_unlabeled = torch.cat([self.y_unlabeled[:id], self.y_unlabeled[id + 1:]], dim=0)
                 self.added_images += 1
-            if self.fitting_mode in ["finetuning", "shrinking"]:
-                reward = self.fit_classifier()
-        if self.fitting_mode == "from_scratch":
-            reward = self.fit_classifier()
+        reward = self.fit_classifier()
         done = self.added_images >= self.budget
         truncated, info = False, {"action": chosen}
         return self.create_state(), reward, done, truncated, info
