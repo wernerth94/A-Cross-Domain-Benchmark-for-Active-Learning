@@ -54,7 +54,7 @@ class TypiClust(BaseAgent):
             selected = []
             # pick the most typical example from the top-ranked clusters
             for i in range(self.query_size):
-                cluster_id = clusters_df.iloc[i].cluster_id
+                cluster_id = clusters_df.iloc[0].cluster_id
                 indices = (labels == cluster_id).nonzero()[0]
                 rel_feats = all_data[indices].numpy()
                 if len(rel_feats) > 0:
