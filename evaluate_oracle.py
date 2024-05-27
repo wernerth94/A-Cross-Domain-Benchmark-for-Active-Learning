@@ -17,6 +17,7 @@ parser.add_argument("--encoded", type=int, default=0)
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=1)
 parser.add_argument("--store_dataset", type=bool, default=False)
+parser.add_argument("--max_budget", type=int, default=5000)
 parser.add_argument("--points_per_iter", type=int, default=1)
 args = parser.parse_args()
 args.encoded = bool(args.encoded)
@@ -27,6 +28,9 @@ max_run_id = run_id + args.restarts
 while run_id < max_run_id:
     with open(f"configs/{args.dataset.lower()}.yaml", 'r') as f:
         config = yaml.load(f, yaml.Loader)
+    if config["dataset"]["budget"] > args.max_budget:
+        print(f'overwriting budget from {config["dataset"]["budget"]} to {args.max_budget}')
+        config["dataset"]["budget"] = args.max_budget
     config["current_run_info"] = args.__dict__
     print("Config:")
     pprint(config)

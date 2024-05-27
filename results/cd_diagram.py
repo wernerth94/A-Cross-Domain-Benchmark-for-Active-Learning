@@ -381,13 +381,23 @@ def wilcoxon_holm(alpha=0.05, df_perf=None):
 
 
 def prepare_df(df):
-    # correct the column names
-    df['dataset_name'] = df['trial']
-    df['classifier_name'] = df['agent']
-    df['accuracy'] = df['auc']
-    df = df.drop(["trial", "agent", "auc"], axis=1)
-    if "dataset" in df.columns:
-        df = df.drop(["dataset"], axis=1)
+    df = df[df["trial"] <= 50]
+    df = average_out_columns(df, ["iteration", "trial"])
+    query_sizes = pd.unique(df["query_size"].astype(int))
+    datasets = pd.unique(df["dataset"])
+    oracle_data = df[df["agent"]=="Oracle"]
+    df = df[df["agent"]!="Oracle"]
+    df = pd.DataFrame({
+        "classifier_name": df["agent"],
+        "dataset_name": df["dataset"].astype(str) + df["query_size"].astype(str),
+        "accuracy": df["auc"]
+    })
+    for d in datasets:
+        oracle_acc = oracle_data[oracle_data["dataset"]==d]["auc"].values[0]
+        for q in query_sizes:
+            df = df._append(pd.DataFrame({"classifier_name":["Oracle"],
+                                          "dataset_name":str(d)+str(q),
+                                          "accuracy":oracle_acc}))
 
     # replace names for agents
     for wrong, right in name_corrections.items():
@@ -410,6 +420,10 @@ if __name__ == '__main__':
     datasets_encoded = ["SpliceEncoded", "DNAEncoded", "USPSEncoded",
                         "Cifar10Encoded", "FashionMnistEncoded"]
 
+    df = combine_agents_into_df(["Splice", "DNA", "USPS"], include_oracle=True)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="Tabular")
+
     # Single Dataset
     # df = combine_agents_into_df(dataset="Splice", max_loaded_runs=50)
     # df = average_out_columns(df, ["iteration", "query_size"])
@@ -417,13 +431,13 @@ if __name__ == '__main__':
     # draw_cd_diagram(df, title="Splice")
 
     # Unencoded Domain
-    df = combine_agents_into_df(dataset=datasets_raw, max_loaded_runs=50)
-    df = average_out_columns(df, ["iteration", "dataset", "query_size"])
-    df = prepare_df(df)
-    draw_cd_diagram(df, title="Unencoded", alpha=10000.0) # turn off significance bars
-
-    # Encoded Domain
-    df = combine_agents_into_df(dataset=datasets_encoded, max_loaded_runs=50)
-    df = average_out_columns(df, ["iteration", "dataset", "query_size"])
-    df = prepare_df(df)
-    draw_cd_diagram(df, title="Encoded", alpha=10000.0) # turn off significance bars
+    # df = combine_agents_into_df(dataset=datasets_raw, max_loaded_runs=50)
+    # df = average_out_columns(df, ["iteration", "dataset", "query_size"])
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Unencoded", alpha=10000.0) # turn off significance bars
+    #
+    # # Encoded Domain
+    # df = combine_agents_into_df(dataset=datasets_encoded, max_loaded_runs=50)
+    # df = average_out_columns(df, ["iteration", "dataset", "query_size"])
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Encoded", alpha=10000.0) # turn off significance bars
