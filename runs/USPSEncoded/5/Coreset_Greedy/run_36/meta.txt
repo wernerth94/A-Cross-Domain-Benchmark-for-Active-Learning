@@ -22,4 +22,4 @@ pretext_optimizer: {'type': 'NAdam', 'lr': 6.18765968088268e-05, 'weight_decay':
 pretext_transforms: {'gauss_scale': 0.0618487302293532} 
 pretext_clr_loss: {'temperature': 0.13298238260213} 
 pretext_training: {'batch_size': 210, 'epochs': 200} 
-current_run_info: {'data_folder': '../datasets', 'run_id': 31, 'agent_seed': 1, 'pool_seed': 1, 'model_seed': 1, 'agent': 'coreset', 'dataset': 'usps', 'query_size': 5, 'encoded': True, 'restarts': 10, 'experiment_postfix': None} 
+current_run_info: {'data_folder': '../datasets', 'run_id': 36, 'agent_seed': 1, 'pool_seed': 1, 'model_seed': 1, 'agent': 'coreset', 'dataset': 'usps', 'query_size': 5, 'encoded': True, 'restarts': 1, 'experiment_postfix': None} 
