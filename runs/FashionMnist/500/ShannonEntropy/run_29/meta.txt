@@ -1,6 +1,6 @@
 # Dataset: 
 FashionMnist
-Budget: 4000
+Budget: 10000
 Seeding points per class: 100
 Classifier Batch Size: 64
 Source: TorchVision
@@ -11,7 +11,7 @@ Classifier: ResNet18
 ShannonEntropy 
 
 # Config: 
-dataset: {'budget': 4000, 'classifier_fitting_mode': 'finetuning', 'initial_points_per_class': 100, 'classifier_batch_size': 64, 'validation_split': 0.04} 
+dataset: {'budget': 10000, 'classifier_fitting_mode': 'finetuning', 'initial_points_per_class': 100, 'classifier_batch_size': 64, 'validation_split': 0.04} 
 classifier: {'type': 'Resnet18'} 
 optimizer: {'type': 'NAdam', 'lr': 0.001, 'weight_decay': 0.0} 
 dataset_embedded: {'encoder_checkpoint': 'encoder_checkpoints/fashion_mnist_17.04/model_seed1.pth.tar', 'budget': 500, 'classifier_fitting_mode': 'from_scratch', 'initial_points_per_class': 1, 'classifier_batch_size': 64} 
