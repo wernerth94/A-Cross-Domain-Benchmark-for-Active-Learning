@@ -12,10 +12,10 @@ parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--dataset", type=str, default="splice")
-parser.add_argument("--encoded", type=int, default=0)
+parser.add_argument("--dataset", type=str, default="Cifar10")
+parser.add_argument("--encoded", type=int, default=1)
 parser.add_argument("--sample_size", type=int, default=20)
-parser.add_argument("--restarts", type=int, default=1)
+parser.add_argument("--restarts", type=int, default=50)
 parser.add_argument("--store_dataset", type=bool, default=False)
 parser.add_argument("--max_budget", type=int, default=2000)
 parser.add_argument("--points_per_iter", type=int, default=1)
@@ -60,7 +60,9 @@ while run_id < max_run_id:
         done = False
         dataset.reset()
         state = env.reset()
-        for i in tqdm(range(env.env.budget)):
+        iterations = math.ceil(env.env.budget / args.query_size)
+        iterator = tqdm(range(iterations), miniters=2)
+        for i in iterator:
             state, reward, done, truncated, info = env.step()
             if done or truncated:
                 break # fail save; should not happen

@@ -130,6 +130,7 @@ _agent_colors = {
 }
 _agent_names = { # only corrected names
     "Coreset_Greedy": "Coreset",
+    "Coreset_Raw": "Coreset Raw",
     "MarginScore": "Margin",
     "RandomAgent": "Random",
     "ShannonEntropy": "Entropy",

@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from scipy.stats import t
-from core.helper_functions import _insert_oracle_forecast
+from core.helper_functions import _insert_oracle_forecast, _create_plot_for_query_size
 
 name_corrections = {
     "RandomAgent": "Random",
@@ -156,20 +156,23 @@ def _query_to_list(query, current_folder):
         raise ValueError(f"Query not recognized: {query}")
     return result_list
 
-def generate_full_overview(precision=2):
+def generate_full_overview(precision=1, add_std=True):
     datasets_raw = ["Splice", "DNA", "USPS", "Cifar10", "FashionMnist", "TopV2", "News",]
                     #"DivergingSin", "ThreeClust"]
     datasets_encoded = ["SpliceEncoded", "DNAEncoded", "USPSEncoded",
                         "Cifar10Encoded", "FashionMnistEncoded"]
     df_raw = combine_agents_into_df(dataset=datasets_raw, include_oracle=True)
+    df_raw = _insert_oracle_forecast(df_raw)
     df_raw = average_out_columns(df_raw, ["iteration", "query_size"])
     df_raw = compute_ranks_over_trials(df_raw)
+    print("range of stds", df_raw["rank_std"].min(), "-", df_raw["rank_std"].max())
 
     df_enc = combine_agents_into_df(dataset=datasets_encoded, include_oracle=True)
     df_enc = average_out_columns(df_enc, ["iteration", "query_size"])
     df_enc = compute_ranks_over_trials(df_enc)
 
     leaderboard = average_out_columns(df_raw, ["dataset"]).sort_values("rank")
+
     intersection = leaderboard["agent"].isin(df_enc["agent"])
     leaderboard = leaderboard[intersection]
     leaderboard.index = leaderboard["agent"]
@@ -178,14 +181,21 @@ def generate_full_overview(precision=2):
     for dataset in datasets_raw:
         values = []
         for index, _ in leaderboard.iterrows():
-            r = df_raw[(df_raw["agent"] == index) & (df_raw["dataset"] == dataset)]["rank"]
+            sub_df = df_raw[(df_raw["agent"] == index) & (df_raw["dataset"] == dataset)]
+            r = sub_df["rank"]
+            r_std = sub_df["rank_std"]
             if len(r) == 0:
                 print(f"No runs found for {index} on {dataset}")
                 continue
-            values.append(round(r.item(), precision))
+            if add_std:
+                values.append(f"{round(r.item(), precision)}+-{round(r_std.item(), 3)}")
+            else:
+                values.append(round(r.item(), precision))
         leaderboard[dataset] = values
     leaderboard["Unencoded"] = leaderboard["rank"].round(precision)
+    # leaderboard["std"] = leaderboard["rank_std"].round(3) # not correct, we need to recompute the std, not just take the averages
     leaderboard = leaderboard.drop(["rank"], axis=1)
+    leaderboard = leaderboard.drop(["rank_std"], axis=1)
     # add average of all encoded datasets
     df_enc = average_out_columns(df_enc, ["dataset"])
     values = []
@@ -199,6 +209,7 @@ def generate_full_overview(precision=2):
 def compute_ranks_over_trials(df:pd.DataFrame):
     assert "trial" in df.columns
     df["rank"] = df.groupby(["dataset", "trial"])["auc"].rank(ascending=False)
+    df = std_for_column(df, "rank")
     df = average_out_columns(df, ["trial"])
     return df
 
@@ -265,7 +276,7 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None,
 def average_out_columns(df:pd.DataFrame, columns:list):
     result_df = df.copy(deep=True)
     for col in columns:
-        other_columns = [c for c in result_df.columns if c not in [col, "auc", "rank"] ]
+        other_columns = [c for c in result_df.columns if c not in [col, "auc", "rank", "rank_std"] ]
         result_list = []
         grouped_df = result_df.groupby(other_columns)
         for key, sub_df in grouped_df:
@@ -280,14 +291,37 @@ def average_out_columns(df:pd.DataFrame, columns:list):
         result_df = pd.concat(result_list)
     return result_df
 
+def std_for_column(df:pd.DataFrame, column:str):
+    result_df = df.copy(deep=True)
+    other_columns = [c for c in result_df.columns if c not in [column, "trial", "auc", "rank"] ]
+    result_list = []
+    grouped_df = result_df.groupby(other_columns)
+    for key, sub_df in grouped_df:
+        std = sub_df["auc"].std()
+        sub_df[f"{column}_std"] = std
+        # if "rank" in df.columns:
+        #     mean = sub_df["rank"].mean()
+        #     sub_df["rank"] = mean
+        # sub_df = sub_df.drop(column, axis=1) # drop averaged col from sub-dataframe
+        # sub_df = sub_df.drop(sub_df.index[1:]) # drop all the other useless rows
+        result_list.append(sub_df)
+    result_df = pd.concat(result_list)
+    return result_df
+
+
+def get_rank_std_for_dataset(dataset_name:str):
+    df_raw = combine_agents_into_df(dataset=dataset_name, include_oracle=True)
+    df_raw = _insert_oracle_forecast(df_raw)
+    df_raw = average_out_columns(df_raw, ["iteration", "query_size"])
+    df_raw = compute_ranks_over_trials(df_raw)
 
 
 if __name__ == '__main__':
 
     print()
 
-    # leaderboard = generate_full_overview()
-    # leaderboard.to_csv("results/overview.csv")
+    leaderboard = generate_full_overview(add_std=True)
+    leaderboard.to_csv("results/overview.csv")
 
     # _find_missing_runs()
 

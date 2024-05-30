@@ -284,7 +284,10 @@ def draw_cd_diagram(df_perf:pd.DataFrame=None, alpha=0.05, title:str=None, label
 
 
     graph_ranks(average_ranks.values, average_ranks.keys(), p_values,
-                cd=None, reverse=True, width=width, textspace=1.5, labels=labels)
+                cd=None, reverse=True, width=width,
+                textspace=1.5,
+                space_between_names=0.2,
+                labels=labels)
 
     font = {
         #'family': 'sans-serif',
@@ -383,26 +386,28 @@ def wilcoxon_holm(alpha=0.05, df_perf=None):
 def prepare_df(df):
     df = df[df["trial"] <= 50]
     df = average_out_columns(df, ["iteration", "trial"])
-    query_sizes = pd.unique(df["query_size"].astype(int))
-    datasets = pd.unique(df["dataset"])
     oracle_data = df[df["agent"]=="Oracle"]
-    df = df[df["agent"]!="Oracle"]
-    df = pd.DataFrame({
-        "classifier_name": df["agent"],
-        "dataset_name": df["dataset"].astype(str) + df["query_size"].astype(str),
-        "accuracy": df["auc"]
+    df_res = df[df["agent"]!="Oracle"]
+    # non-oracle results
+    df_res = pd.DataFrame({
+        "classifier_name": df_res["agent"],
+        "dataset_name": df_res["dataset"].astype(str) + df_res["query_size"].astype(str),
+        "accuracy": df_res["auc"]
     })
-    for d in datasets:
+    # copy oracle results for every present query size of a dataset
+    for d in pd.unique(df["dataset"]):
+        sub_df = df[(df["dataset"] == d).astype(bool) & (df["agent"] != "Oracle").astype(bool)]
+        query_sizes = pd.unique(sub_df["query_size"].astype(int))
         oracle_acc = oracle_data[oracle_data["dataset"]==d]["auc"].values[0]
         for q in query_sizes:
-            df = df._append(pd.DataFrame({"classifier_name":["Oracle"],
+            df_res = df_res._append(pd.DataFrame({"classifier_name":["Oracle"],
                                           "dataset_name":str(d)+str(q),
                                           "accuracy":oracle_acc}))
 
     # replace names for agents
     for wrong, right in name_corrections.items():
-        df = df.replace(wrong, right)
-    return df
+        df_res = df_res.replace(wrong, right)
+    return df_res
 
 
 
@@ -420,9 +425,22 @@ if __name__ == '__main__':
     datasets_encoded = ["SpliceEncoded", "DNAEncoded", "USPSEncoded",
                         "Cifar10Encoded", "FashionMnistEncoded"]
 
-    df = combine_agents_into_df(["Splice", "DNA", "USPS"], include_oracle=True)
+    # df = combine_agents_into_df(["Splice", "DNA", "USPS"], include_oracle=True)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Tabular", alpha=10000.0, file="doc/img/macro_vector.jpg")
+
+    df = combine_agents_into_df(["TopV2", "News"], include_oracle=True)
     df = prepare_df(df)
-    draw_cd_diagram(df, title="Tabular")
+    draw_cd_diagram(df, title="Text", alpha=10000.0, file="doc/img/macro_text.jpg")
+
+    # df = combine_agents_into_df(["Cifar10", "FashionMnist"], include_oracle=True)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Image", alpha=10000.0, file="doc/img/macro_img.jpg")
+
+    # df = combine_agents_into_df(["Cifar10Encoded", "DNAEncoded", "FashionMnistEncoded",
+    #                                      "SpliceEncoded", "USPSEncoded"], include_oracle=True)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Encoded", alpha=10000.0, file="doc/img/macro_enc.jpg")
 
     # Single Dataset
     # df = combine_agents_into_df(dataset="Splice", max_loaded_runs=50)
