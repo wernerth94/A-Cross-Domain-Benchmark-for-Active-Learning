@@ -177,13 +177,14 @@ def _insert_oracle_forecast(df:pd.DataFrame):
         full_range = df[df["dataset"] == dataset]["iteration"].unique().tolist()
         oracle_max = oracle_data["iteration"].max()
         if oracle_max < max(full_range):
+            _, upper_bound, _ = _load_eval_data(dataset, None, "UpperBound")
             oracle_data = oracle_data.sort_values(["iteration"], ascending=True)
             # construct prediction horizon
             oracle_iterations = df_oracles["iteration"].unique().tolist()
             oracle_stepsize = round(float(max(oracle_iterations) - min(oracle_iterations)) / len(oracle_iterations), 0)
             testing_range = range(max(oracle_iterations), max(full_range), int(oracle_stepsize))
             x, y = _get_oracle_regression(x=oracle_data["iteration"].to_list(), y=oracle_data["auc"].to_list(),
-                                          x_test=testing_range, upper_bound=None)
+                                          x_test=testing_range, upper_bound=upper_bound)
             for trial in df_oracles["trial"].unique().tolist():
                 forecast_data = pd.DataFrame({
                     "dataset": [dataset]*len(x),
@@ -198,6 +199,7 @@ def _insert_oracle_forecast(df:pd.DataFrame):
 
 
 def _get_oracle_regression(x, y, x_test, upper_bound):
+    upper_bound = upper_bound[0]
     max_value = float(max(x_test))
     cutoff = int(len(x)*0.5)
     x_train = np.array(x[cutoff:], dtype=float) / max_value # drop the first 50 percent of data
@@ -205,13 +207,18 @@ def _get_oracle_regression(x, y, x_test, upper_bound):
     lr_model = LinearRegression()
     lr_model.fit(x_train.reshape(-1, 1), y_train)
     x_test = [i for i in x_test if i >= max(x)]
-    x_test_array = np.array(x_test, dtype=float) / max_value
-    # x_test = np.arange(max(x), max(x_test))
+    # x_test_array = np.array(x_test, dtype=float) / max_value
+    x_test_array = np.arange(max(x), max(x_test)+1) / max_value
     y_test = lr_model.predict(x_test_array.reshape(-1, 1))
-    for i in range(1, len(y_test)):
-        multiplicator = 1 / i
-        y_test[i] = y_test[i-1] * (1-multiplicator) + y_test[i] * multiplicator
-    return x_test, y_test
+    space = np.linspace(0.0, 1.0, len(y_test))
+    # decay function
+    # multipliers = np.linspace(1.0, 0.0, len(y_test)) # linear
+    multipliers = np.exp(-space / 0.5) # exponential
+    for i in range(0, len(y_test)):
+        multiplicator = multipliers[i]
+        y_test[i] = y_test[i] * multiplicator + upper_bound * 0.99 * (1-multiplicator)
+    idx = [i-max(x) for i in x_test]
+    return x_test, y_test[idx]
 
 
 def _create_plot_for_query_size(ax, dataset, query_size, y_label, title, smoothing_weight, show_auc, forecast_oracle=True,
@@ -427,7 +434,9 @@ def get_agent_by_name(name:str)->Callable:
 
 
 if __name__ == '__main__':
-
+    # base_path = "runs/Cifar10/Oracle"
+    # collect_results(base_path, "run_")
+    # exit()
 
     font = {'size': 16}
     import matplotlib
@@ -436,7 +445,7 @@ if __name__ == '__main__':
     # show_auc = True
     # qs = 20
 
-    full_plot("LargeMoons", None)
+    full_plot("FashionMnist", query_size=None, radjust=0.7, forecast_oracle=True)
     plt.show()
     exit(0)
 
@@ -461,8 +470,7 @@ if __name__ == '__main__':
     plt.tight_layout()
     plt.show()
 
-    # base_path = "runs/Splice/50/TypiClust"
-    # collect_results(base_path, "run_")
+
 
     # full_plot("FashionMnist", query_size=None)
     # plt.show()

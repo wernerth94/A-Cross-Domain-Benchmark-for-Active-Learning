@@ -429,18 +429,18 @@ if __name__ == '__main__':
     # df = prepare_df(df)
     # draw_cd_diagram(df, title="Tabular", alpha=10000.0, file="doc/img/macro_vector.jpg")
 
-    df = combine_agents_into_df(["TopV2", "News"], include_oracle=True)
+    # df = combine_agents_into_df(["TopV2", "News"], include_oracle=True)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Text", alpha=10000.0, file="doc/img/macro_text.jpg")
+
+    df = combine_agents_into_df(["Cifar10", "FashionMnist"], include_oracle=True)
     df = prepare_df(df)
-    draw_cd_diagram(df, title="Text", alpha=10000.0, file="doc/img/macro_text.jpg")
+    draw_cd_diagram(df, title="Image", alpha=10000.0, file="doc/img/macro_img.jpg")
 
-    # df = combine_agents_into_df(["Cifar10", "FashionMnist"], include_oracle=True)
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Image", alpha=10000.0, file="doc/img/macro_img.jpg")
-
-    # df = combine_agents_into_df(["Cifar10Encoded", "DNAEncoded", "FashionMnistEncoded",
-    #                                      "SpliceEncoded", "USPSEncoded"], include_oracle=True)
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Encoded", alpha=10000.0, file="doc/img/macro_enc.jpg")
+    df = combine_agents_into_df(["Cifar10Encoded", "DNAEncoded", "FashionMnistEncoded",
+                                         "SpliceEncoded", "USPSEncoded"], include_oracle=True)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="Encoded", alpha=10000.0, file="doc/img/macro_enc.jpg")
 
     # Single Dataset
     # df = combine_agents_into_df(dataset="Splice", max_loaded_runs=50)
