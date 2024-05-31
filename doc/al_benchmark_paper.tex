@@ -64,9 +64,24 @@
 \begin{document}
 
 
-% Review point
-% - Restarting process seems to be hard to understand (probably in terms of the seeding)
-% - Justification for datasets and algorithms
+% TODOs nach Priorität
+% !! Least-Confident Baseline
+% !! "Overfitting on test" für Oracle: Sanity-Check und eventuell komplett streichen
+% !! Ergebnis-Tabelle mit nur 3 runs neu berechnen und Unterschiede zeigen
+% !! Introduction neu schreiben: Wir brauchen eine klare Benennung der Ziele und bessere Abgrenzung zu anderen papern
+% Advantage-Matrix von Ji et. al. neu aufarbeiten. Wo sind die Unterschiede? Ist das CD-Diagramm besser/schlechter?
+% Eventuell Batchsize 1 von den anderen Ergebnissen separieren. Der Vergleich macht mehr Sinn, als einfach die Batchsizes zu mitteln
+% Infos und Ergebnisse für die syntetischen Datensätze in ein Kapitel bündeln und direkt auf die Contribution beziehen
+% Oracle Performance mit einer Zahl benennen: z.B. Da wird ~20% lift zu allen Baselines haben, brauchen wir kein aufwendigeres Oracle
+% Contributions neu sortieren und sehr viel ausführlicher beschreiben
+% Unsere Rankings mit Literatur vergleichen. Wie anders sind wir? -> Evtl. besten Alg. pro Benchmark sammeln und vergleichen
+% Causalitäten checken: Viele Dinge werden einfach genannt, ohne das der Grund richtig eingeführt wird
+% "reproducible" als Aufhänger für 50 repeats ist nicht intuitiv
+% Fig. 1: Schlechte Performance am Anfang verwirrt nur. Entweder BADGE benutzen, anders plotten, oder im Text in Kontext setzen
+% paired-t-test im Critical Difference Diagram herausstellen und die Relevanz für paper zeigen
+% Eventuell Honeypot und Diverging Sine direkt in den Contributions nennen
+% Oracle Forecast im Appendix erklären 
+% Tabelle mit AUCs in den Appendix
 
 
 \maketitle
@@ -207,7 +222,7 @@ Each restart retains the train/test split (often given by the dataset itself), b
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Why we need 50 restarts}\label{sec:restarts}
-To evaluate how many restarts are necessary to obtain conclusive and reproducible results in an AL experiment, we set the number of restarts of the margin sampling baseline for the Splice dataset to 100.
+To evaluate how many restarts are necessary to obtain conclusive and reproducible results in an AL experiment, we set the number of restarts fore margin sampling on the Splice dataset to 100.
 This allows us firstly, to obtain a very strong estimation of the "true" average performance of margin sampling on this dataset and secondly, to draw subsets from this pool of 100 runs.
 Setting the size of our draws to $\alpha$ and sampling uniformly, we can approximate a cross-validation process with $\alpha$ restarts.
 Each of these draws can be interpreted as a reported result in AL literature where the authors employed $\alpha$ restarts.
@@ -229,9 +244,9 @@ For that reason, we employ 50 restarts of every experiment in this work.
 \subsection{Seeding vs. Restarts}\label{sec:reproducibility}
 Considering the high computational cost of 50 repetitions, another approach to ensure reproducibility would be to reduce the amount of variance in the experiment by keeping as many subsystems (weight initialization, data splits, etc.) as possible fixed with specialized seeding. \\
 We describe a novel seeding strategy in Appendix \ref{app:seeding_strategy} that creates 3 separate Random Number Generators (RNG) based on 3 different seeds.
-In summary, we introduce three different seeds: $s_\Omega$ for the AL algorithm, $s_\mathcal{D}$ for dataset splitting and mini-batch sampling, and $s_\theta$ for model initialization and sampling of dropout masks.
+In short, we introduce three different seeds: $s_\Omega$ for the AL algorithm, $s_\mathcal{D}$ for dataset splitting and mini-batch sampling, and $s_\theta$ for model initialization and sampling of dropout masks.
 Unless stated otherwise, we will keep $s_\Omega$ fixed, while $s_\mathcal{D}$ and $s_\theta$ are incremented by 1 between restarts to introduce stochasticity into our framework.
-While this seeding strategy is capable of controlling the amount variance in the experiment, previous works have noted that an actively sampled, labeled set does not generalize well between model architectures or even different initializations of the same model (\cite{zhou2021towards, lowell2018practical}), reducing its value in practice and providing a bad approximation of the quality of the AL algorithm.
+While this seeding strategy is capable of controlling the amount variance in the experiment, previous works have noted that an actively sampled, labeled set does not generalize well between model architectures or even different initializations of the same model (\cite{zhou2021towards, lowell2018practical}), reducing its value in practice and providing a bad approximation of the quality of an AL algorithm.
 Hence, we opt for letting the subsystems vary (by increasing $s_\mathcal{D}$ and $s_\theta$) and combine that with a high number of restarts to obtain a good average of the generalization performance of each AL algorithm. \\
 Where a high number of restarts is computationally not feasible, we advise to additionally keep either $s_\mathcal{D}$ or $s_\theta$ (or both) fixed.
 
@@ -262,11 +277,11 @@ The embedding model was trained with the SimCLR \cite{chen2020simple} algorithm 
 %For Cifar10 and FashionMnist we adapt the reported hyperparameters from \cite{hacohen2022active} and for the tabular datasets we use random search to optimize the hyperparameters.
 To ensure that enough information from the data is encoded by our embedding model, the quality of embeddings during pretext training was measured after each epoch.
 We attached a linear classification head to the encoder, fine-tuned it to the data and evaluated this classifier for test accuracy, mirroring our AL setup for embedded datasets. 
-The checkpoints for each encoder model will be provided together with the framework. \\ [1mm]
+The checkpoint of each encoder model will be provided together with the framework. \\ [1mm]
 \textbf{Synthetic Data}
 Existing AL algorithms can broadly be categorized into two types, uncertainty \cite{wang2014new, gal2017deep} - and geometric-approaches \cite{sener2017active, hacohen2022active, ashdeep}. 
 Both types have principled shortcomings in terms of the utilized information that makes them unsuitable for certain data distributions.
-To test for these shortcomings, we created two synthetic datasets, namely "Honeypot" and "Diverging Sin", that are hard to solve for methods focused on the classifier's decision boundary or data clustering respectively. 
+To test for these shortcomings, we created two synthetic datasets, namely "Honeypot" and "Diverging Sine", that are hard to solve for methods focused on the classifier's decision boundary or data clustering respectively. 
 To avoid algorithms memorizing these datasets they are generated during the experiment, depending on $s_\D$. \\
 \begin{figure}[H]
 	\centering
@@ -276,7 +291,7 @@ To avoid algorithms memorizing these datasets they are generated during the expe
         \label{fig:synthDataAppendix}
 \end{figure}
 Honeypot creates to two easy to distinguish clusters with 150 samples each and one overlapping "honeypot" that represents a noisy region of the dataset with potentially miss-labeled, miss-measured or generally adverse samples.
-This honeypot contains 150 of each class, creating a balance of 50\% beneficial samples and 50\% adverse samples in the dataset.
+This honeypot contains 150 samples of each class, creating a balance of 50\% beneficial samples and 50\% adverse samples in the dataset.
 The honeypot is located on the likely decision boundary of a classifier that is trained on the beneficial samples to maximize its negative impact on purely uncertainty based acquisition functions.
 Diverging Sine samples the datapoints for each class from two diverging sinusoidal functions that are originating from the same y-intercept.
 This creates a challenging region one the left hand side, where a lot of datapoints need to be sampled and an easy region on the right hand side, where very few datapoints are enough. 

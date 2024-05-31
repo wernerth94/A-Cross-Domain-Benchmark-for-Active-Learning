@@ -411,6 +411,8 @@ def get_agent_by_name(name:str)->Callable:
         return agents.ShannonEntropy
     elif name == "margin":
         return agents.MarginScore
+    elif name == "leastconfident":
+        return agents.LeastConfident
     elif name == "coreset":
         return agents.Coreset_Greedy
     elif name == "coresetraw":
