@@ -1,0 +1,14 @@
+# Dataset: 
+DivergingSin
+Budget: 60
+Seeding points per class: 10
+Classifier Batch Size: 32 
+
+# Agent: 
+LeastConfident 
+
+# Config: 
+dataset: {'budget': 60, 'classifier_fitting_mode': 'from_scratch', 'initial_points_per_class': 10, 'classifier_batch_size': 32, 'validation_split': 0.2} 
+classifier: {'type': 'MLP', 'hidden': [12, 16]} 
+optimizer: {'type': 'NAdam', 'lr': 0.001, 'weight_decay': 0.0} 
+current_run_info: {'data_folder': '../datasets', 'run_id': 31, 'agent_seed': 1, 'pool_seed': 1, 'model_seed': 1, 'agent': 'leastconfident', 'dataset': 'divergingsin', 'query_size': 1, 'encoded': False, 'restarts': 1, 'experiment_postfix': None} 
