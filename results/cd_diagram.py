@@ -385,24 +385,28 @@ def wilcoxon_holm(alpha=0.05, df_perf=None):
 
 def prepare_df(df):
     df = df[df["trial"] <= 50]
-    df = average_out_columns(df, ["iteration", "trial"])
+    df = average_out_columns(df, ["iteration"])
+    # df = average_out_columns(df, ["iteration", "trial"])
     oracle_data = df[df["agent"]=="Oracle"]
     df_res = df[df["agent"]!="Oracle"]
     # non-oracle results
     df_res = pd.DataFrame({
         "classifier_name": df_res["agent"],
-        "dataset_name": df_res["dataset"].astype(str) + df_res["query_size"].astype(str),
+        "dataset_name": df_res["dataset"].astype(str) + df_res["query_size"].astype(str) + df_res["trial"].astype(str),
         "accuracy": df_res["auc"]
     })
     # copy oracle results for every present query size of a dataset
     for d in pd.unique(df["dataset"]):
         sub_df = df[(df["dataset"] == d).astype(bool) & (df["agent"] != "Oracle").astype(bool)]
         query_sizes = pd.unique(sub_df["query_size"].astype(int))
+        sample_agent_name = pd.unique(df_res["classifier_name"])[0]
+        num_trials = len(pd.unique(df[df["agent"]==sample_agent_name]["trial"]))
         oracle_acc = oracle_data[oracle_data["dataset"]==d]["auc"].values[0]
         for q in query_sizes:
-            df_res = df_res._append(pd.DataFrame({"classifier_name":["Oracle"],
-                                          "dataset_name":str(d)+str(q),
-                                          "accuracy":oracle_acc}))
+            for t in range(num_trials):
+                df_res = df_res._append(pd.DataFrame({"classifier_name":["Oracle"],
+                                              "dataset_name":str(d)+str(q)+str(t),
+                                              "accuracy":oracle_acc}))
 
     # replace names for agents
     for wrong, right in name_corrections.items():
@@ -427,35 +431,26 @@ if __name__ == '__main__':
 
     # df = combine_agents_into_df(["Splice", "DNA", "USPS"], include_oracle=True)
     # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Tabular", alpha=10000.0, file="doc/img/macro_vector.jpg")
+    # draw_cd_diagram(df, title="Tabular", file="doc/img/macro_vector.jpg")
 
     # df = combine_agents_into_df(["TopV2", "News"], include_oracle=True)
     # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Text", alpha=10000.0, file="doc/img/macro_text.jpg")
-
-    df = combine_agents_into_df(["Cifar10", "FashionMnist"], include_oracle=True)
-    df = prepare_df(df)
-    draw_cd_diagram(df, title="Image", alpha=10000.0, file="doc/img/macro_img.jpg")
-
-    df = combine_agents_into_df(["Cifar10Encoded", "DNAEncoded", "FashionMnistEncoded",
-                                         "SpliceEncoded", "USPSEncoded"], include_oracle=True)
-    df = prepare_df(df)
-    draw_cd_diagram(df, title="Encoded", alpha=10000.0, file="doc/img/macro_enc.jpg")
-
-    # Single Dataset
-    # df = combine_agents_into_df(dataset="Splice", max_loaded_runs=50)
-    # df = average_out_columns(df, ["iteration", "query_size"])
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Splice")
-
-    # Unencoded Domain
-    # df = combine_agents_into_df(dataset=datasets_raw, max_loaded_runs=50)
-    # df = average_out_columns(df, ["iteration", "dataset", "query_size"])
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Unencoded", alpha=10000.0) # turn off significance bars
+    # draw_cd_diagram(df, title="Text", file="doc/img/macro_text.jpg")
     #
-    # # Encoded Domain
-    # df = combine_agents_into_df(dataset=datasets_encoded, max_loaded_runs=50)
-    # df = average_out_columns(df, ["iteration", "dataset", "query_size"])
+    # df = combine_agents_into_df(["Cifar10", "FashionMnist"], include_oracle=True)
     # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Encoded", alpha=10000.0) # turn off significance bars
+    # draw_cd_diagram(df, title="Image", file="doc/img/macro_img.jpg")
+
+    # df = combine_agents_into_df(["Cifar10Encoded", "DNAEncoded", "FashionMnistEncoded",
+    #                                      "SpliceEncoded", "USPSEncoded"], include_oracle=True)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Encoded", file="doc/img/macro_enc.jpg")
+
+    # Single Datasets
+    # df = combine_agents_into_df(dataset="ThreeClust", include_oracle=True)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Honeypot", file="doc/img/micro_honeypot.jpg")
+
+    df = combine_agents_into_df(dataset="DivergingSin", include_oracle=True)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="Diverging Sine", file="doc/img/micro_diverging_sin.jpg")

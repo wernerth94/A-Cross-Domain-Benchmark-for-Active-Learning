@@ -112,7 +112,7 @@ def plot_upper_bound(ax, dataset, x_values, color, alpha=0.8, percentile=0.99, l
 
 _all_query_sizes = [1, 5, 20, 50, 100, 500]
 _all_agents = ["Badge", "BALD", "CoreGCN", "Coreset_Greedy", "DSA", "LSA", "MarginScore", "RandomAgent",
-               "ShannonEntropy", "TypiClust", "Coreset_Raw", "Oracle"]
+               "ShannonEntropy", "LeastConfident", "TypiClust", "TypiClust_Raw", "Coreset_Raw", "Oracle"]
 _agent_colors = {
     "Oracle": "red",
     "UpperBound": "black",
@@ -123,9 +123,11 @@ _agent_colors = {
     "DSA": "olive",
     "LSA": "brown",
     "MarginScore": "blue",
+    "LeastConfident": "cyan",
     "RandomAgent": "grey",
     "ShannonEntropy": "green",
     "TypiClust": "pink",
+    "TypiClust_Raw": "hotpink",
     "Coreset_Raw": "magenta",
 }
 _agent_names = { # only corrected names
@@ -216,7 +218,7 @@ def _get_oracle_regression(x, y, x_test, upper_bound):
     multipliers = np.exp(-space / 0.5) # exponential
     for i in range(0, len(y_test)):
         multiplicator = multipliers[i]
-        y_test[i] = y_test[i] * multiplicator + upper_bound * 0.99 * (1-multiplicator)
+        y_test[i] = min(y_test[i], y_test[i] * multiplicator + upper_bound * 0.99 * (1-multiplicator))
     idx = [i-max(x) for i in x_test]
     return x_test, y_test[idx]
 
@@ -353,17 +355,20 @@ def collect_results(base_path, folder_prefix):
     result_acc = pd.DataFrame()
     result_loss = pd.DataFrame()
     runs = sorted(os.listdir(base_path), key=functools.cmp_to_key(sort_by_run_id))
+    column_names = []
     for run_folder in runs:
         if run_folder.startswith(folder_prefix):
             acc_file_path = join(base_path, run_folder, "accuracies.csv")
-            if exists(acc_file_path):
-                accuracies = pd.read_csv(acc_file_path, header=0, index_col=0)
-                result_acc = pd.concat([result_acc, accuracies], axis=1, ignore_index=True)
-
             loss_file_path = join(base_path, run_folder, "losses.csv")
+            assert exists(acc_file_path)
+            column_names.append(run_folder)
+            accuracies = pd.read_csv(acc_file_path, header=0, index_col=0)
+            result_acc = pd.concat([result_acc, accuracies], axis=1, ignore_index=True)
+
             if exists(loss_file_path):
                 losses = pd.read_csv(loss_file_path, header=0, index_col=0)
                 result_loss = pd.concat([result_loss, losses], axis=1, ignore_index=True)
+    result_acc.columns = column_names
     result_acc.to_csv(join(base_path, "accuracies.csv"))
     result_loss.to_csv(join(base_path, "losses.csv"))
 
@@ -423,6 +428,8 @@ def get_agent_by_name(name:str)->Callable:
         return agents.Badge
     elif name == "typiclust":
         return agents.TypiClust
+    elif name == "typiclustraw":
+        return agents.TypiClust_Raw
     elif name == "coregcn":
         return agents.CoreGCN
     elif name == "dsa":
@@ -436,7 +443,7 @@ def get_agent_by_name(name:str)->Callable:
 
 
 if __name__ == '__main__':
-    # base_path = "runs/Cifar10/Oracle"
+    # base_path = "runs/USPSEncoded/50/CoreGCN"
     # collect_results(base_path, "run_")
     # exit()
 
@@ -447,7 +454,7 @@ if __name__ == '__main__':
     # show_auc = True
     # qs = 20
 
-    full_plot("FashionMnist", query_size=None, radjust=0.7, forecast_oracle=True)
+    full_plot("News", query_size=None, radjust=0.7, forecast_oracle=True)
     plt.show()
     exit(0)
 

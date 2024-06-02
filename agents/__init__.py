@@ -5,7 +5,7 @@ from agents.shannon_entropy import ShannonEntropy
 from agents.least_confident import LeastConfident
 from agents.bald import BALD
 from agents.badge import Badge
-from agents.typiclust import TypiClust
+from agents.typiclust import TypiClust, TypiClust_Raw
 from agents.core_gcn import CoreGCN
 from agents.surprise_adequacy import DSA, LSA
 

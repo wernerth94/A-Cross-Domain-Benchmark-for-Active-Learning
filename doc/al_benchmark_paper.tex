@@ -62,29 +62,52 @@
 }
 
 \begin{document}
+	
+% Introduction:
+% What is the problem?
+% - Ergebnisse schwierig zu reproduzieren
+% - Vorherige Benchmarks haben dem Versuchsaufbau zu wenig Beachtung geschenkt - erst Ji und Luth haben verlässliche Benchmarks beschrieben
+% - keiner (!) der Benchmarks hat beide unserer Top-2 Methoden (Margin und Badge)
+% - Es werden maximal zwei Domänen abgedeckt
+% - Bisherige Oracle-Algorithmen sind extrem rechenaufwenig
+% What are we adding to it?
+% - Wir implementieren die Guidelines von Ji et al
+% - Wir erweitern die Anzahl der Domänen von 1 auf 5 und führen mehr Wiederholungen ein
+% - Bessere Abdeckung der relevanten Algorithmen (von 8 (Ji) auf 11)
+% - Unser Oracle ist viel leichter zu berechnen
+% Why is that important?
+% - Wir zeigen, dass die Wiederholungen wichtig sind, um reproduzierbare Ergebnisse zu liefern
+% - Wir zeigen, dass es signifikante Unterschiede zwischen den Domänen gibt
+% - Wir zeigen, dass Margin und Badge zwei starke Baselines sind, die immer dabei sein müssen
+% - Unser Oracle hat x% lift über alle Algorithmen und ist somit ausreichend
 
 
 % TODOs nach Priorität
-% !! Least-Confident Baseline
-% !! "Overfitting on test" für Oracle: Sanity-Check und eventuell komplett streichen
-% !! Ergebnis-Tabelle mit nur 3 runs neu berechnen und Unterschiede zeigen
-% !! Introduction neu schreiben: Wir brauchen eine klare Benennung der Ziele und bessere Abgrenzung zu anderen papern (What is the problem -> How is it solved atm? -> What are we adding to it? -> Why is that important?)
+% !! "Overfitting on test" für Oracle: Sanity-Check durchführen und eventuell komplett streichen
+% !! Introduction neu schreiben: Wir brauchen eine klare Benennung der Ziele und bessere Abgrenzung zu anderen papern 
+% !! Sec 4 Methodology ist sehr chaotisch. Wir müssen neu sortieren und unwichtige Dinge streichen
+% Contributions neu sortieren und ausführlicher beschreiben
+% Methode zum CD-Diagramm genau erklären (paired-t-test etc.) und die Relevanz fürs paper zeigen
 % Advantage-Matrix von Ji et. al. neu aufarbeiten. Wo sind die Unterschiede? Ist das CD-Diagramm besser/schlechter?
+% Gibt es eine Conclusion für die Encoded-Datasets? Im Moment werden die nicht besprochen
 % Eventuell Batchsize 1 von den anderen Ergebnissen separieren. Der Vergleich macht mehr Sinn, als einfach die Batchsizes zu mitteln
 % Infos und Ergebnisse für die syntetischen Datensätze in ein Kapitel bündeln und direkt auf die Contribution beziehen
 % Tabelle 1 für Algorithmen statt Domänen. Das zeigt, dass immer entweder BADGE oder Margin (unsere Top 2) fehlt
-% Conclusion: Es gibt Unterschiede bei der Top 1 zwischen den Domänen, aber die Top 3 ist konstant
 % Oracle Performance mit einer Zahl benennen: z.B. Da wird ~20% lift zu allen Baselines haben, brauchen wir kein aufwendigeres Oracle
-% Contributions neu sortieren und sehr viel ausführlicher beschreiben
 % Unsere Rankings mit Literatur vergleichen. Wie anders sind wir? -> Evtl. besten Alg. pro Benchmark sammeln und vergleichen
 % Causalitäten checken: Viele Dinge werden einfach genannt, ohne das der Grund richtig eingeführt wird
 % "reproducible" als Aufhänger für 50 repeats ist nicht intuitiv
 % Fig. 1: Schlechte Performance am Anfang verwirrt nur. Entweder BADGE benutzen, anders plotten, oder im Text in Kontext setzen
-% paired-t-test im Critical Difference Diagram herausstellen und die Relevanz für paper zeigen
 % Eventuell Honeypot und Diverging Sine direkt in den Contributions nennen
 % Oracle Forecast im Appendix erklären 
 % Tabelle mit AUCs in den Appendix
 
+%%%%%%%%%%%%%%%%%%
+% DONE
+%%%%%%%%%%%%%%%%%
+% !! Ergebnis-Tabelle mit nur 3 runs neu berechnen und Unterschiede zeigen
+% !! Least-Confident Baseline
+% Conclusion: Es gibt Unterschiede bei der Top 1 zwischen den Domänen, aber die Top 3 ist konstant
 
 \maketitle
 
@@ -157,17 +180,18 @@ Paper & Sampling & \#Data & \#Alg & \multicolumn{1}{l}{Img} & Txt & Tab & Synth 
 \multicolumn{1}{l|}{Li et al. \cite{li2022empirical}} & batch & 5 & 13 & \checkmark & - & - & - & \checkmark & - & - \\
 \multicolumn{1}{l|}{Ji et al. \cite{ji2023randomness}} & batch & 3 & 8 & \checkmark & - & - & - & - & - & - \\
 \multicolumn{1}{l|}{Luth et al. \cite{luth2024navigating}} & batch & 4 & 5 & \checkmark & - & - & - & \checkmark & - & 3 \\
-\multicolumn{1}{l|}{\textbf{Ours}} & sngl+batch & 9(14) & 10 & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & 50 
+\multicolumn{1}{l|}{\textbf{Ours}} & sngl+batch & 9(14) & 11 & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & 50 
 \end{tabular}
 }
 \end{table}
 
 \subsection*{Contributions}
+%Maybe absorb this into the introduction text
 \begin{enumerate}
-	\item Evaluation of Active Learning algorithms on datasets from 5 different domains
-	\item Two novel synthetic datasets that highlight principled shortcomings of existing AL algorithms
-	\item Efficient and performant algorithm for an oracle that can be constructed greedily and does not rely on search
-        \item Evidence that previous works might have not repeated their experiments often enough to provide conclusive results
+	\item[C1] Study on the reproducibility of AL experiments, providing evidence that previous works might have not repeated their experiments often enough to provide reliable results
+	\item[C2] Efficient and performant algorithm for an oracle that can be constructed greedily and does not rely on search
+	\item[C3] Two novel synthetic datasets that highlight principled shortcomings of of the top-performing AL algorithms
+    \item[C4] Extending the evaluation of Active Learning algorithms to 5 data domains and revealing significant differences in algorithm performance between them
 \end{enumerate}
 
 
@@ -233,13 +257,17 @@ Figure \ref{fig:restarts} shows the "true" mean performance of margin sampling (
 We display 5 random draws of size $\alpha$ in blue.
 We can observe that even for a relatively high number of restarts the variance between the samples is extremely high, resulting in some performance curves being worse that random and some being significantly better.
 When setting $\alpha = 50$ we observe all samples to converge close to the true mean performance. 
-For that reason, we employ 50 restarts of every experiment in this work.
 \begin{figure}
         \hspace{-20mm}
 	\includegraphics[width=1.24\linewidth]{img/ablation_restarts}
 	\caption{Random draws from a pool of 100 runs for margin sampling on the Splice dataset with different numbers of repetitions ($\alpha=\{5,10,50\}$). Green curves are the mean performance of all 100 runs, while the samples are blue. Even with 5 or 10 repetitions, we can observe that single draws for margin sampling display below-random performance (black), while the true mean should be above random.}
 	\label{fig:restarts}
 \end{figure}
+In addition to this motivating example, we carried out our main evaluation (Tab. \ref{tab:results}) multiple times by uniformly sampling 3 random from our 50 available runs and comparing the results.
+We found significant differences in the performance of acquisition functions on individual datasets, as well as permutations in the final ranking.
+This partly explains the ongoing difficulties in reproducing results for AL experiments and benchmarks.
+This details can be found in App. \ref{app:rank_difference}.
+For this benchmark we always employ 50 restarts of the same experiment.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -360,6 +388,8 @@ For an overview of architectures and hyperparameters please refer to Appendix \r
 %    \vspace{-0.83cm}
 %\end{minipage}
 %\end{wrapfigure}
+
+%an oracle set was so far always described as the optimal set and therefore
 Posing Active Learning as a combinatorial problem, the oracle set $\mathcal{O}_b$ for a given dataset, model, and training procedure is the set that induces the highest AUC score for a given budget.
 However, since this problem is computationally infeasible for realistic datasets, previous works have proposed approximations to this oracle sequence. 
 \cite{zhou2021towards} used simulated annealing to search for the optimal subset and used the best  solution found after a fixed time budget. 
@@ -367,9 +397,9 @@ Even though their reported performance curves display a significant lift over al
 In this paper, we propose a greedy oracle algorithm that constructs an approximation of the optimal set in an iterative fashion.
 Our oracle algorithm evaluates every data point $u_k = \operatorname{unif(\mathcal{U}) \quad k \in [1 \ldots \tau]}$ in a subsample of unlabeled points by fitting the classifier $\hat y$ on $\mathcal{L}^{(i)} \cup \{u_k\}$ and directly measuring the resulting test performance.
 The data point with the best test performance is selected and added to the labeled pool for that iteration.
-We noticed that this oracle is overfitting on the test set, resulting in stagnating or even decreasing performance curves in later AL iterations.
-This can happen, for example, if the oracle picked a labeled set that enables the classifier to correctly classify a big portion of easy samples in the test set, but now fails to find the next single unlabeled point that would enable the classifier to succeed on one of the hard samples.
-This leads to a situation, where no point can incur an increase in test performance and therefore the selected data point can be considered random.
+We noticed that this oracle is over-specializing on the test set, resulting in stagnating or even decreasing performance curves in later AL iterations.
+This can happen, for example, if the oracle picked a labeled set that enables the classifier to correctly classify a big portion of easy samples in the test set, but now fails to find the next \textbf{single} unlabeled point that would enable the classifier to succeed on one of the hard samples.
+This leads to a situation, where no point can immediately incur an increase in test performance and therefore the selected data point can be considered random.
 To circumvent this problem, we use margin sampling \cite{wang2014new} as a fallback option for the oracle.
 Whenever the oracle does not find an unlabeled point that results in an increase in performance, it defaults to margin sampling in that iteration.
 The resulting greedy algorithm constructs an approximation of the optimal labeled set that consistently outperforms all other algorithms by a significant margin, while requiring relatively low computational cost ($\mathcal{O}(B\tau)$).
@@ -404,37 +434,32 @@ For a list of all acquisition functions, please refer to Table \ref{tab:results}
 \subsection{Results}
 %
 \begin{table}[]
-	\caption{Performances for acquisition functions on real-world datasets, aggregated for un-encoded and encoded datasets. Performance is shown as average ranks over restarts (1.0 is the best rank). Algorithms are sorted by aggregated performance on un-encoded datasets. For brevity, we only display per-dataset standard deviations for Splice. All standard deviations lie within $[0.0007, 0.024]$.}
+	\caption{Performances for acquisition functions on real-world datasets, aggregated for un-encoded and encoded datasets. Performance is shown as average ranks over restarts (1.0 is the best rank). Algorithms are sorted by aggregated performance on un-encoded datasets. }
 	\label{tab:results}
 	\centering
         \resizebox{\columnwidth}{!}{
 \begin{tabular}{l|lllllll|ll}
-          & Splice & DNA  & USPS 		 	& Cfr10 & FMnist & TopV2 & News  & Un-encoded & Encoded \\
+          & Splice & DNA  & USPS 		 	& Cfr10 & FMnist & TopV2 & News  & Un-enc. & Enc. \\
           \hline
-Oracle 	& 1.0$\pm$0.011 & 1.0 & 1.0 & 1.0 & 1.0 & 1.0 & 1.0 & 1.0 & 1.9 \\
-Margin 	& 3.9$\pm$0.019 & 4.2 & \textbf{2.1} & 4.4 & \textbf{2.9} & \textbf{2.4} & 2.7 & 3.2 & 3.9 \\
-Badge  	& \textbf{3.0$\pm$0.014} & 6.2 & 2.9 & \textbf{3.4} & 3.2 & 3.3 & \textbf{2.5} & 3.5 & 4.9 \\
-DSA 	& 7.1$\pm$0.016 & 7.1 & 7.1 & 3.6 & 3.5 & 5.7 & 5.9 & 5.7 & 6.2 \\
-BALD 	& 3.9$\pm$0.011 & 4.6 & 5.3 & 10.1 & 5.8 & 7.2 & 3.8 & 5.8 & 6.9 \\
-CoreGCN & 6.6$\pm$0.012 & 4.8 & 9.4 & 5.7 & 4.8 & 4.0 & 5.4 & 5.8 & 7.7 \\
-Entropy & 6.4$\pm$0.018 & \textbf{3.8} & 7.2 & 5.7 & 3.4 & 9.1 & 8.2 & 6.3 & 6.0 \\
-LSA 	& 5.8$\pm$0.009 & 6.6 & 5.2 & 5.8 & 8.7 & 7.0 & 6.0 & 6.4 & 6.9 \\
-Random 	& 8.6$\pm$0.01 & 9.0 & 5.2 & 6.5 & 9.2 & 7.4 & 6.6 & 7.5 & 6.4 \\
-Coreset & 6.8$\pm$0.01 & 8.8 & 9.6 & 4.9 & 5.3 & 8.0 & 9.4 & 7.5 & 6.6 \\
-TypiClust & 8.3$\pm$0.009 & 9.8 & 11.0 & 6.0 & 9.1 & 11.0 & 10.6 & 9.4 & 8.6
+Oracle  & 1.0 $\pm$ 0.01 & 1.0 $\pm$ 0.01 & 1.0 $\pm$ 0.0   & 1.0 $\pm$ 0.0   & 1.0 $\pm$ 0.0   & 1.0 $\pm$ 0.01 & 1.0 $\pm$ 0.0  & 1.0 & 2.0 \\
+Margin  & 6.6 $\pm$ 0.02 & 4.3 $\pm$ 0.01 & 2.1 $\pm$ 0.01  & 6.3 $\pm$ 0.01  & 4.4 $\pm$ 0.0   & 2.4 $\pm$ 0.01 & 3.7 $\pm$ 0.0  & 4.3 & 4.2 \\
+Badge   & 5.2 $\pm$ 0.01 & 6.3 $\pm$ 0.01 & 2.9 $\pm$ 0.01  & 5.2 $\pm$ 0.01  & 4.7 $\pm$ 0.0   & 3.3 $\pm$ 0.01 & 3.5 $\pm$ 0.0  & 4.5 & 5.4 \\
+LeastConf & 9.2 $\pm$ 0.02 & 10.3 $\pm$ 0.02 & 8.1 $\pm$ 0.02  & 2.1 $\pm$ 0.01 & 4.0 $\pm$ 0.0   & 7.9 $\pm$ 0.02  & 3.0 $\pm$ 0.01  & 6.4  & 6.5 \\
+DSA     & 7.4 $\pm$ 0.02 & 7.3 $\pm$ 0.01 & 7.5 $\pm$ 0.01  & 5.4 $\pm$ 0.01  & 5.1 $\pm$ 0.0   & 6.0 $\pm$ 0.02 & 7.3 $\pm$ 0.01 & 6.6 & 6.7 \\
+BALD    & 4.0 $\pm$ 0.01 & 4.7 $\pm$ 0.01 & 5.4 $\pm$ 0.01  & 12.0 $\pm$ 0.01 & 7.6 $\pm$ 0.0   & 7.6 $\pm$ 0.02 & 5.0 $\pm$ 0.0  & 6.6 & 7.6 \\
+CoreGCN & 6.9 $\pm$ 0.01 & 4.9 $\pm$ 0.01 & 10.4 $\pm$ 0.01 & 7.6 $\pm$ 0.01  & 6.5 $\pm$ 0.01  & 4.0 $\pm$ 0.01 & 6.8 $\pm$ 0.0  & 6.7 & 8.2 \\
+Entropy & 6.6 $\pm$ 0.02 & 3.9 $\pm$ 0.01 & 7.6 $\pm$ 0.01  & 7.6 $\pm$ 0.01  & 4.9 $\pm$ 0.01  & 9.8 $\pm$ 0.02 & 9.6 $\pm$ 0.0  & 7.1 & 6.5 \\
+LSA     & 6.1 $\pm$ 0.01 & 6.8 $\pm$ 0.01 & 5.3 $\pm$ 0.01  & 7.7 $\pm$ 0.01  & 10.6 $\pm$ 0.01 & 7.5 $\pm$ 0.01 & 7.3 $\pm$ 0.01 & 7.3 & 7.5 \\
+Random  & 9.0 $\pm$ 0.01 & 9.3 $\pm$ 0.01 & 5.3 $\pm$ 0.01  & 8.4 $\pm$ 0.01  & 11.1 $\pm$ 0.0  & 7.9 $\pm$ 0.01 & 8.0 $\pm$ 0.0  & 8.4 & 6.9 \\
+Coreset        & 7.1 $\pm$ 0.01 & 9.0 $\pm$ 0.01  & 10.5 $\pm$ 0.01 & 6.8 $\pm$ 0.01 & 7.1 $\pm$ 0.0   & 8.5 $\pm$ 0.02  & 10.8 $\pm$ 0.01 & 8.5  & 7.2 \\
+TypiClust      & 8.8 $\pm$ 0.01 & 10.2 $\pm$ 0.01 & 12.0 $\pm$ 0.02 & 7.9 $\pm$ 0.01 & 11.0 $\pm$ 0.01 & 12.0 $\pm$ 0.02 & 12.0 $\pm$ 0.01 & 10.5 & 9.2
 \end{tabular}
        	}
 \end{table}
-%\begin{figure}
-%    \centering
-%    \caption{Results for all acquisition functions on un-encoded USPS (top) and the encoded FashionMnist (bottom) for two query sizes.}
-%    \label{fig:main_body_result}
-%    \includegraphics[width=0.9\linewidth]{img/main_body_result.jpg}
-%\end{figure}
 %
 \begin{figure}
     \centering
-    \caption{Ranks of each acquisition function aggregated by domain.}
+    \caption{Ranks of each acquisition function aggregated by domain. Horizontal bars indicate a \textbf{non}-significant rank difference. The significance is tested via a paired-t-test with $\alpha=0.05$.}
     \label{fig:ranks_by_domain}
     \includegraphics[width=0.49\linewidth]{img/macro_vector.jpg}
     \includegraphics[width=0.49\linewidth]{img/macro_text.jpg}
@@ -446,23 +471,39 @@ TypiClust & 8.3$\pm$0.009 & 9.8 & 11.0 & 6.0 & 9.1 & 11.0 & 10.6 & 9.4 & 8.6
     \centering
     \caption{Results for all acquisition functions on both synthetic datasets.}
     \label{fig:main_body_result}
-    \includegraphics[width=0.9\linewidth]{img/synth_trajectories.jpg}
+    \includegraphics[width=0.49\linewidth]{img/micro_honeypot.jpg}
+    \includegraphics[width=0.49\linewidth]{img/micro_diverging_sin.jpg}
 \end{figure}
 Storing the results of every run in a separate file allows us to create various aggregates.
 Apart from plotting standard performance curves and reporting their AUC values per dataset (Fig. \ref{fig:main_body_result}), we primarily rely on ranks to aggregate the performance of an acquisition function across datasets.
 For each dataset, the AUC values of all acquisition functions are sorted and assigned a rank based on position, with the best rank being 1.
 These ranks can safely be averages across datasets as they are no longer subjected to scaling differences of each dataset.
-In Table \ref{tab:results} we provide the rank of each acquisition function per dataset and averaged for each (un-)encoded dataset. \\
+In Table \ref{tab:results} we provide the rank of each acquisition function per dataset and averaged for each (un-)encoded dataset. 
+Please note, that for Tab \ref{tab:results} we are averaging not only over runs, but also over query sizes per dataset. 
+For the results per query size, please refer to App. \ref{app:ranks_by_query_size}. \\
 Additionally, we provide aggregated ranks per data domain in Fig. \ref{fig:ranks_by_domain}, revealing varying performances of acquisition functions like DSA/LSA, BALD and CoreGCN.
 The leading algorithms Margin-Sampling and BADGE show very stable performance across all tested data domains. \\ [1mm]
-Results for the Honeypot dataset reveal expected shortcomings of uncertainty sampling algorithms like margin and entropy sampling, but also show that BADGE is underperforming for this dataset. 
-This is an important result, as margin sampling and BADGE were evaluated to be the best performing acquisition functions for real-world data.
-Both being highly vulnerable to adverse samples or simply measurement noise highlights the need for further research in this area. \\
-Results for Diverging Sine also confirm expected behaviour, as clustering algorithms (Coreset, TypiClust) fall behind uncertainty algorithms (Entropy-, Margin-Sampling), with the exception of BADGE.
-The fact that BADGE is able to perform well on this dataset highlights the importance of embeddings in the clustering algorithms, as the so-called gradient embedding from BADGE seems to be able to encode uncertainty information, guiding the selection into the left hand regions of the dataset.
-We provide additional evidence for the importance of the embeddings by testing a version of Coreset on this dataset that does not use the embeddings produced by the classification model, but rather clusters the data directly.
-This "Coreset Raw" algorithm performs notably worse than its embedding-based counterpart. \\
-We strongly advocate to test newly proposed AL algorithms not only on our benchmark suite of real data, but also pay close attention to Honeypot and Diverging Sine to reveal principled shortcomings of the algorithm.
+Results for the Honeypot dataset reveal expected shortcomings of uncertainty sampling algorithms like margin, entropy and least confident sampling as well as BALD.
+In addition, BADGE is underperforming for this dataset compared to real-world data. 
+Results for Diverging Sine also confirm expected behavior, as clustering algorithms (Coreset, TypiClust) fall behind uncertainty algorithms (Entropy-, Margin-Sampling), with the exception of BADGE. \\
+We provide a very small ablation study on the importance of the embeddings by testing a version of Coreset and TypiClust on this dataset that does not use the embeddings produced by the classification model, but rather clusters the data directly.
+"Coreset Raw" and "TypiClust Raw" both perform worse than their embedding-based counterpart.
+
+\section{Conclusion}
+As stated in contribution C4, our results on real-world data shows significant differences in the performance of the tested algorithms between data domains.
+Not only do some algorithms overperform on some domains (like least confidence sampling on Images), but the Top-3 of algorithms (except Oracle) does not contain the same three algorithms for any two domains.
+This highlights the dire need for diverse data domains in AL benchmarking.
+Furthermore, our results on Honeypot reveal principled shortcomings for the two best algorithms in BADGE and margin sampling.
+Both are vulnerable to adverse samples or simply measurement noise, which highlights the need for further research in this area. \\
+Finally, the fact that BADGE is able to perform well on Diverging Sine highlights the importance of embeddings for the clustering algorithms, as the so-called gradient embedding from BADGE seems to be able to encode uncertainty information, guiding the selection into the left hand regions of the dataset. 
+We also show that embeddings are generally useful for this dataset, by providing results for "Coreset Raw" and "TypiClust Raw". \\ [1mm]
+In conclusion, we strongly advocate to test newly proposed AL algorithms not only on a wide variety of real data domains, but also to pay close attention to the Honeypot and Diverging Sine datasets to reveal principled shortcomings of the algorithm in question.
+
+%\section{Future Work}
+% Wahrscheinlich werden wir keinen Platz dafür haben
+% Wie sehr hängen die Unterschiede am Classifier und nicht an den Daten? -> Mehrere Classifier pro Domäne
+% Mehr Datensätze pro Domäne
+% Neuere Algorithmen. (Neuster von 2022)
 
 \newpage
 \paragraph{Acknowledgement}
@@ -478,45 +519,45 @@ anonymous
 \appendix
 \newpage
 
-\section{Problem Formulation}\label{app:problem_formulation}
-Given
-\begin{itemize}
-	\item a number $B\in\N$ (called budget),
-	\item two spaces $\X$ and $\Y$,  {\tiny e.g., $\X:=\R^M, \Y:=\R^T$},
-	\item a sample $\D_1,\ldots,\D_N \in (\X\times \Y)^*$ of
-	sequences of pairs $(x,y)$  from an unknown distribution $p$
-	(called datasets),
-	%  {\tiny with $|\D_n|\geq B$ for all $n\in 1{:}N$,}
-	{\tiny with $p(\D)=0$ for $|\D|<B$,}
-	\item a function $\ell:\Y\times\Y\rightarrow\R$ (called loss), and
-	\item a function $\hat y:  (\X\times \Y)^* \times \X^* \rightarrow \Y^\X$
-	(called learning algorithm), \\
-	{\tiny where $\Y^\X$ is the space of all function from $\X$ to $\Y$}
-\end{itemize}
-find a function
-\vspace*{-0.5cm}
-\begin{align*}
-	\Omega: (\X\times \Y)^* \times \X^* &\rightarrow \N
-	\quad\quad \text{\tiny (with $a(\D,X) \leq |X|$)} \\
-	& \text{\tiny where $a(\D,X)$ selects an unlabeled instance from $X$}
-\end{align*}
+%\section{Problem Formulation}\label{app:problem_formulation}
+%Given
+%\begin{itemize}
+%	\item a number $B\in\N$ (called budget),
+%	\item two spaces $\X$ and $\Y$,  {\tiny e.g., $\X:=\R^M, \Y:=\R^T$},
+%	\item a sample $\D_1,\ldots,\D_N \in (\X\times \Y)^*$ of
+%	sequences of pairs $(x,y)$  from an unknown distribution $p$
+%	(called datasets),
+%	%  {\tiny with $|\D_n|\geq B$ for all $n\in 1{:}N$,}
+%	{\tiny with $p(\D)=0$ for $|\D|<B$,}
+%	\item a function $\ell:\Y\times\Y\rightarrow\R$ (called loss), and
+%	\item a function $\hat y:  (\X\times \Y)^* \times \X^* \rightarrow \Y^\X$
+%	(called learning algorithm), \\
+%	{\tiny where $\Y^\X$ is the space of all function from $\X$ to $\Y$}
+%\end{itemize}
+%find a function
+%\vspace*{-0.5cm}
+%\begin{align*}
+%	\Omega: (\X\times \Y)^* \times \X^* &\rightarrow \N
+%	\quad\quad \text{\tiny (with $a(\D,X) \leq |X|$)} \\
+%	& \text{\tiny where $a(\D,X)$ selects an unlabeled instance from $X$}
+%\end{align*}
 % which is equivariant in the second argument,
 
-called acquisition function,
-s.t. the expected loss of a model learned on all predictors plus $B$ sequentially acquired targets
-is minimal:
-\begin{align*}
-	\min\ \EE\   &  \{
-	% \operatorname{avg}\limits_{(x,y)\in\D\test} \ell(y, \hat y(x))
-	\ell(\hat y, \D\test)
-	\mid \D\sim p, (\D\train,\D\test):= \text{split}(\D) \}
-	\\
-	\text{with }
-	\hat y:= & A( (\D_{\train_{n_1}},\ldots,\D_{\train_{n_B}}), \D\train|_{\X})
-	\\ 
-	n_b := & a( (\D_{\train_{n_1}},\ldots,\D_{\train_{n_{b-1}}}), \D\train|_{\X}) ,
-	\quad b\in 1{:}B
-\end{align*}
+%called acquisition function,
+%s.t. the expected loss of a model learned on all predictors plus $B$ sequentially acquired targets
+%is minimal:
+%\begin{align*}
+%	\min\ \EE\   &  \{
+%	% \operatorname{avg}\limits_{(x,y)\in\D\test} \ell(y, \hat y(x))
+%	\ell(\hat y, \D\test)
+%	\mid \D\sim p, (\D\train,\D\test):= \text{split}(\D) \}
+%	\\
+%	\text{with }
+%	\hat y:= & A( (\D_{\train_{n_1}},\ldots,\D_{\train_{n_B}}), \D\train|_{\X})
+%	\\ 
+%	n_b := & a( (\D_{\train_{n_1}},\ldots,\D_{\train_{n_{b-1}}}), \D\train|_{\X}) ,
+%	\quad b\in 1{:}B
+%\end{align*}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -545,12 +586,78 @@ It has to be pointed out that TypiClust was designed for low-budget scenarios, b
 Introduces an updated training of the classification model with an auxiliary loss and therefore cannot be compared fairly against classification models without this boosted training regime.\\ [1mm]
 %
 \textbf{Reinforcement Learning Algorithms} \\
-TODO \\
+%TODO \\
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{All Results}\label{app:all_results}
+\section{Difference of Ranks with 3 Repetitions}\label{app:rank_difference}
+Table \ref{tab:rank_diff_1} and Table \ref{tab:rank_diff_2} follow the exact same computation of ranks that created the main result (Table \ref{tab:results}) with the only difference being a reduced number of runs per acquisition function.
+For each table we uniformly sampled 3 runs from the available 50 per acquisition function. \\
+We can observe significant differences between the two tables: \\
+{\color{purple}Purple}: A multitude of rank differences of acquisition functions for specific datasets, some as high as 4.7 ranks for TypiClust on the Splice dataset \\
+{\color{olive}Olive}: Well separated acquisition functions in Tab. \ref{tab:rank_diff_2} (Margin and BADGE) are almost indistinguishable in Tab \ref{tab:rank_diff_1} \\
+{\color{red}Red}: BALD lost 2 places in the overall ranking and Entropy gained 2 \\ [1mm]
+Even though the overall ordering of acquisition functions stayed relatively unchanged due to the averaging across many datasets, each individual dataset was subject to drastic permutations.
+This highlights the need for many repetitions in AL experiments.
+\begin{table}[H]
+	\centering
+	\caption{Ranks of all acquisition functions per dataset. First random draw of 3 runs from the overall pool of 50.}
+	\label{tab:rank_diff_1}
+	\resizebox{\columnwidth}{!}{
+	\begin{tabular}{l|lllllll|ll}
+		               & Splice & DNA  & USPS & Cifar10 & FMnist & TopV2 & News & Unencoded & Encoded \\
+		               \hline
+		Oracle         & 1.0    & 1.0  & 1.0  & 1.0     & 1.0          & 1.0   & 1.0  & 1.0       & 2.1     \\
+		Margin         & 6.0    & 7.3  & 2.0  & 6.7     & 5.3          & 2.3   & 3.3  & {\color{olive}4.7}& 4.4     \\
+		Badge          & 6.0    & 7.3  & 3.0  & 6.7     & 5.0          & 3.3   & 4.0  & {\color{olive}5.0}& 5.3     \\
+		{\color{red}BALD}& 3.3    & 4.7  & 5.3  & 12.0    & 7.0          & 6.3   & 4.3  & 6.1       & 7.9     \\
+		CoreGCN        & 8.7    & 3.7  & 10.7 & 6.3     & 5.3          & 4.0   & 7.7  & 6.6       & 9.1     \\
+		DSA            & 8.3    & 6.3  & 7.7  & 7.7     & 4.3          & 6.7   & 6.7  & 6.8       & 6.1     \\
+		LeastConf      & 10.0   & 12.0 & 8.0  & 3.0     & 4.3          & 9.3   & 2.3  & 7.0       & 6.7     \\
+		LSA            & 5.7    & 6.7  & 5.3  & 6.7     & 10.7         & 7.7   & 7.0  & 7.1       & 6.3     \\
+		Entropy        & 11.0   & 3.3  & 7.3  & 4.0     & 6.7          & 8.3   & 9.7  & 7.2       & 7.0     \\
+		Random         & 7.7    & 8.7  & 5.3  & 8.0     & 11.0         & 8.0   & 9.0  & 8.2       & 6.3     \\
+		Coreset        & 4.7    & 10.3 & 10.3 & 7.7     & 6.0          & 9.0   & 11.0 & 8.4       & 7.2     \\
+		TypiClust      & {\color{purple}5.7}& 6.7  & 12.0 & 8.3     & 11.3         & 12.0  & 12.0 & 9.7       & 9.7    
+	\end{tabular}
+	}
+\end{table}
+%
+\begin{table}[H]
+	\centering
+	\caption{Ranks of all acquisition functions per dataset. Second random draw of 3 runs from the overall pool of 50.}
+	\label{tab:rank_diff_2}
+	\resizebox{\columnwidth}{!}{
+	\begin{tabular}{l|lllllll|ll}
+		               & Splice & DNA  & USPS & Cifar10 & FMnist & TopV2 & News & Unencoded & Encoded \\
+		\hline
+		Oracle         & 1.0    & 1.0  & 1.0  & 1.0     & 1.0          & 1.0   & 1.0  & 1.0       & 2.4     \\
+		Margin         & 6.0    & 3.3  & 2.0  & 5.7     & 2.0          & 2.0   & 4.3  & {\color{olive}3.6}& 3.8     \\
+		Badge          & 6.0    & 9.0  & 3.0  & 3.0     & 5.7          & 3.7   & 3.3  & {\color{olive}4.8}& 4.9     \\
+		CoreGCN        & 4.3    & 6.3  & 10.3 & 7.3     & 5.3          & 5.7   & 5.3  & 6.4       & 8.1     \\
+		DSA            & 8.7    & 7.3  & 7.3  & 6.0     & 4.3          & 5.3   & 6.0  & 6.4       & 6.5     \\
+		{\color{red}BALD}& 4.7    & 4.0  & 4.7  & 12.0    & 7.3          & 6.7   & 6.7  & 6.6       & 7.5     \\
+		Entropy        & 6.7    & 4.7  & 7.7  & 5.3     & 5.0          & 7.3   & 9.3  & 6.6       & 6.8     \\
+		LeastConf      & 7.7    & 10.0 & 8.3  & 3.3     & 6.0          & 8.7   & 3.0  & 6.7       & 7.3     \\
+		LSA            & 7.7    & 5.3  & 6.0  & 9.0     & 11.0         & 9.0   & 7.3  & 7.9       & 7.5     \\
+		Random         & 9.3    & 8.0  & 5.0  & 8.7     & 11.7         & 8.3   & 8.7  & 8.5       & 7.6     \\
+		Coreset        & 6.0    & 10.7 & 10.7 & 8.0     & 8.3          & 8.3   & 11.0 & 9.0       & 6.3     \\
+		TypiClust      & {\color{purple}10.0}& 8.3  & 12.0 & 8.7     & 10.3         & 12.0  & 12.0 & 10.5      & 9.4    
+	\end{tabular}
+	}
+\end{table}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Ranks by Query Size}\label{app:ranks_by_query_size}
+%TODO
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Individual Results}\label{app:all_results}
 % Splice
 \begin{minipage}{0.65\linewidth}
 \begin{figure}[H]

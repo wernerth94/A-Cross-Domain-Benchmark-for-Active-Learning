@@ -62,6 +62,12 @@ def _find_missing_runs():
                     else:
                         print(f"Accuracy file missing {acc_file}")
 
+def sort_according_to_reference(unsorted_list:list, reference:list):
+    result = []
+    for entry in reference:
+        if entry in unsorted_list:
+            result.append(entry)
+    return result
 
 def _t_value_for_samplesize(n_samples, sig_level= 0.95):
     return t.ppf(sig_level, n_samples)
@@ -156,18 +162,19 @@ def _query_to_list(query, current_folder):
         raise ValueError(f"Query not recognized: {query}")
     return result_list
 
-def generate_full_overview(precision=1, add_std=True):
+def generate_rank_leaderboard(precision=1, add_std=True, subsample_runs=None):
     datasets_raw = ["Splice", "DNA", "USPS", "Cifar10", "FashionMnist", "TopV2", "News",]
                     #"DivergingSin", "ThreeClust"]
     datasets_encoded = ["SpliceEncoded", "DNAEncoded", "USPSEncoded",
                         "Cifar10Encoded", "FashionMnistEncoded"]
-    df_raw = combine_agents_into_df(dataset=datasets_raw, include_oracle=True)
-    df_raw = _insert_oracle_forecast(df_raw)
-    df_raw = average_out_columns(df_raw, ["iteration", "query_size"])
+    df_raw = combine_agents_into_df(dataset=datasets_raw, include_oracle=True, subsample_runs=subsample_runs)
+    # df_raw = _insert_oracle_forecast(df_raw)
+    df_raw = average_out_columns(df_raw, ["iteration"])
+    df_raw = average_out_columns(df_raw, ["query_size"])
     df_raw = compute_ranks_over_trials(df_raw)
     print("range of stds", df_raw["rank_std"].min(), "-", df_raw["rank_std"].max())
 
-    df_enc = combine_agents_into_df(dataset=datasets_encoded, include_oracle=True)
+    df_enc = combine_agents_into_df(dataset=datasets_encoded, include_oracle=True, subsample_runs=subsample_runs)
     df_enc = average_out_columns(df_enc, ["iteration", "query_size"])
     df_enc = compute_ranks_over_trials(df_enc)
 
@@ -188,7 +195,7 @@ def generate_full_overview(precision=1, add_std=True):
                 print(f"No runs found for {index} on {dataset}")
                 continue
             if add_std:
-                values.append(f"{round(r.item(), precision)}+-{round(r_std.item(), 3)}")
+                values.append(f"{round(r.item(), precision)}+-{round(r_std.item(), 2)}")
             else:
                 values.append(round(r.item(), precision))
         leaderboard[dataset] = values
@@ -203,7 +210,50 @@ def generate_full_overview(precision=1, add_std=True):
         r = df_enc[(df_enc["agent"] == index)]["rank"]
         values.append(round(r.item(), precision))
     leaderboard["Encoded"] = values
-    return leaderboard
+    leaderboard.to_csv("results/rank.csv")
+
+
+def generate_auc_leaderboard(sorted_agents:list, precision=3, add_std=True, subsample_runs=None):
+    def save_leaderboard(df, dataset_list, postfix):
+        df["query_size"] = df["query_size"].astype(int)
+        query_sizes = pd.unique(df["query_size"])
+        for q in query_sizes:
+            sub_df = df[df["query_size"] == q]
+            sub_df = sub_df.drop("query_size", axis=1)
+            available_datasets = pd.unique(sub_df["dataset"])
+            available_datasets = sort_according_to_reference(list(available_datasets), dataset_list)
+            available_agents = pd.unique(sub_df["agent"])
+            available_agents = sort_according_to_reference(list(available_agents), sorted_agents)
+            result_df = pd.DataFrame(columns=["agent"]+available_datasets)
+            for agent in available_agents:
+                auc_values = sub_df[sub_df["agent"] == agent]
+                auc_values.index = auc_values["dataset"]
+                auc_values = auc_values.drop(["agent", "dataset"], axis=1)
+                auc_values = auc_values.transpose()
+                auc_values["agent"] = agent
+                result_df = pd.concat([result_df, auc_values])
+            result_df.to_csv(f"results/auc{postfix}_qs{q}.csv")
+
+    datasets_raw = ["Splice", "DNA", "USPS", "Cifar10", "FashionMnist", "TopV2", "News",]
+                    #"DivergingSin", "ThreeClust"]
+    df_raw = combine_agents_into_df(dataset=datasets_raw, include_oracle=True, subsample_runs=subsample_runs)
+    df_raw = average_out_columns(df_raw, ["iteration"])
+    df_raw = std_for_column(df_raw, "auc")
+    df_raw = average_out_columns(df_raw, ["trial"])
+    df_raw["auc"] = df_raw["auc"].round(precision).astype(str) + "+-" + df_raw["auc_std"].round(precision).astype(str)
+    df_raw = df_raw.drop("auc_std", axis=1)
+    save_leaderboard(df_raw, datasets_raw, postfix="")
+
+    datasets_encoded = ["SpliceEncoded", "DNAEncoded", "USPSEncoded",
+                        "Cifar10Encoded", "FashionMnistEncoded"]
+    df_enc = combine_agents_into_df(dataset=datasets_encoded, include_oracle=True, subsample_runs=subsample_runs)
+    df_enc = average_out_columns(df_enc, ["iteration"])
+    df_enc = std_for_column(df_enc, "auc")
+    df_enc = average_out_columns(df_enc, ["trial"])
+    df_enc["auc"] = df_enc["auc"].round(precision).astype(str) + "+-" + df_enc["auc_std"].round(precision).astype(str)
+    df_enc = df_enc.drop("auc_std", axis=1)
+    save_leaderboard(df_enc, datasets_encoded, postfix="_enc")
+
 
 
 def compute_ranks_over_trials(df:pd.DataFrame):
@@ -216,7 +266,8 @@ def compute_ranks_over_trials(df:pd.DataFrame):
 
 
 def combine_agents_into_df(dataset=None, query_size=None, agent=None,
-                           max_loaded_runs=None, include_oracle=False):
+                           max_loaded_runs=50, include_oracle=False,
+                           subsample_runs=None):
     def _load_trials_for_agent(dataset_name, query_size_name, agent_name):
         if query_size_name is not None:
             agent_folder = join(base_folder, dataset_name, query_size_name, agent_name)
@@ -229,7 +280,16 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None,
                 N = max_loaded_runs
             else:
                 N = accuracies.shape[1]
-            for trial in range(N):
+            if subsample_runs is None:
+                trials = range(N)
+            else:
+                # randomly chose a subset of runs
+                trials = np.random.choice(N, subsample_runs, replace=False)
+            # fill in runs for Oracle for the CD diagram
+            while agent_name == "Oracle" and accuracies.shape[1] < N:
+                diff = N - accuracies.shape[1]
+                accuracies = np.concatenate([accuracies, accuracies[:, :diff]], axis=1)
+            for i, trial in enumerate(trials):
                 for iteration in range(accuracies.shape[0]):
                     if not np.isnan(accuracies[iteration, trial]):
                         df_data["dataset"].append(dataset_name)
@@ -238,10 +298,12 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None,
                         else:
                             df_data["query_size"].append(1)
                         df_data["agent"].append(name_corrections.get(agent_name, agent_name))
-                        df_data["trial"].append(trial)
+                        if subsample_runs:
+                            df_data["trial"].append(i)
+                        else:
+                            df_data["trial"].append(trial)
                         df_data["iteration"].append(iteration)
                         df_data["auc"].append(accuracies[iteration, trial])
-
 
     base_folder = "runs"
 
@@ -318,10 +380,13 @@ def get_rank_std_for_dataset(dataset_name:str):
 
 if __name__ == '__main__':
 
-    print()
+    sorted_agents = ["Oracle", "Margin", "Badge", "LeastConfident", "DSA", "BALD", "CoreGCN", "Entropy", "LSA",
+                     "Random", "Coreset", "TypiClust"]
 
-    leaderboard = generate_full_overview(add_std=True)
-    leaderboard.to_csv("results/overview.csv")
+    # generate_rank_leaderboard(add_std=True)
+    # generate_rank_leaderboard(add_std=False, subsample_runs=3)
+
+    generate_auc_leaderboard(sorted_agents)
 
     # _find_missing_runs()
 
