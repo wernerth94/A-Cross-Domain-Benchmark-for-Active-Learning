@@ -234,8 +234,10 @@ def generate_auc_leaderboard(sorted_agents:list, precision=3, add_std=True, subs
                 result_df = pd.concat([result_df, auc_values])
             result_df.to_csv(f"results/auc{postfix}_qs{q}.csv")
 
-    datasets_raw = ["Splice", "DNA", "USPS", "Cifar10", "FashionMnist", "TopV2", "News",]
-                    #"DivergingSin", "ThreeClust"]
+    datasets_raw = ["Splice", "SpliceEncoded", "DNA", "DNAEncoded", "USPS", "USPSEncoded",
+                    "Cifar10", "Cifar10Encoded", "FashionMnist", "FashionMnistEncoded",
+                    "TopV2", "News",
+                    "DivergingSin", "ThreeClust"]
     df_raw = combine_agents_into_df(dataset=datasets_raw, include_oracle=True, subsample_runs=subsample_runs)
     df_raw = average_out_columns(df_raw, ["iteration"])
     df_raw = std_for_column(df_raw, "auc")
@@ -244,15 +246,15 @@ def generate_auc_leaderboard(sorted_agents:list, precision=3, add_std=True, subs
     df_raw = df_raw.drop("auc_std", axis=1)
     save_leaderboard(df_raw, datasets_raw, postfix="")
 
-    datasets_encoded = ["SpliceEncoded", "DNAEncoded", "USPSEncoded",
-                        "Cifar10Encoded", "FashionMnistEncoded"]
-    df_enc = combine_agents_into_df(dataset=datasets_encoded, include_oracle=True, subsample_runs=subsample_runs)
-    df_enc = average_out_columns(df_enc, ["iteration"])
-    df_enc = std_for_column(df_enc, "auc")
-    df_enc = average_out_columns(df_enc, ["trial"])
-    df_enc["auc"] = df_enc["auc"].round(precision).astype(str) + "+-" + df_enc["auc_std"].round(precision).astype(str)
-    df_enc = df_enc.drop("auc_std", axis=1)
-    save_leaderboard(df_enc, datasets_encoded, postfix="_enc")
+    # datasets_encoded = [
+    #                     ]
+    # df_enc = combine_agents_into_df(dataset=datasets_encoded, include_oracle=True, subsample_runs=subsample_runs)
+    # df_enc = average_out_columns(df_enc, ["iteration"])
+    # df_enc = std_for_column(df_enc, "auc")
+    # df_enc = average_out_columns(df_enc, ["trial"])
+    # df_enc["auc"] = df_enc["auc"].round(precision).astype(str) + "+-" + df_enc["auc_std"].round(precision).astype(str)
+    # df_enc = df_enc.drop("auc_std", axis=1)
+    # save_leaderboard(df_enc, datasets_encoded, postfix="_enc")
 
 
 
