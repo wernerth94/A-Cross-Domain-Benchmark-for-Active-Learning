@@ -337,25 +337,6 @@ The embedding model was trained with the SimCLR \cite{chen2020simple} algorithm 
 To ensure that enough information from the data is encoded by our embedding model, the quality of embeddings during pretext training was measured after each epoch.
 We attached a linear classification head to the encoder, fine-tuned it to the data and evaluated this classifier for test accuracy, mirroring our AL setup for embedded datasets. 
 The checkpoint of each encoder model will be provided together with the framework. \\ [1mm]
-\textbf{Synthetic Data}
-Existing AL algorithms can broadly be categorized into two types, uncertainty \cite{wang2014new, gal2017deep} - and geometric-approaches \cite{sener2017active, hacohen2022active, ashdeep}. 
-Both types have principled shortcomings in terms of the utilized information that makes them unsuitable for certain data distributions.
-To test for these shortcomings, we created two synthetic datasets, namely "Honeypot" and "Diverging Sine", that are hard to solve for methods focused on the classifier's decision boundary or data clustering respectively. 
-To avoid algorithms memorizing these datasets they are generated during the experiment, depending on $s_\D$. \\
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.4\linewidth]{img/diverging_sin.jpg}
-	\includegraphics[width=0.4\linewidth]{img/honeypot.jpg}
-	\caption{Synthetic "Honeypot" and "Diverging Sine" datasets. The decision boundary is not part of the dataset and serves only as a visual guide.}
-        \label{fig:synthDataAppendix}
-\end{figure}
-Honeypot creates to two easy to distinguish clusters with 150 samples each and one overlapping "honeypot" that represents a noisy region of the dataset with potentially miss-labeled, miss-measured or generally adverse samples.
-This honeypot contains 150 samples of each class, creating a balance of 50\% beneficial samples and 50\% adverse samples in the dataset.
-The honeypot is located on the likely decision boundary of a classifier that is trained on the beneficial samples to maximize its negative impact on purely uncertainty based acquisition functions.
-Diverging Sine samples the datapoints for each class from two diverging sinusoidal functions that are originating from the same y-intercept.
-This creates a challenging region one the left hand side, where a lot of datapoints need to be sampled and an easy region on the right hand side, where very few datapoints are enough. 
-The repeating nature of a sin function encourages diversity based acquisition functions to equally sample the entire length, drastically oversampling the right hand side of the dataset.
-Each class has 500 datapoints. \\ [1mm]
 Every dataset has a fixed size for the seed set of 1 sample per class, with the only exceptions being un-encoded FashionMnist and Cifar10 with 100 examples per class to alleviate the cold-start problem in these complex domains. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -369,8 +350,6 @@ Every dataset has a fixed size for the seed set of 1 sample per class, with the 
                     & B & 1 & 5 & 20 & 50 & 100 & 500 & 1000 \\
          \hline
         Enc. DNA    & 40 & o & o &&&&& \\
-        Honeypot    & 60 & o & o &&&&& \\
-        Diverging Sine& 60 & o & o &&&&& \\
         Enc. Splice & 100 & o & o & o & o &&&\\
         TopV2       & 200 & o & o & o & o &&& \\
         Splice      & 400 & o & o & o & o & o && \\
@@ -496,13 +475,7 @@ TypiClust      & 8.8 $\pm$ 0.01 & 10.2 $\pm$ 0.01 & 12.0 $\pm$ 0.02 & 7.9 $\pm$ 
     \includegraphics[width=0.49\linewidth]{img/macro_enc.jpg}
 \end{figure}
 %
-\begin{figure}
-    \centering
-    \caption{Results for all acquisition functions on both synthetic datasets.}
-    \label{fig:main_body_result}
-    \includegraphics[width=0.49\linewidth]{img/micro_honeypot.jpg}
-    \includegraphics[width=0.49\linewidth]{img/micro_diverging_sin.jpg}
-\end{figure}
+
 Storing the results of every run in a separate file allows us to create various aggregates.
 Apart from plotting standard performance curves and reporting their AUC values per dataset (Fig. \ref{fig:main_body_result}), we primarily rely on ranks to aggregate the performance of an acquisition function across datasets.
 For each dataset, the AUC values of all acquisition functions are sorted and assigned a rank based on position, with the best rank being 1.
@@ -512,11 +485,8 @@ Please note, that for Tab \ref{tab:results} we are averaging not only over runs,
 For the results per query size, please refer to App. \ref{app:auc_by_query_size}. \\
 Additionally, we provide aggregated ranks per data domain in Fig. \ref{fig:ranks_by_domain}, revealing varying performances of acquisition functions like DSA/LSA, BALD and CoreGCN.
 The leading algorithms Margin-Sampling and BADGE show very stable performance across all tested data domains. \\ [1mm]
-Results for the Honeypot dataset reveal expected shortcomings of uncertainty sampling algorithms like margin, entropy and least confident sampling as well as BALD.
-In addition, BADGE is underperforming for this dataset compared to real-world data. 
-Results for Diverging Sine also confirm expected behavior, as clustering algorithms (Coreset, TypiClust) fall behind uncertainty algorithms (Entropy-, Margin-Sampling), with the exception of BADGE. \\
-We provide a very small ablation study on the importance of the embeddings by testing a version of Coreset and TypiClust on this dataset that does not use the embeddings produced by the classification model, but rather clusters the data directly.
-"Coreset Raw" and "TypiClust Raw" both perform worse than their embedding-based counterpart.
+
+\include{synthetic_datasets}
 
 \section{Conclusion}
 As stated in contribution C4, our results on real-world data shows significant differences in the performance of the tested algorithms between data domains.
