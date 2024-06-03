@@ -89,14 +89,12 @@
 % !! "Overfitting on test" für Oracle: Sanity-Check durchführen und eventuell komplett streichen
 % !! Introduction neu schreiben: Wir brauchen eine klare Benennung der Ziele und bessere Abgrenzung zu anderen papern 
 % !! Sec 4 Methodology ist sehr chaotisch. Wir müssen neu sortieren und unwichtige Dinge streichen
-% !! Sec 3 Related Work sollte Ji et al. im Detail einführen, weil wir uns an deren Guidelines halten. Alles andere sollte dort gekürzt werden
 % Contributions neu sortieren und ausführlicher beschreiben
 % Methode zum CD-Diagramm genau erklären (paired-t-test etc.) und die Relevanz fürs paper zeigen
 % Advantage-Matrix von Ji et. al. neu aufarbeiten. Wo sind die Unterschiede? Ist das CD-Diagramm besser/schlechter?
 % (Un-)Encoded durch Normal uns Semi-Supervised ersetzen, um die Verbindung klar zu machen
 % Gibt es eine Conclusion für die Encoded-Datasets? Im Moment werden die nicht besprochen
 % Eventuell Batchsize 1 von den anderen Ergebnissen separieren. Der Vergleich macht mehr Sinn, als einfach die Batchsizes zu mitteln
-% Infos und Ergebnisse für die syntetischen Datensätze in ein Kapitel bündeln und direkt auf die Contribution beziehen
 % Tabelle 1 für Algorithmen statt Domänen. Das zeigt, dass immer entweder BADGE oder Margin (unsere Top 2) fehlt
 % Oracle Performance mit einer Zahl benennen: z.B. Da wird ~20% lift zu allen Baselines haben, brauchen wir kein aufwendigeres Oracle
 % Unsere Rankings mit Literatur vergleichen. Wie anders sind wir? -> Evtl. besten Alg. pro Benchmark sammeln und vergleichen
@@ -113,6 +111,8 @@
 % !! Ergebnis-Tabelle mit nur 3 runs neu berechnen und Unterschiede zeigen
 % !! Least-Confident Baseline
 % Conclusion: Es gibt Unterschiede bei der Top 1 zwischen den Domänen, aber die Top 3 ist konstant
+% !! Sec 3 Related Work sollte Ji et al. im Detail einführen, weil wir uns an deren Guidelines halten. Alles andere sollte dort gekürzt werden
+% Infos und Ergebnisse für die syntetischen Datensätze in ein Kapitel bündeln und direkt auf die Contribution beziehen
 
 
 %%%%%%%%%%%%%%%%
@@ -147,7 +147,7 @@ Based on recent insights for reliable evaluation for Active Learning, this work 
 Additionally, we provide an analysis of how many repetitions an Active Learning experiment needs in order to derive conclusive results and propose that previous benchmarks have not met the necessary number of repetitions.
 %evidence that existing benchmarks might not have repeated their experiments often enough.
 To the best of our knowledge, we propose the first AL benchmark that applies state-of-the-art evaluation on algorithms in 3 major domains: Tabular, Image, and Text as well as synthetic data.
-We report empirical results for 10 widely used algorithms on 7 real-world and 2 synthetic datasets and aggregate them into domain-specific and overall rankings of AL algorithms.
+We report empirical results for 11 widely used algorithms on 7 real-world and 2 synthetic datasets and aggregate them into domain-specific and overall rankings of AL algorithms.
 \end{abstract}
 
 
@@ -220,7 +220,7 @@ Paper & Sampling & \#Data & \#Alg & \multicolumn{1}{l}{Img} & Txt & Tab & Synth 
 \begin{enumerate}
 	\item[C1] Study on the reproducibility of AL experiments, providing evidence that previous works might have not repeated their experiments often enough to provide reliable results
 	\item[C2] Efficient and performant algorithm for an oracle that can be constructed greedily and does not rely on search
-	\item[C3] Two novel synthetic datasets that highlight principled shortcomings of of the top-performing AL algorithms
+	\item[C3] Two novel synthetic datasets named "Honeypot" and "Diverging Sine" that highlight two principled shortcomings AL algorithms. Firstly, a susceptibility to noisy or adverse samples and secondly, the oversampling of easy to distinguish regions of the dataset
     \item[C4] Extending the evaluation of Active Learning algorithms to 5 data domains and revealing significant differences in algorithm performance between them
 \end{enumerate}
 
@@ -242,18 +242,24 @@ $$\min \quad \frac{1}{B} \sum\limits_{i=0}^B \mathbb{E}_{(x,y) \sim \rho} \ell(y
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Related Work}
-Multiple benchmark suites have already been proposed for Active Learning:
-The authors of \cite{beck2021effective}, \cite{munjal2022towards}, \cite{li2022empirical}, \cite{ji2023randomness} and \cite{luth2024navigating} focus exclusively on batch AL in the image domain.
-While \cite{beck2021effective} discuss a new metric to measure AL performance, which they call ``Label Efficiency'' and provide experiments on many common configurations of data preparation, model training, and other hyperparameters, \cite{li2022empirical} focuses on combined approaches of AL and semi-supervised learning.
-The authors of \cite{hu2021towards} study models that are trained on actively learned datasets in the image and text domain.
-They test for several different properties of the models including robustness, response to compression techniques and final performance.
-\cite{zhou2021towards} proposed an oracle algorithm for AL that uses Simulated Annealing search to approximate a solution for the optimal subset of labeled data.
-Additionally, they study the generalization behavior of subsets of labeled data in the text an image domain.
-The two closest related works to this benchmark are \cite{ji2023randomness} and \cite{luth2024navigating}, who also discussed the problems of evaluating AL algorithms under many forms of variance.
-We largely adapt the proposed guidelines of \cite{ji2023randomness} and extend their work to multiple domains, batch sizes and comparisons. 
-This work also pays attention to the so-called "pitfalls" of AL evaluation mentioned in \cite{luth2024navigating} with the exception of P1 - Controlling the data distribution of the tested datasets.
-We leave this aspect for future versions of this benchmark. \\
-Two preceding benchmarks have also proposed an oracle algorithm to find a near-optimal labeled set $\LL$, however, both algorithms rely on search and are for that reason considerably slower than our proposed greedy oracle.
+While multiple benchmark suites have been proposed for Active Learning, none of them provide experiments for more than two domains.
+The authors of \cite{beck2021effective}, \cite{munjal2022towards}, \cite{li2022empirical}, \cite{ji2023randomness} and \cite{luth2024navigating} even focus exclusively on the image domain.
+Experiments on the interplay between AL and semi-supervised learning have only been provided by two works so far \cite{li2022empirical, luth2024navigating}, both of them only for images.
+An oracle algorithm has so far been proposed by only two works \cite{zhou2021towards, zhan2022comparative}. 
+Both of these algorithms rely on search, while our proposed method can be constructed sequentially.
+%While \cite{beck2021effective} discuss a new metric to measure AL performance, which they call ``Label Efficiency'' and provide experiments on many common configurations of data preparation, model training, and other hyperparameters, \cite{li2022empirical} focuses on combined approaches of AL and semi-supervised learning.
+%The authors of \cite{hu2021towards} study models that are trained on actively learned datasets in the image and text domain.
+%They test for several different properties of the models including robustness, response to compression techniques and final performance.
+%\cite{zhou2021towards} proposed an oracle algorithm for AL that uses Simulated Annealing search to approximate a solution for the optimal subset of labeled data.
+%Additionally, they study the generalization behavior of subsets of labeled data in the text an image domain.
+The two closest related works to this benchmark are \cite{ji2023randomness} and \cite{luth2024navigating}, who also place a much higher emphasis on the problem of evaluating AL algorithms under many forms of variance than their predecessors (indicated in Tab. \ref{tab:benchmark_comparison} by a dashed line).
+The authors of \cite{ji2023randomness} posed a total of 12 "recommendations" for reliable evaluation of AL algorithms.
+We largely adapt the proposed recommendations of \cite{ji2023randomness} and extend their work to multiple domains, batch sizes and comparisons.
+For a complete list of the recommendations and our implementation of them, please refer to App. \ref{app:recommendations}.
+This work also pays attention to the so-called "pitfalls" of AL evaluation proposed in \cite{luth2024navigating}.
+For a complete list of the pitfalls and our implementation of them, please refer to App. \ref{app:pitfalls}.
+To the best of our knowledge, we are the first to extend reliable SOTA (based on \cite{ji2023randomness, luth2024navigating}) experimentation to a total of 5 data domains.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -261,27 +267,12 @@ Two preceding benchmarks have also proposed an oracle algorithm to find a near-o
 \section{Methodology}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Evaluation Protocol}\label{sec:evaluation}
-Following \cite{zhou2021towards}, the quality of an AL algorithm is evaluated by an ``anytime protocol" that incorporates classification performance at every iteration, as opposed to evaluating final performance after the budget is exhausted.
-We employ the normalized area under the accuracy curve (AUC):
-\begin{equation}\label{eq:auc}
-	\operatorname{AUC}(\D_\test, \hat y, B) := \frac{1}{B} \sum_{i=1}^{B} \operatorname{Acc}(\D_\test, \hat y^{(i)})
-\end{equation}
-The AUC incorporates performance in early stages (low budget) as well as capabilities to push the classifier in later stages (high budget).
-AL algorithms have to perform well in both scenarios. 
-\\ [1mm]
-Since AUC is still influenced by the budget, we define a set of rules to set this hyperparameter upfront, so that we are not favoring a subset of algorithms by handcrafting a budget.
-In this work, we choose the budget per dataset to be the first point at which one of 2 stopping conditions apply: (i) an algorithm (except Oracle) manages to reach 99\% of the full-dataset-performance (using the smallest query size) or (ii) the best algorithm (except oracle) did not improve the classifier's accuracy by at least 2\% in the last 20\% of iterations. \\ [1mm]
-%\footnote{Since we only consider single-sample AL, increasing the budget comes at a high computational cost. Therefore we could not freely increase the budget above 2000.} 
-To mimic the leave-one-out protocol for cross-validation, we will restart each experiment multiple times.
-Each restart retains the train/test split (often given by the dataset itself), but introduces a new validation split that is sampled from the entire dataset (not just $\LL$).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Why we need 50 restarts}\label{sec:restarts}
-To evaluate how many restarts are necessary to obtain conclusive and reproducible results in an AL experiment, we set the number of restarts fore margin sampling on the Splice dataset to 100.
+To evaluate how many restarts are necessary to obtain conclusive and reproducible results in an AL experiment, we computed 100 runs of our top-performing algorithm on one dataset.
+Our best algorithm is margin sampling and we chose the Splice dataset for its average size and complexity. \\
 This allows us firstly, to obtain a very strong estimation of the "true" average performance of margin sampling on this dataset and secondly, to draw subsets from this pool of 100 runs.
 Setting the size of our draws to $\alpha$ and sampling uniformly, we can approximate a cross-validation process with $\alpha$ restarts.
-Each of these draws can be interpreted as a reported result in AL literature where the authors employed $\alpha$ restarts.
+Each of these draws can be interpreted as a \textbf{reported result in AL literature} where the authors employed $\alpha$ restarts.
 %We provide evidence in Fig. \ref{fig:restarts} that previous works might not have evaluated their experiments with a sufficient number of restarts.
 Figure \ref{fig:restarts} shows the "true" mean performance of margin sampling (green) in relation to random sampling (black) and the oracle performance (red).
 We display 5 random draws of size $\alpha$ in blue.
@@ -297,7 +288,7 @@ In addition to this motivating example, we carried out our main evaluation (Tab.
 We found significant differences in the performance of acquisition functions on individual datasets, as well as permutations in the final ranking.
 This partly explains the ongoing difficulties in reproducing results for AL experiments and benchmarks.
 This details can be found in App. \ref{app:rank_difference}.
-For this benchmark we always employ 50 restarts of the same experiment.
+For this benchmark we employ 50 restarts of every experiment.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -340,34 +331,31 @@ We attached a linear classification head to the encoder, fine-tuned it to the da
 The checkpoint of each encoder model will be provided together with the framework. \\ [1mm]
 Every dataset has a fixed size for the seed set of 1 sample per class, with the only exceptions being un-encoded FashionMnist and Cifar10 with 100 examples per class to alleviate the cold-start problem in these complex domains. 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Classification Model}\label{sec:choosing_the_classifier}
 \begin{wraptable}{R}{0.65\textwidth}
     \vspace{-0.7cm}
-    \caption{Overview of available batch sizes for each dataset}
+    \caption{Employed model, chosen budget and available batch sizes for each dataset}
     \vspace{0.1cm}
     \label{tab:batch_sizes}
-    \begin{tabular}{l|c|c|c|c|c|c|c|c}
-                    & B & 1 & 5 & 20 & 50 & 100 & 500 & 1000 \\
-         \hline
-        Enc. DNA    & 40 & o & o &&&&& \\
-        Enc. Splice & 100 & o & o & o & o &&&\\
-        TopV2       & 200 & o & o & o & o &&& \\
-        Splice      & 400 & o & o & o & o & o && \\
-        DNA         & 300 & o & o & o & o & o && \\
-        USPS        & 400 & o & o & o & o & o && \\
-        Enc. Cifar10& 450 & o & o & o & o & o && \\
-        Enc. FMnist & 500 & o & o & o & o & o && \\
-        Enc. USPS   & 600 & o & o & o & o & o && \\
-        News        & 3K &&& o & o & o & o &\\
-        FMnist      & 10K &&&&&& o & o\\
-        Cifar10     & 10K &&&&&& o & o \\
+    {\scriptsize
+    \begin{tabular}{l|l|c|c|c|c|c|c|c|c}
+                    & Model  & B & 1 & 5 & 20 & 50 & 100 & 500 & 1K \\
+        \hline
+        Enc. DNA    & Linear & 40 & o & o &&&&& \\
+        Enc. Splice & Linear & 100 & o & o & o & o &&&\\
+        TopV2       & BiLSTM & 200 & o & o & o & o &&& \\
+        Splice      & MLP    & 400 & o & o & o & o & o && \\
+        DNA         & MLP    & 300 & o & o & o & o & o && \\
+        USPS        & MLP    & 400 & o & o & o & o & o && \\
+        Enc. Cifar10& Linear & 450 & o & o & o & o & o && \\
+        Enc. FMnist & Linear & 500 & o & o & o & o & o && \\
+        Enc. USPS   & Linear & 600 & o & o & o & o & o && \\
+        News        & BiLSTM & 3K &&& o & o & o & o &\\
+        FMnist      & ResNet18& 10K &&&&&& o & o\\
+        Cifar10     & ResNet18& 10K &&&&&& o & o \\
     \end{tabular}
-    \vspace{-0.35cm}
+	}
+    \vspace{-0.85cm}
 \end{wraptable}
-The model $\hat y$ can be trained in two ways. Either the parameters of the model are reset to a fixed initial setting $\hat y^{(0)}$ after each AL iteration and the classifier is trained from scratch with the updated labeled set $\mathcal{L}^{(i)}$, or the previous state $\hat y^{(i-1)}$ is retained and the classifier is fine-tuned on $\mathcal{L}^{(i)}$ for a reduced number of epochs.
-In this work, we use the fine-tuning method for un-encoded datasets to save computational time, while we use the from-scratch training for embedded datasets since they have very small classifiers and this approach generally produces better results.
-Our fine-tuning scheme always trains for at least one epoch and employs an aggressive early stopping with a patience of 2 afterwards.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Batch Sizes}\label{sec:batch_sizes}
@@ -385,7 +373,8 @@ Smaller classifiers generally exhibit more stable training behavior, on average 
 For every dataset, the chosen architecture's hyperparameters are optimized to archive maximum full-dataset performance.
 Generally, we use MLPs for tabular, RestNet18 for image and BiLSTMs for text datasets.
 Every encoded dataset is classified by a single linear layer with softmax activation.
-For an overview of architectures and hyperparameters please refer to Appendix \ref{app:hyperparameters}. 
+The used model for each dataset can be found in Tab. \ref{tab:batch_sizes}.
+For a detailed description and employed hyperparameters please refer to Appendix \ref{app:hyperparameters}. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -421,6 +410,31 @@ To still provide an oracle for these two datasets, we select two points per iter
 The rest of the curve is forecast with a simple linear regression that asymptotically approaches the upper bound performance of the dataset. 
 A detailed description can be found in App. \ref{app:oracle_forecasting}.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Evaluation Protocol}\label{sec:evaluation}
+Following \cite{zhou2021towards}, the quality of an AL algorithm is evaluated by an ``anytime protocol" that incorporates classification performance at every iteration, as opposed to evaluating final performance after the budget is exhausted.
+We employ the normalized area under the accuracy curve (AUC):
+\begin{equation}\label{eq:auc}
+	\operatorname{AUC}(\D_\test, \hat y, B) := \frac{1}{B} \sum_{i=1}^{B} \operatorname{Acc}(\D_\test, \hat y^{(i)})
+\end{equation}
+The AUC incorporates performance in early stages (low budget) as well as capabilities to push the classifier in later stages (high budget).
+AL algorithms have to perform well in both scenarios. 
+\\ [1mm]
+Since AUC is still influenced by the budget, we define a set of rules to set this hyperparameter upfront, so that we are not favoring a subset of algorithms by handcrafting a budget.
+In this work, we choose the budget per dataset to be the first point at which one of 2 stopping conditions apply: (i) an algorithm (except Oracle) manages to reach 99\% of the full-dataset-performance (using the smallest query size) or (ii) the best algorithm (except oracle) did not improve the classifier's accuracy by at least 2\% in the last 20\% of iterations. \\ [1mm]
+%\footnote{Since we only consider single-sample AL, increasing the budget comes at a high computational cost. Therefore we could not freely increase the budget above 2000.} 
+As described in Sec. \ref{sec:restarts}, we will restart each experiment multiple times.
+Each restart retains the train/test split (often given by the dataset itself), but creates a new validation split that is sampled (based on $s_\D$) from the entire dataset (not just the seed set $\LL_0$). \\ [1mm]
+%
+Apart from plotting standard performance curves and reporting their AUC values per dataset in App. \ref{app:all_results}, we primarily rely on ranks to aggregate the performance of an acquisition function across datasets.
+For each dataset and query size, the AUC values of all acquisition functions are sorted and assigned a rank based on position, with the best rank being 1.
+These ranks can safely be averages across datasets as they are no longer subjected to scaling differences of each dataset.
+Additionally, we employ Critical Difference (CD) diagrams (like Fig. \ref{fig:ranks_by_domain}) for statistical testing.
+CD diagrams use the Wilcoxon signed-rank test, which is a variant of the paired T-test, to find significant differences of ranks between acquisition functions.
+For these diagrams, each combination of dataset, query size and run is considered a separate experiment, i.e. the results of \verb|Dataset1-QuerySize1-run5| of an acquisition function \verb|x| is only compared to the results of \verb|Dataset1-QuerySize1-run5| of acquisition function \verb|y|.
+Due to the large number of restarts and the wide range of datasets and query sizes, we can provide very accurate significance tests.
+For a detailed description of how every CD diagram is created, please refer to App. \ref{app:cd_diagrams}.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -435,13 +449,22 @@ However, the algorithm may not incorporate external information e.g. other datas
 For our study we selected acquisition functions with good performances reported by multiple different sources that can work with the set of information stated above.
 For a list of all acquisition functions, please refer to Table \ref{tab:results}, with detailed descriptions being found in Appendix \ref{app:acquisition_functions}. \\ [1mm]
 %
+The model $\hat y$ can be trained in two ways. Either the parameters of the model are reset to a fixed initial setting $\hat y^{(0)}$ after each AL iteration and the classifier is trained from scratch with the updated labeled set $\mathcal{L}^{(i)}$, or the previous state $\hat y^{(i-1)}$ is retained and the classifier is fine-tuned on $\mathcal{L}^{(i)}$ for a reduced number of epochs.
+In this work, we use the fine-tuning method for un-encoded datasets to save computational time, while we use the from-scratch training for embedded datasets since they have very small classifiers and this approach generally produces better results.
+Our fine-tuning scheme always trains for at least one epoch and employs an aggressive early stopping with a patience of 2 afterwards.
 %This work employs a validation split that is produced from the source dataset itself before active learning instead of splitting it from the seed set or omitting it altogether.
 %Even though the use of a fully labeled validation set might be regarded as impractical, since such a set will never exist during deployment, we strongly advocate for using it in \textbf{research}, as it can be used for hyperparameter tuning, resulting in more stable hyperparameters and reducing the overall training stochasticity.
 %We optimize all hyperparameters on our fully labeled validation sets using grid search.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Results}
-%
+\subsection{Results on Real-world Data}
+In Table \ref{tab:results} we provide the rank of each acquisition function per dataset and averaged for each (un-)encoded dataset. 
+Please note, that for Tab \ref{tab:results} we are averaging not only over runs, but also over query sizes per dataset. 
+For the results per query size, please refer to App. \ref{app:auc_by_query_size}. \\
+As stated in contribution C4, our results on real-world data shows significant differences in the performance of the tested algorithms between data domains.
+Not only do some algorithms overperform on some domains (like least confidence sampling on Images), but the Top-3 of algorithms (except Oracle) does not contain the same three algorithms for any two domains.
+Most interestingly, the image domain, which received the most attention in benchmarking so far could even be considered an outlier, as this is the only domain where the Top-1 algorithm changes.
+This highlights the dire need for diverse data domains in AL benchmarking. \\ [1mm]
 \begin{table}[]
 	\caption{Performances for acquisition functions on real-world datasets, aggregated for un-encoded and encoded datasets. Performance is shown as average ranks over restarts (1.0 is the best rank). Algorithms are sorted by aggregated performance on un-encoded datasets. }
 	\label{tab:results}
@@ -476,28 +499,54 @@ TypiClust      & 8.8 $\pm$ 0.01 & 10.2 $\pm$ 0.01 & 12.0 $\pm$ 0.02 & 7.9 $\pm$ 
     \includegraphics[width=0.49\linewidth]{img/macro_enc.jpg}
 \end{figure}
 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Synthetic Datasets for AL}
+AL approaches can be categorized into two types, uncertainty and geometric approaches.
+Typical members of the first category are variants of uncertainty sampling like entropy-, margin and least-confident-sampling \cite{wang2014new} as well as BALD \cite{gal2017deep}.
+Typical members of the second category are clustering approaches like Coreset \cite{sener2017active}, BADGE \cite{ashdeep} and TypiClust \cite{hacohen2022active}.
+Both types of algorithms have principled shortcomings in terms of the utilized information that makes them unsuitable for certain data distributions. 
+To test for these specific shortcomings, we created two synthetic datasets, namely "Honeypot" and "Diverging Sine", that are hard to solve for methods focused on the classifier's decision boundary or data clustering respectively. 
+To avoid algorithms memorizing these datasets they are generated from scratch for each experiment, depending on $s_\D$. \\
+\begin{figure}[]
+	\centering
+	\includegraphics[width=0.4\linewidth]{img/diverging_sin.jpg}
+	\includegraphics[width=0.4\linewidth]{img/honeypot.jpg}
+	\caption{Synthetic "Honeypot" and "Diverging Sine" datasets. The optimal decision boundary is not part of the dataset and serves only as a visual guide.}
+	\label{fig:synthDataAppendix}
+\end{figure}
+%
+Honeypot creates to two easy to distinguish clusters with 150 samples each and one overlapping "honeypot" that represents a noisy region of the dataset with potentially miss-labeled, miss-measured or generally adverse samples.
+This honeypot contains 150 samples of each class, creating a balance of 50\% beneficial samples and 50\% adverse samples in the dataset.
+The honeypot is located on the likely decision boundary of a classifier that is trained on the beneficial samples to maximize its negative impact on purely uncertainty based acquisition functions.
+Diverging Sine samples the datapoints for each class from two diverging sinusoidal functions that are originating from the same y-intercept.
+This creates a challenging region one the left hand side, where a lot of datapoints need to be sampled and an easy region on the right hand side, where very few datapoints are enough. 
+The repeating nature of a sin function encourages diversity based acquisition functions to equally sample the entire length, drastically oversampling the right hand side of the dataset.
+Each class has 500 datapoints. 
+Both datasets have a budget of $B=60$ and are tested with query sizes 1 and 5.\\
+%
+Results for the Honeypot dataset reveal expected shortcomings of uncertainty sampling algorithms like margin, entropy and least confident sampling as well as BALD.
+In addition, BADGE is underperforming for this dataset compared to real-world data. 
+Results for Diverging Sine also confirm expected behavior, as clustering algorithms (Coreset, TypiClust) fall behind uncertainty algorithms (Entropy-, Margin-Sampling), with the exception of BADGE. \\
+We provide a very small ablation study on the importance of the embeddings by testing a version of Coreset and TypiClust on this dataset that does not use the embeddings produced by the classification model, but rather clusters the data directly.
+"Coreset Raw" and "TypiClust Raw" both perform worse than their embedding-based counterpart.
+\begin{figure}
+	\centering
+	\caption{Results for all acquisition functions on both synthetic datasets.}
+	\label{fig:main_body_result}
+	\includegraphics[width=0.49\linewidth]{img/micro_diverging_sin.jpg}
+	\includegraphics[width=0.49\linewidth]{img/micro_honeypot.jpg}
+\end{figure}
 
-Storing the results of every run in a separate file allows us to create various aggregates.
-Apart from plotting standard performance curves and reporting their AUC values per dataset (Fig. \ref{fig:main_body_result}), we primarily rely on ranks to aggregate the performance of an acquisition function across datasets.
-For each dataset, the AUC values of all acquisition functions are sorted and assigned a rank based on position, with the best rank being 1.
-These ranks can safely be averages across datasets as they are no longer subjected to scaling differences of each dataset.
-In Table \ref{tab:results} we provide the rank of each acquisition function per dataset and averaged for each (un-)encoded dataset. 
-Please note, that for Tab \ref{tab:results} we are averaging not only over runs, but also over query sizes per dataset. 
-For the results per query size, please refer to App. \ref{app:auc_by_query_size}. \\
-Additionally, we provide aggregated ranks per data domain in Fig. \ref{fig:ranks_by_domain}, revealing varying performances of acquisition functions like DSA/LSA, BALD and CoreGCN.
-The leading algorithms Margin-Sampling and BADGE show very stable performance across all tested data domains. \\ [1mm]
-
-\include{synthetic_datasets}
-
-\section{Conclusion}
-As stated in contribution C4, our results on real-world data shows significant differences in the performance of the tested algorithms between data domains.
-Not only do some algorithms overperform on some domains (like least confidence sampling on Images), but the Top-3 of algorithms (except Oracle) does not contain the same three algorithms for any two domains.
-This highlights the dire need for diverse data domains in AL benchmarking.
-Furthermore, our results on Honeypot reveal principled shortcomings for the two best algorithms in BADGE and margin sampling.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Results on Synthetic Data}
+Our results on Honeypot reveal principled shortcomings for the two best algorithms in BADGE and margin sampling.
 Both are vulnerable to adverse samples or simply measurement noise, which highlights the need for further research in this area. \\
 Finally, the fact that BADGE is able to perform well on Diverging Sine highlights the importance of embeddings for the clustering algorithms, as the so-called gradient embedding from BADGE seems to be able to encode uncertainty information, guiding the selection into the left hand regions of the dataset. 
 We also show that embeddings are generally useful for this dataset, by providing results for "Coreset Raw" and "TypiClust Raw". \\ [1mm]
 In conclusion, we strongly advocate to test newly proposed AL algorithms not only on a wide variety of real data domains, but also to pay close attention to the Honeypot and Diverging Sine datasets to reveal principled shortcomings of the algorithm in question.
+
+\section{Conclusion}
+TODO
 
 %\section{Future Work}
 % Wahrscheinlich werden wir keinen Platz dafür haben
@@ -558,6 +607,19 @@ anonymous
 %	n_b := & a( (\D_{\train_{n_1}},\ldots,\D_{\train_{n_{b-1}}}), \D\train|_{\X}) ,
 %	\quad b\in 1{:}B
 %\end{align*}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{AL Recommendations from Ji et al.}\label{app:recommendations}
+TODO
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{AL Pitfalls from Lueth et al.}\label{app:pitfalls}
+TODO
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -809,6 +871,11 @@ This highlights the need for many repetitions in AL experiments.
 	\end{table}
 \end{minipage}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Critical Difference Diagrams}\label{app:cd_diagrams}
+%TODO
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
