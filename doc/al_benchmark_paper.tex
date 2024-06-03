@@ -17,6 +17,9 @@
 \usepackage{makecell}
 \usepackage{arydshln}
 \usepackage{neurips_data_2024}
+\usepackage{paralist}
+\usepackage{cleveref}
+\usepackage{todonotes}
 
 \graphicspath{/}
 
@@ -36,7 +39,9 @@
 %\rhead{ \textit{ }} 
 %\fancyhead[LO]{Running Title for Header}
 
-\title{Towards Comparable Active Learning}
+%\title{Towards Comparable Active Learning}
+\title{A Cross-Domain Benchmark for Active Learning}
+
 \author{%
 	Anonymous Authors
 %	Thorben Werner 
@@ -139,65 +144,341 @@
 
 \maketitle
 
+
 \begin{abstract}
-Active Learning has received significant attention in the field of machine learning. Its goal is to select the most informative samples for labeling, thereby reducing data annotation costs. 
-However, it has been brought to attention multiple times that reported lifts from literature generalize poorly and display high variance, leading to an inconclusive landscape in Active Learning research.
-Based on recent insights for reliable evaluation for Active Learning, this work extends experimentation from the commonly used image domain to a wide spectrum of domains.
-%This work follows up on recent benchmarking suites for Active Learning, applying the proposed solutions and evaluation protocols to a wide spectrum of domains.
-Additionally, we provide an analysis of how many repetitions an Active Learning experiment needs in order to derive conclusive results and propose that previous benchmarks have not met the necessary number of repetitions.
-%evidence that existing benchmarks might not have repeated their experiments often enough.
-To the best of our knowledge, we propose the first AL benchmark that applies state-of-the-art evaluation on algorithms in 3 major domains: Tabular, Image, and Text as well as synthetic data.
-We report empirical results for 11 widely used algorithms on 7 real-world and 2 synthetic datasets and aggregate them into domain-specific and overall rankings of AL algorithms.
+
+Active Learning (AL) deals with identifying the most informative samples for
+labeling to reduce data annotation costs for supervised learning tasks. AL
+research suffers from the fact that lifts from literature generalize poorly and
+are only conducted on a small number of repetitions of experiments. To overcome
+this obstacles, we propose \emph{ALBench}, the first active learning benchmark
+which includes tasks in computer vision, natural language processing and tabular
+learning. Furthermore, by providing an efficient greedy oracle, \emph{ALBench}
+can be evaluated with 50 runs for each experiment. We will show, that both the
+cross-domain character and the large amount of repetitions are crucial for
+sophisticated evaluation of AL research. Concretely, we will show that the
+superiority of specific methods varies over the different domains, making it
+important to evaluate Active Learning with a cross-domain benchmark.
+Additionally, we show, that having a large amount of runs is crucial. With only
+conducting five runs as often done in the literature, the superiority of
+specific methods can strongly vary with the specific runs. This effect goes so
+far, that it may even happen that dedicated methods like \emph{margin-sampling}
+are not able to outperform the random baseline.
 \end{abstract}
 
+% \begin{abstract}
+
+% 	Active Learning has received significant attention in the field of machine learning. Its goal is to select the most informative samples for labeling, thereby reducing data annotation costs. 
+% 	However, it has been brought to attention multiple times that reported lifts from literature generalize poorly and display high variance, leading to an inconclusive landscape in Active Learning research.
+% 	Based on recent insights for reliable evaluation for Active Learning, this work extends experimentation from the commonly used image domain to a wide spectrum of domains.
+% 	%This work follows up on recent benchmarking suites for Active Learning, applying the proposed solutions and evaluation protocols to a wide spectrum of domains.
+% 	Additionally, we provide an analysis of how many repetitions an Active Learning experiment needs in order to derive conclusive results and propose that previous benchmarks have not met the necessary number of repetitions.
+% 	%evidence that existing benchmarks might not have repeated their experiments often enough.
+% 	To the best of our knowledge, we propose the first AL benchmark that applies state-of-the-art evaluation on algorithms in 3 major domains: Tabular, Image, and Text as well as synthetic data.
+% 	We report empirical results for 11 widely used algorithms on 7 real-world and 2 synthetic datasets and aggregate them into domain-specific and overall rankings of AL algorithms.
+% 	\end{abstract}
+
+% \begin{abstract}
+% Active Learning has received significant attention in the field of machine
+% learning. Its goal is to select the most informative samples for labeling,
+% thereby reducing data annotation costs. However, it has been brought to
+% attention multiple times that reported lifts from literature generalize poorly
+% and display high variance, leading to an inconclusive landscape in Active
+% Learning research. Based on recent insights for reliable evaluation for Active
+% Learning, this work extends experimentation from the commonly used image domain
+% to a wide spectrum of domains.
+% %This work follows up on recent benchmarking suites for Active Learning, applying the proposed solutions and evaluation protocols to a wide spectrum of domains.
+% Additionally, we provide an analysis of how many repetitions an Active Learning
+% experiment needs in order to derive conclusive results and propose that previous
+% benchmarks have not met the necessary number of repetitions.
+% %evidence that existing benchmarks might not have repeated their experiments often enough.
+% To the best of our knowledge, we propose the first AL benchmark that applies
+% state-of-the-art evaluation on algorithms in 3 major domains: Tabular, Image,
+% and Text as well as synthetic data. We report empirical results for 10 widely
+% used algorithms on 7 real-world and 2 synthetic datasets and aggregate them into
+% domain-specific and overall rankings of AL algorithms.
+% \end{abstract}
+
+% \section{Introduction-Old Backup}
+% Deep neural networks (NN) have produced state-of-the-art results on many important supervised learning tasks.
+% Since Deep NNs usually require large amounts of labeled training data, Active Learning (AL) can be used to instead select the most informative samples out of a large pool of unlabeled data, so that only these samples need to be labeled.
+% It has been shown that a small labeled set of this nature can be used to train well-performing models \cite{beck2021effective, hu2021towards, li2022empirical, zhou2021towards}. \\
+% On top of providing a principled way to label unlabeled datasets, active learning is one of the two major approaches besides semi-supervised learning to make deep learning models more data efficient by requiring only a limited set of manually labeled data.
+% %Both approaches are at their core orthogonal and can freely be combined and therefore we should continue our research efforts for both approaches. \\
+% In the last decade, many different algorithms for AL have been proposed.
+% Even though, almost every method has reported lifts over all its predecessors,
+% \footnote{Out of all considered algorithms for this paper, only BALD \cite{gal2017deep} did not claim a new SOTA performance in their result section.}
+% AL research faces four central difficulties:
+% {\let\thefootnote\relax\footnotetext{Code available at: anonymous}}
+% %\let\thefootnote\relax\footnotetext{Code available at: \url{https://github.com/wernerth94/comparable-active-learning}}
+% (i) The experiments are often carried out on different datasets and model architectures, hindering direct comparison,
+% (ii) generalize poorly across different domains,
+% (iii) the reported results can be subject to very high variance across restarts and
+% (iv) are not always compared against important baselines like margin sampling \cite{wang2014new}.
+% While multiple benchmark suites have been proposed to solve (i), to the best of our knowledge, we are the first to report results on all 3 data domains of tabular, image and text.
+% Additionally, we provide synthetic datasets to highlight principled shortcoming of existing AL algorithms.
+% Regarding (ii) and (iii), \cite{zhou2021towards} has pointed out severe inconsistencies in results of AL papers in recent years. 
+% They conducted a meta analysis of reported results of several different AL algorithms and found that all considered algorithms only provided significant lifts in their own original papers, while following literature reported performances no better that uncertainty sampling, or in some cases no better than random sampling for the same algorithm (\cite{zhou2021towards} Appendix A).
+% These outlined issues lead to an inconclusive landscape of AL algorithms, where the vast majority of reported lifts are neither statistically significant, nor prove to be generalizable.
+% This makes it very hard to identify the best AL algorithm, or even identifying state-of-the-art algorithms.
+% In this work we propose an evaluation protocol that was designed to handle the high variance in the performances of AL algorithms as well as being fully controllable regardless of the combination of dataset, model and AL algorithm. 
+% We base our work largely on \cite{ji2023randomness}, following their guidelines for a reliable evaluation of AL algorithms, while extending the number of evaluated data domains from 1 to 5. \\
+% We focus on pool-based AL where a pool of unlabeled samples is fixed at the start of each experiment and one or more samples are chosen sequentially.
+% In addition to the default scenario of selecting a batch of samples every iteration we incorporate the single sample case into our benchmark.
+% Batched algorithms (and benchmarks) do not have a principled advantage over single-sample AL except for speed of computation.
+% The problem of optimizing a portfolio of unlabeled samples in each iteration is more complicated to solve and the algorithms have systematically less information per sample to work with leading to a generally worse performance, that impacts some algorithms more than others. 
+% %In Fig. \ref{fig:batch_vs_single} we present a comparison of Badge \cite{ashdeep} and Coreset\cite{sener2017active}, in the batch and single-sample setting.
+% %Even though both algorithms were designed for batch sampling, both perform better in the single-sample setting.
+% We propose single-sample AL as an important tool to identify the best acquisition function, rather than the best combination of acquisition function and diversity regularization. \\
+% %\begin{figure}
+% %    \centering
+% %    \includegraphics[width=\linewidth]{img/ablation_batch_single}
+% %    \caption{Comparison of single-sample vs. batch selection for two acquisition functions that were specifically designed for batch selection. Even when designed for batch selection, acquisition functions tend to perform better in the single sample setting.}
+% %    \label{fig:batch_vs_single}
+% %\end{figure}
+% Table \ref{tab:benchmark_comparison} shows a feature comparison between our proposed benchmark and several existing benchmarks in the literature. 
+% We offer our datasets in two versions - normal and encoded.
+% An encoded dataset was pre-encoded by an self-supervised encoder model, providing a different use case for active learning.
+% Our synthetic and text datasets (which use word embeddings in the normal setting) are exempt from this, bringing our total dataset count to 14 across 5 domains (Tabular, Image, Text, Synthetic, Encoded).
+% \begin{table}
+% 	\centering
+%         \caption{Comparison of our benchmark with the existing literature. Oracle curves serve as an approximation of the best possible AL algorithm. Including the encoded versions of our datasets we reach 14 datasets. "Semi" indicates whether the paper is employing any form of self- or semi-supervised learning. A "-" for repetitions means that we could not determine how often each experiment is repeated in the respective framework.}
+% 	\label{tab:benchmark_comparison}
+% 	\resizebox{\columnwidth}{!}{
+% \begin{tabular}{lccccllllcl}
+% Paper & Sampling & \#Data & \#Alg & \multicolumn{1}{l}{Img} & Txt & Tab & Synth & Semi & Oracle & Repetitions \\ \hline
+% \multicolumn{1}{l|}{Beck et al. \cite{beck2021effective}} & batch & 4 & 7 & \checkmark & - & - & - & - & - & - \\
+% \multicolumn{1}{l|}{Hu et al. \cite{hu2021towards}} & batch & 5 & 13 & \checkmark & \checkmark & - & - & - & - & 3 \\
+% \multicolumn{1}{l|}{Zhou et al. \cite{zhou2021towards}} & batch & 3 & 2 & \checkmark & \checkmark & - & - & - & \checkmark & 5 \\
+% \multicolumn{1}{l|}{Zhan et al. \cite{zhan2021comparative}} & sngl+batch & 35 & 18 & - & - & \checkmark & \checkmark & - & \checkmark & 10-100 \\
+% \multicolumn{1}{l|}{Munjal et al. \cite{munjal2022towards}} & batch & 2 & 8 & \checkmark & - & - & - & - & - & 3 \\
+% \multicolumn{1}{l|}{Li et al. \cite{li2022empirical}} & batch & 5 & 13 & \checkmark & - & - & - & \checkmark & - & - \\
+
+% \multicolumn{1}{l|}{Rauch et al. \cite{rauch2023activeglae}} & batch & 11 & 5 & - & \checkmark & - & - & - & - & 5 \\
+% \hdashline
+% \multicolumn{1}{l|}{Ji et al. \cite{ji2023randomness}} & batch & 3 & 8 & \checkmark & - & - & - & - & - & - \\
+% \multicolumn{1}{l|}{Lueth et al. \cite{luth2024navigating}} & batch & 4 & 5 & \checkmark & - & - & - & \checkmark & - & 3 \\
+% \multicolumn{1}{l|}{\textbf{Ours}} & sngl+batch & 9(14) & 11 & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & 50 
+% \end{tabular}
+% }
+% \end{table}
+
+% \subsection*{Contributions}
+% %Maybe absorb this into the introduction text
+% \begin{enumerate}
+% 	\item[C1] Study on the reproducibility of AL experiments, providing evidence that previous works might have not repeated their experiments often enough to provide reliable results
+% 	\item[C2] Efficient and performant algorithm for an oracle that can be constructed greedily and does not rely on search
+% 	\item[C3] Two novel synthetic datasets that highlight principled shortcomings of of the top-performing AL algorithms
+%     \item[C4] Extending the evaluation of Active Learning algorithms to 5 data domains and revealing significant differences in algorithm performance between them
+% \end{enumerate}
 
 \section{Introduction}
-Deep neural networks (NN) have produced state-of-the-art results on many important supervised learning tasks.
-Since Deep NNs usually require large amounts of labeled training data, Active Learning (AL) can be used to instead select the most informative samples out of a large pool of unlabeled data, so that only these samples need to be labeled.
-It has been shown that a small labeled set of this nature can be used to train well-performing models \cite{beck2021effective, hu2021towards, li2022empirical, zhou2021towards}. \\
-On top of providing a principled way to label unlabeled datasets, active learning is one of the two major approaches besides semi-supervised learning to make deep learning models more data efficient by requiring only a limited set of manually labeled data.
+Deep neural networks (NN) have produced state-of-the-art results on many
+important supervised learning tasks. Since Deep NNs usually require large
+amounts of labeled training data, Active Learning (AL) deals with
+selecting the most informative samples out of a large pool of unlabeled data, so
+that only these samples need to be labeled. It has been shown that a small
+labeled set of this nature can be used to train well-performing models
+%\cite{beck2021effective, hu2021towards, li2022empirical, zhou2021towards}.
+% On top of providing a principled way to label unlabeled datasets, active
+% learning is one of the two major approaches besides semi-supervised learning to
+% make deep learning models more data efficient by requiring only a limited set of
+% manually labeled data.
 %Both approaches are at their core orthogonal and can freely be combined and therefore we should continue our research efforts for both approaches. \\
-In the last decade, many different algorithms for AL have been proposed.
-Even though, almost every method has reported lifts over all its predecessors,
-\footnote{Out of all considered algorithms for this paper, only BALD \cite{gal2017deep} did not claim a new SOTA performance in their result section.}
-AL research faces four central difficulties:
-{\let\thefootnote\relax\footnotetext{Code available at: anonymous}}
-%\let\thefootnote\relax\footnotetext{Code available at: \url{https://github.com/wernerth94/comparable-active-learning}}
-(i) The experiments are often carried out on different datasets and model architectures, hindering direct comparison,
-(ii) generalize poorly across different domains,
-(iii) the reported results can be subject to very high variance across restarts and
-(iv) are not always compared against important baselines like margin sampling \cite{wang2014new}.
-While multiple benchmark suites have been proposed to solve (i), to the best of our knowledge, we are the first to report results on all 3 data domains of tabular, image and text.
-Additionally, we provide synthetic datasets to highlight principled shortcoming of existing AL algorithms.
-Regarding (ii) and (iii), \cite{zhou2021towards} has pointed out severe inconsistencies in results of AL papers in recent years. 
-They conducted a meta analysis of reported results of several different AL algorithms and found that all considered algorithms only provided significant lifts in their own original papers, while following literature reported performances no better that uncertainty sampling, or in some cases no better than random sampling for the same algorithm (\cite{zhou2021towards} Appendix A).
-These outlined issues lead to an inconclusive landscape of AL algorithms, where the vast majority of reported lifts are neither statistically significant, nor prove to be generalizable.
-This makes it very hard to identify the best AL algorithm, or even identifying state-of-the-art algorithms.
-In this work we propose an evaluation protocol that was designed to handle the high variance in the performances of AL algorithms as well as being fully controllable regardless of the combination of dataset, model and AL algorithm. 
-We base our work largely on \cite{ji2023randomness}, following their guidelines for a reliable evaluation of AL algorithms, while extending the number of evaluated data domains from 1 to 5. \\
-We focus on pool-based AL where a pool of unlabeled samples is fixed at the start of each experiment and one or more samples are chosen sequentially.
-In addition to the default scenario of selecting a batch of samples every iteration we incorporate the single sample case into our benchmark.
-Batched algorithms (and benchmarks) do not have a principled advantage over single-sample AL except for speed of computation.
-The problem of optimizing a portfolio of unlabeled samples in each iteration is more complicated to solve and the algorithms have systematically less information per sample to work with leading to a generally worse performance, that impacts some algorithms more than others. 
-%In Fig. \ref{fig:batch_vs_single} we present a comparison of Badge \cite{ashdeep} and Coreset\cite{sener2017active}, in the batch and single-sample setting.
-%Even though both algorithms were designed for batch sampling, both perform better in the single-sample setting.
-We propose single-sample AL as an important tool to identify the best acquisition function, rather than the best combination of acquisition function and diversity regularization. \\
+In the last decade, many different algorithms for AL have been proposed and
+almost every method has reported lifts over all its predecessors, \footnote{Out
+of all considered algorithms for this paper, only BALD \cite{gal2017deep} did
+not claim a new SOTA performance in their result section.} However, real
+insights into the current state of AL are hard to draw from these works, due to
+the following reasons:
+\begin{inparaenum}
+\item\label{prob1al} These works do not use a standardized evaluation setting with fixed
+datasets and baseline approaches.
+\item Due to cost reasons, a lot of works do only a small amount of experimental
+runs, hence it is questionable wether the superiority of a specific approach can
+be concluded from the conducted experiments.
+\item The works are only evaluated in a specific domain, such as computer vision
+or language processing. However, AL is a general principle of supervised
+learning, and thus methods should be evaluated in multiple domains to assess
+their capabilities.
+\end{inparaenum}
+% %{\let\thefootnote\relax\footnotetext{Code available at: anonymous}}
+% %\let\thefootnote\relax\footnotetext{Code available at: \url{https://github.com/wernerth94/comparable-active-learning}}
+% % (ii) Most of the research is focused on a specific application domain like
+% % computer vision, even though AL is a general principle for supervised learning
+% % (iii) the reported results can be subject to very high variances across restarts,
+% % still A lot of papers do only a hand full of runs, which makes questions the
+% % validity of the drawn conclusions.
+% % (iv) are not always compared against important baselines like margin
+% sampling \cite{wang2014new}.
+
+% These outlined issues lead to an
+% inconclusive landscape of AL algorithms, where the vast majority of reported
+% lifts are neither statistically significant, nor prove to be generalizable. This
+% makes it very hard to identify the best AL algorithm, or even identifying
+% state-of-the-art algorithms. 
+While multiple benchmark suites have been proposed to solve
+problem~\ref{prob1al}, to the best of
+our knowledge, all of them are either limited in the domains they consider or do
+not do enough runs for conclusive results 
+%\footnote{See
+% \Cref{tab:benchmark_comparison} for a comparison of existing benchmarks}. One
+% reason for that, may be that in AL research it is common to additionally include
+% a so-called \emph{oracle} baseline, i.e., a time-costly search-based approach
+% which gives a lower bound for the best possible solution. The need for an oracle
+% makes it challenging to use multiple datasets and enough runs for the
+% experimental evaluation. \todo{\@ Thorben: Ist das was ich hier zum Oracle
+% schreibe richtg? Oder ist das Quatsch?} 
+Hence, the current
+state of the art in Active Learning is still not well-understood and principle
+shortcomings of different algorithms and wether they are present
+domain-independent, are currently not identified.
+
+Here we step in with \emph{ALBench}, an active learning benchmark wich covers
+multiple application domains and which reports a large amount of runs per
+experiment, so that the significance of performance differences can can be
+estimated. To be more detailed, \emph{ALBench} consists of datasets from
+computer vision, natural language processing and the tabular domain. We provide
+our datasets both in raw format (i.e. consisting of text, images etc) or already
+``embedded'' where one can evaluate AL approaches on already learned representations.
+Furthermore, we provide further synthetic datasets to identify general
+challenges for AL methods.
+
+The evaluation protocol on which we evaluate in \emph{ALBench} uses 50 runs for
+each experiment. By having such a large amount of runs, we can evaluate the
+significance of performance gaps and identify the in-fact best performing
+approaches for different runs. Furthermore, we will show, that the small amounts
+of runs other works do can in fact lead to misleading results. To be more
+specific, we show that if only 5 runs are randomly sampled, the performance of
+specific methods strongly varies. As we will see, the ranking of
+the different method heavily fluctuates with the specific set of randomly
+selected runs. This effect goes so far, that for a well-established method such
+as margin-sampling, the question wether this method is significantly better or
+worse then the random baselines, will be answered differently depending on the 5
+runs which were chosen. 
+
+To enable a large amount of runs, we propose a \emph{greedy oracle
+function}, which uses only a small amount of search steps to estimate the
+optimal solution. While being more time-efficient than established oracle
+functions, it can be a large underestimate of the real performance of the
+optimal solution. However, as our experiments will show, it is still far ahead
+of all current AL methods and thus is perfectly suitable for having a lower
+bound on what AL methods could be able to achieve.
+
+Our experimental evaluation shows, that there exists no clear SoTa
+method for Active Learning. The superiority of specific datasets is strongly
+domain-dependent with the outstanding observation, that the image domain works
+fundamentally different then the tabular and text domain. Here, the best
+performing approach in text and tabular data, namely \emph{margin sampling}, is
+significantly outperformed by \emph{Least Confident}, which does not belong to
+the top performing approaches in text and tabular. Thus, using the performance
+of Active Learning approaches on the image domain as a proxy of Active Learning
+in general, as often done, is questionable. To further understand this
+performance gaps, we propose \emph{Honeypot} and \emph{Diverging Sin}, two
+synthetical datasets, which are designed to be challenging for naive clustering
+or decision-boundary based approaches. Hence, they can be used as a lower bar
+for assessing a AL approach as sophisticated.
+
+To sum up, \emph{ALBench} consists of an experimental framework which includes a
+fast oracle approximation, multiple application domains, enough repetitions to
+draw valid conclusions and two synthetic tasks to estimate if a specific method
+reaches a minimum amount of complexity. By being the first benchmark to proving
+these things together, we believe that \emph{ALBench} is a major step forward of
+assessing the overall state of Active Learning research, independent of a
+specific application domain. \emph{ALBench} is publicly available.\todo{Link etc}
+Our contributions include the following:
+
+\begin{enumerate}
+\item We show that the small of runs that previous work has conducted is not
+sufficient for meaningful conclusions. This can go so far, that it may not even
+be possible to access wether margin sampling is better then random.
+\item We propose an efficient and performant oracle which is computed greedily.
+With that, we overcome one of the major obstacles for sufficient repetitions of
+AL experiments. 
+\todo{Sagt man ``is computed greedily''? Ist das wirklich NICHT search based? Weil eine greedy-search ist ja auch search based}
+\item We propose \emph{Honeypot} and \emph{Diverging Sin}, two synthetic datasets
+designed to hinder active learning by simple decision-boundary or
+clustering-based approaches. Thus, they provide as a lower bar on the complexity
+of AL methods.
+\item We propose \emph{IMTSBench}, the first general benchmark providing tasks
+in the domains of images, text and tabular learning. It further contains
+synthetic and already encoded data to allow for a sophisticated evaluation of AL
+methods. Our experiments show, that there is no clear state-of-the art method
+for active learning over different domains.
+\end{enumerate}
+
+\todo{Ich bin mir nicht ganz sicher, wie man Honeypot und Diverging Sin verkauft. Macht as mit der Lower bar sinn?}
+% \begin{enumerate}
+% \item[C1] Study on the reproducibility of AL experiments, providing evidence
+% that previous works might have not repeated their experiments often enough to
+% provide reliable results
+% \item[C2] Efficient and performant algorithm for an oracle that can be
+% constructed greedily and does not rely on search
+% \item[C3] Two novel synthetic datasets that highlight principled shortcomings of
+% of the top-performing AL algorithms
+% \item[C4] Extending the evaluation of Active Learning algorithms to 5 data
+% domains and revealing significant differences in algorithm performance between
+% them to overcome one of the major obstacles for sufficient 
+% \end{enumerate}
+
+% we are the first to report results on all 3 data domains of
+% tabular, image and text. Additionally, we provide synthetic datasets to
+% highlight principled shortcoming of existing AL algorithms. Regarding (ii) and
+% (iii), \cite{zhou2021towards} has pointed out severe inconsistencies in results
+% of AL papers in recent years. They conducted a meta analysis of reported results
+% of several different AL algorithms and found that all considered algorithms only
+% provided significant lifts in their own original papers, while following
+% literature reported performances no better that uncertainty sampling, or in some
+% cases no better than random sampling for the same algorithm
+% (\cite{zhou2021towards} Appendix A). These outlined issues lead to an
+% inconclusive landscape of AL algorithms, where the vast majority of reported
+% lifts are neither statistically significant, nor prove to be generalizable. This
+% makes it very hard to identify the best AL algorithm, or even identifying
+% state-of-the-art algorithms. In this work we propose an evaluation protocol that
+% was designed to handle the high variance in the performances of AL algorithms as
+% well as being fully controllable regardless of the combination of dataset, model
+% and AL algorithm. We base our work largely on \cite{ji2023randomness}, following
+% their guidelines for a reliable evaluation of AL algorithms, while extending the
+% number of evaluated data domains from 1 to 5. \\
+% We focus on pool-based AL where a pool of unlabeled samples is fixed at the
+% start of each experiment and one or more samples are chosen sequentially. In
+% addition to the default scenario of selecting a batch of samples every iteration
+% we incorporate the single sample case into our benchmark. Batched algorithms
+% (and benchmarks) do not have a principled advantage over single-sample AL except
+% for speed of computation. The problem of optimizing a portfolio of unlabeled
+% samples in each iteration is more complicated to solve and the algorithms have
+% systematically less information per sample to work with leading to a generally
+% worse performance, that impacts some algorithms more than others. 
+% %In Fig. \ref{fig:batch_vs_single} we present a comparison of Badge \cite{ashdeep} and Coreset\cite{sener2017active}, in the batch and single-sample setting.
+% %Even though both algorithms were designed for batch sampling, both perform better in the single-sample setting.
+% We propose single-sample AL as an important tool to identify the best
+% acquisition function, rather than the best combination of acquisition function
+% and diversity regularization. \\
 %\begin{figure}
 %    \centering
 %    \includegraphics[width=\linewidth]{img/ablation_batch_single}
 %    \caption{Comparison of single-sample vs. batch selection for two acquisition functions that were specifically designed for batch selection. Even when designed for batch selection, acquisition functions tend to perform better in the single sample setting.}
 %    \label{fig:batch_vs_single}
 %\end{figure}
-Table \ref{tab:benchmark_comparison} shows a feature comparison between our proposed benchmark and several existing benchmarks in the literature. 
-We offer our datasets in two versions - normal and encoded.
-An encoded dataset was pre-encoded by an self-supervised encoder model, providing a different use case for active learning.
-Our synthetic and text datasets (which use word embeddings in the normal setting) are exempt from this, bringing our total dataset count to 14 across 5 domains (Tabular, Image, Text, Synthetic, Encoded).
+% Table \ref{tab:benchmark_comparison} shows a feature comparison between our proposed benchmark and several existing benchmarks in the literature. 
+% We offer our datasets in two versions - normal and encoded.
+% An encoded dataset was pre-encoded by an self-supervised encoder model, providing a different use case for active learning.
+% Our synthetic and text datasets (which use word embeddings in the normal
+% setting) are exempt from this, bringing our total dataset count to 14 across 5
+% domains (Tabular, Image, Text, Synthetic, Encoded). 
 \begin{table}
 	\centering
-        \caption{Comparison of our benchmark with the existing literature. Oracle curves serve as an approximation of the best possible AL algorithm. Including the encoded versions of our datasets we reach 14 datasets. "Semi" indicates whether the paper is employing any form of self- or semi-supervised learning. A "-" for repetitions means that we could not determine how often each experiment is repeated in the respective framework.}
+\caption{Comparison of our benchmark with the existing literature. Oracle curves
+serve as an approximation of the best possible AL algorithm. Including the
+encoded versions of our datasets we reach 14 datasets, without we have 9. "Semi"
+indicates whether the paper is employing any form of self- or semi-supervised
+learning. A "-" for repetitions means that we could not determine how often each
+experiment is repeated in the respective framework. \emph{ALBench} is the only
+benchmark which reports over enough runs for meaningful results and considers
+all 5 domains.}
 	\label{tab:benchmark_comparison}
 	\resizebox{\columnwidth}{!}{
-\begin{tabular}{lccccllllcl}
+\begin{tabular}{lccc|cllll|cl}
 Paper & Sampling & \#Data & \#Alg & \multicolumn{1}{l}{Img} & Txt & Tab & Synth & Semi & Oracle & Repetitions \\ \hline
 \multicolumn{1}{l|}{Beck et al. \cite{beck2021effective}} & batch & 4 & 7 & \checkmark & - & - & - & - & - & - \\
 \multicolumn{1}{l|}{Hu et al. \cite{hu2021towards}} & batch & 5 & 13 & \checkmark & \checkmark & - & - & - & - & 3 \\
@@ -214,15 +495,6 @@ Paper & Sampling & \#Data & \#Alg & \multicolumn{1}{l}{Img} & Txt & Tab & Synth 
 \end{tabular}
 }
 \end{table}
-
-\subsection*{Contributions}
-%Maybe absorb this into the introduction text
-\begin{enumerate}
-	\item[C1] Study on the reproducibility of AL experiments, providing evidence that previous works might have not repeated their experiments often enough to provide reliable results
-	\item[C2] Efficient and performant algorithm for an oracle that can be constructed greedily and does not rely on search
-	\item[C3] Two novel synthetic datasets named "Honeypot" and "Diverging Sine" that highlight two principled shortcomings AL algorithms. Firstly, a susceptibility to noisy or adverse samples and secondly, the oversampling of easy to distinguish regions of the dataset
-    \item[C4] Extending the evaluation of Active Learning algorithms to 5 data domains and revealing significant differences in algorithm performance between them
-\end{enumerate}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
