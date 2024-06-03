@@ -225,6 +225,7 @@ class OracleALGame(ALGame):
         self.starting_state_rng = np.random.default_rng(self.data_loader_seed)
         self.oracle_counter = 0
         self.sample_size = labeled_sample_size
+        self.fall_back_counter = 0
 
     def _get_internal_state(self):
         initial_weights = copy.deepcopy(self.classifier.state_dict())
@@ -293,6 +294,7 @@ class OracleALGame(ALGame):
         used_ids.extend(chosen) # deep copy
         for action in chosen:
             if scores[action] <= 0.0:
+                self.fall_back_counter += 1
                 # No point with positive impact was found. Defaulting to Margin sampling
                 for m_id in margin_sorted_ids:
                     m_id = m_id.item()
