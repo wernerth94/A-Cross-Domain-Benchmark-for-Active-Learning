@@ -227,14 +227,14 @@ Paper & Sampling & \#Data & \#Alg & \multicolumn{1}{l}{Img} & Txt & Tab & Synth 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem Description}
-Given two spaces $\X, \Y$, $n=l+u$ data points with $l \in \mathbb{N}$ labeled examples $\mathcal{L} = \{(x_1, y_1),\ldots, (x_l,y_l)\}$, $u \in \mathbb{N}$ unlabeled examples $\mathcal{U} = \{x_{l+1},\ldots,x_{n}\}$, a model $\hat y: \X \to \Y$, a budget $\mathbb{N} \ni b \le u$ and an annotator $A: \mathcal{X} \to \mathcal{Y}$ that can label $x$ (we consider only hard labels in the one-hot format). 
+Given two spaces $\X, \Y$, $n=l+u$ data points with $l \in \mathbb{N}$ labeled examples $\mathcal{L} = \{(x_1, y_1),\ldots, (x_l,y_l)\}$, $u \in \mathbb{N}$ unlabeled examples $\mathcal{U} = \{x_{l+1},\ldots,x_{n}\}$, a model $\hat y: \X \to \Y$, a budget $\mathbb{N} \ni b \le u$ and an annotator $A: \mathcal{X} \to \mathcal{Y}$ that can label $x$. % (we consider only hard labels in the one-hot format). 
 We call $x \in \mathcal{X}$, $y \in \mathcal{Y}$ predictors and labels respectively where $(x,y)$ are drawn from an unknown distribution $\rho$. 
 Find an acquisition function $\Omega: \U^{(i)},\LL^{(i)} \mapsto x^{(i)} \in \U^{(i)}$ that iteratively selects the next unlabeled point $x^{(i)}$ for labeling
 \begin{align*}
 	\LL^{(i+1)} &\gets \LL^{(i)} \cup \{\left(x^{(i)}, A(x^{(i)})\right)\} \\
-	\U^{(i+1)} &\gets \U^{(i)} \setminus x^{(i)} %, i \in 1{:}B
+	\U^{(i+1)} &\gets \U^{(i)} \setminus \left\{x^{(i)}\right\} %, i \in 1{:}B
 \end{align*}
-with $\U^{(0)} = \operatorname{seed}(\U, s)$ and $\LL^{(0)} = \{\left(\U^{(0)}, A(\U^{(0)})\right)\}$, where $\operatorname{seed}(\U, s)$ selects $s$ points per class for the initial labeled set. \\
+with $\U^{(0)} = \operatorname{seed}(\U, s)$ and $\LL^{(0)} = \left(\U^{(0)}_i, A(\U^{(0)}_i)\right) \hspace{1mm} i \in [1, \ldots, s]$, where $\operatorname{seed}(\U, s)$ selects $s$ points per class for the initial labeled set. \\
 So that the average expected loss $\ell: \mathcal{Y} \times \mathcal{Y} \to \mathbb{R}$ of a machine learning algorithm fitting $\hat y^{(i)}$ on the respective labeled set $\LL^{(i)}$ is minimal: 
 $$\min \quad \frac{1}{B} \sum\limits_{i=0}^B \mathbb{E}_{(x,y) \sim \rho} \ell(y, \hat y^{(i)})$$
 
@@ -268,7 +268,7 @@ To the best of our knowledge, we are the first to extend reliable SOTA (based on
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Why we need 50 restarts}\label{sec:restarts}
-To evaluate how many restarts are necessary to obtain conclusive and reproducible results in an AL experiment, we computed 100 runs of our top-performing algorithm on one dataset.
+To evaluate how many restarts are necessary to obtain conclusive results in an AL experiment, we computed 100 runs of our top-performing algorithm on one dataset.
 Our best algorithm is margin sampling and we chose the Splice dataset for its average size and complexity. \\
 This allows us firstly, to obtain a very strong estimation of the "true" average performance of margin sampling on this dataset and secondly, to draw subsets from this pool of 100 runs.
 Setting the size of our draws to $\alpha$ and sampling uniformly, we can approximate a cross-validation process with $\alpha$ restarts.
@@ -421,10 +421,11 @@ The AUC incorporates performance in early stages (low budget) as well as capabil
 AL algorithms have to perform well in both scenarios. 
 \\ [1mm]
 Since AUC is still influenced by the budget, we define a set of rules to set this hyperparameter upfront, so that we are not favoring a subset of algorithms by handcrafting a budget.
-In this work, we choose the budget per dataset to be the first point at which one of 2 stopping conditions apply: (i) an algorithm (except Oracle) manages to reach 99\% of the full-dataset-performance (using the smallest query size) or (ii) the best algorithm (except oracle) did not improve the classifier's accuracy by at least 2\% in the last 20\% of iterations. \\ [1mm]
-%\footnote{Since we only consider single-sample AL, increasing the budget comes at a high computational cost. Therefore we could not freely increase the budget above 2000.} 
-As described in Sec. \ref{sec:restarts}, we will restart each experiment multiple times.
-Each restart retains the train/test split (often given by the dataset itself), but creates a new validation split that is sampled (based on $s_\D$) from the entire dataset (not just the seed set $\LL_0$). \\ [1mm]
+In this work, we choose the budget per dataset to be the first point at which one of 2 stopping conditions apply: (i) an algorithm (except Oracle) manages to reach 99\% of the full-dataset-performance (using the smallest query size) or (ii) the best algorithm (except oracle) did not improve the classifier's accuracy by at least 2\% in the last 20\% of iterations.
+The first rule follows \cite{ji2023randomness}, while the second rule prevents excessive budgets for cases with diminishing returns in the budget.
+The resulting budgets can be found in Tab. \ref{tab:batch_sizes}. \\ [1mm]
+As described in Sec. \ref{sec:restarts}, we restart each experiment multiple times.
+Each restart retains the train/test split (often given by the dataset itself), but creates a new validation split that is sampled (based on $s_\D$) from the entire dataset (not just the seed set $\LL^{(0)}$). \\ [1mm]
 %
 Apart from plotting standard performance curves and reporting their AUC values per dataset in App. \ref{app:all_results}, we primarily rely on ranks to aggregate the performance of an acquisition function across datasets.
 For each dataset and query size, the AUC values of all acquisition functions are sorted and assigned a rank based on position, with the best rank being 1.
@@ -509,8 +510,8 @@ To test for these specific shortcomings, we created two synthetic datasets, name
 To avoid algorithms memorizing these datasets they are generated from scratch for each experiment, depending on $s_\D$. \\
 \begin{figure}[]
 	\centering
-	\includegraphics[width=0.4\linewidth]{img/diverging_sin.jpg}
 	\includegraphics[width=0.4\linewidth]{img/honeypot.jpg}
+	\includegraphics[width=0.4\linewidth]{img/diverging_sin.jpg}
 	\caption{Synthetic "Honeypot" and "Diverging Sine" datasets. The optimal decision boundary is not part of the dataset and serves only as a visual guide.}
 	\label{fig:synthDataAppendix}
 \end{figure}
@@ -533,8 +534,8 @@ We provide a very small ablation study on the importance of the embeddings by te
 	\centering
 	\caption{Results for all acquisition functions on both synthetic datasets.}
 	\label{fig:main_body_result}
-	\includegraphics[width=0.49\linewidth]{img/micro_diverging_sin.jpg}
 	\includegraphics[width=0.49\linewidth]{img/micro_honeypot.jpg}
+	\includegraphics[width=0.49\linewidth]{img/micro_diverging_sin.jpg}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -542,11 +543,12 @@ We provide a very small ablation study on the importance of the embeddings by te
 Our results on Honeypot reveal principled shortcomings for the two best algorithms in BADGE and margin sampling.
 Both are vulnerable to adverse samples or simply measurement noise, which highlights the need for further research in this area. \\
 Finally, the fact that BADGE is able to perform well on Diverging Sine highlights the importance of embeddings for the clustering algorithms, as the so-called gradient embedding from BADGE seems to be able to encode uncertainty information, guiding the selection into the left hand regions of the dataset. 
-We also show that embeddings are generally useful for this dataset, by providing results for "Coreset Raw" and "TypiClust Raw". \\ [1mm]
-In conclusion, we strongly advocate to test newly proposed AL algorithms not only on a wide variety of real data domains, but also to pay close attention to the Honeypot and Diverging Sine datasets to reveal principled shortcomings of the algorithm in question.
+We also show that embeddings are generally useful for this dataset, by providing results for "Coreset Raw" and "TypiClust Raw".
+
 
 \section{Conclusion}
-TODO
+We strongly advocate to test newly proposed AL algorithms not only on a wide variety of real data domains, but also to pay close attention to the Honeypot and Diverging Sine datasets to reveal principled shortcomings of the algorithm in question.
+Both tasks can be easily carried out by implementing the new acquisition function into our code base.
 
 %\section{Future Work}
 % Wahrscheinlich werden wir keinen Platz dafür haben
