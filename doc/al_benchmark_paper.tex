@@ -294,7 +294,7 @@ the following reasons:
 \begin{inparaenum}
 \item\label{prob1al} These works do not use a standardized evaluation setting with fixed
 datasets and baseline approaches.
-\item Due to cost reasons, a lot of works do only a small amount of experimental
+\item Due to computational constraints, a lot of works do only a small amount of experimental
 runs, hence it is questionable wether the superiority of a specific approach can
 be concluded from the conducted experiments.
 \item The works are only evaluated in a specific domain, such as computer vision
@@ -534,10 +534,7 @@ To the best of our knowledge, we are the first to extend reliable SOTA (based on
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Methodology}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Why we need 50 restarts}\label{sec:restarts}
+\section{Few Repetitions are not Sufficient for Meaningful Results}\label{sec:restarts}
 To evaluate how many restarts are necessary to obtain conclusive results in an AL experiment, we computed 100 runs of our top-performing algorithm on one dataset.
 Our best algorithm is margin sampling and we chose the Splice dataset for its average size and complexity. \\
 This allows us firstly, to obtain a very strong estimation of the "true" average performance of margin sampling on this dataset and secondly, to draw subsets from this pool of 100 runs.
@@ -573,7 +570,9 @@ Where a high number of restarts is computationally not feasible, we advise to ad
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Datasets}\label{sec:datasets}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{ALBench: A Cross-Domain Active Learning Benchmark}\label{sec:datasets}
 A detailed description of the preprocessing of each dataset can be found in Appendix \ref{app:hyperparameters}. \\ [1mm]
 \textbf{Tabular:}
 AL research conducted on tabular data is sparse (only \cite{ashdeep} from the considered baseline papers). 
@@ -644,35 +643,8 @@ For every dataset, the chosen architecture's hyperparameters are optimized to ar
 Generally, we use MLPs for tabular, RestNet18 for image and BiLSTMs for text datasets.
 Every encoded dataset is classified by a single linear layer with softmax activation.
 The used model for each dataset can be found in Tab. \ref{tab:batch_sizes}.
-For a detailed description and employed hyperparameters please refer to Appendix \ref{app:hyperparameters}. 
+For a detailed description and employed hyperparameters please refer to Appendix \ref{app:hyperparameters}.
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Greedy Oracle Algorithm}\label{sec:oracle}
-%an oracle set was so far always described as the optimal set and therefore
-A oracle method for AL tries to find the oracle set $\mathcal{O}_b$ for a given dataset, model, and training procedure that induces the highest AUC score for a given budget.
-However, since this combinatorial problem is computationally infeasible for realistic datasets, previous works have proposed approximations to this oracle sequence. 
-\cite{zhou2021towards} used simulated annealing to search for the optimal subset and used the best  solution found after a fixed time budget. 
-Even though their reported performance curves display a significant lift over all other acquisition functions, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs).
-In this paper, we propose a greedy oracle algorithm that constructs an approximation of the optimal set in an iterative fashion.
-Our oracle algorithm evaluates every data point $u_k = \operatorname{unif(\mathcal{U}) \quad k \in [1 \ldots \tau]}$ in a subsample of unlabeled points by recovering the label, fitting the classifier $\hat y$ on $\mathcal{L}^{(i)} \cup \{u_k\}$ and directly measuring the resulting test performance.
-The data point that incurs the largest lift in test performance is selected and added to the labeled pool for that iteration.
-\todo{[Thorben] Ich habe die Erklärung für den Fallback im Oracle neu gemacht. Ist das verständlich?}
-Due to the algorithms greedy nature (just considering the next point to pick), our oracle frequently encounters situations where every point in $u_k$ would incur a negative lift (worsening the test performance).
-This can happen, for example, if the oracle picked a labeled set that enables the classifier to correctly classify a big portion of easy samples in the test set, but now fails to find the next \textbf{single} unlabeled point that would enable the classifier to succeed on one of the hard samples.
-This leads to a situation, where no point can immediately incur an increase in test performance and therefore the selected data point can be considered random.
-To circumvent this problem, we use our best-performing acquisition function (margin sampling \cite{wang2014new}) as a fallback option for the oracle.
-Whenever the oracle does not find an unlabeled point that results in an increase in performance, it defaults to margin sampling in that iteration.
-The resulting greedy algorithm constructs an approximation of the optimal labeled set that consistently outperforms all other algorithms by a significant margin, while requiring relatively low computational cost ($\mathcal{O}(B\tau)$).
-\todo{Da wir den Fallback haben, sollten wir das Oracle vielleicht einfach als Erweiterung von MarginSampling verkaufen?}
-We fix $\tau = 20$ in this work, as this gave us an average lift of 5\% over the best performing acquisition function per dataset (which is significant for AL settings) and we expect diminishing returns for larger $\tau$.
-The pseudocode for our oracle can be found in App. \ref{app:pseudocode}.
-%In the algorithm $\operatorname{Train}(\LL, \hat y_\theta)$ trains the classification model $\hat y_\theta$ on $\LL$. \\
-%Alg. \ref{alg:oracle} replaces the acquisition function $\Omega$ in the AL loop (Appendix \ref{app:pseudocode} Alg. \ref{alg:active_learning}).
-Even though our proposed algorithm is more efficient than other approaches, the computational costs for high budget datasets like Cifar10 and FashionMnist meant that we could not compute the oracle for all 10000 datapoints.
-To still provide an oracle for these two datasets, we select two points per iteration instead of one and stop the oracle computation at a budget of 2000.
-The rest of the curve is forecast with a simple linear regression that asymptotically approaches the upper bound performance of the dataset. 
-A detailed description can be found in App. \ref{app:oracle_forecasting}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Evaluation Protocol}\label{sec:evaluation}
@@ -698,7 +670,37 @@ Additionally, we employ Critical Difference (CD) diagrams (like Fig. \ref{fig:ra
 CD diagrams use the Wilcoxon signed-rank test, which is a variant of the paired T-test, to find significant differences of ranks between acquisition functions.
 For these diagrams, each combination of dataset, query size and run is considered a separate experiment, i.e. the results of \verb|Dataset1-QuerySize1-run5| of an acquisition function \verb|x| is only compared to the results of \verb|Dataset1-QuerySize1-run5| of acquisition function \verb|y|.
 Due to the large number of restarts and the wide range of datasets and query sizes, we can provide very accurate significance tests.
-For a detailed description of how every CD diagram is created, please refer to App. \ref{app:cd_diagrams}.
+For a detailed description of how every CD diagram is created, please refer to App. \ref{app:cd_diagrams}. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{A Greedy Oracle Algorithm}\label{sec:oracle}
+%an oracle set was so far always described as the optimal set and therefore
+A oracle method for AL tries to find the oracle set $\mathcal{O}_b$ for a given dataset, model, and training procedure that induces the highest AUC score for a given budget.
+However, since this combinatorial problem is computationally infeasible for realistic datasets, previous works have proposed approximations to this oracle sequence. 
+\cite{zhou2021towards} used simulated annealing to search for the optimal subset and used the best  solution found after a fixed time budget. 
+Even though their reported performance curves display a significant lift over all other acquisition functions, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs).
+In this paper, we propose a greedy oracle algorithm that constructs an approximation of the optimal set in an iterative fashion.
+Our oracle algorithm evaluates every data point $u_k = \operatorname{unif(\mathcal{U}) \quad k \in [1 \ldots \tau]}$ in a subsample of unlabeled points by recovering the label, fitting the classifier $\hat y$ on $\mathcal{L}^{(i)} \cup \{u_k\}$ and directly measuring the resulting test performance.
+The data point that incurs the largest lift in test performance is selected and added to the labeled pool for that iteration.
+\todo{[Thorben] Ich habe die Erklärung für den Fallback im Oracle neu gemacht. Ist das verständlich?}
+Due to the algorithms greedy nature (just considering the next point to pick), our oracle frequently encounters situations where every point in $u_k$ would incur a negative lift (worsening the test performance).
+This can happen, for example, if the oracle picked a labeled set that enables the classifier to correctly classify a big portion of easy samples in the test set, but now fails to find the next \textbf{single} unlabeled point that would enable the classifier to succeed on one of the hard samples.
+This leads to a situation, where no point can immediately incur an increase in test performance and therefore the selected data point can be considered random.
+To circumvent this problem, we use our best-performing acquisition function (margin sampling \cite{wang2014new}) as a fallback option for the oracle.
+Whenever the oracle does not find an unlabeled point that results in an increase in performance, it defaults to margin sampling in that iteration.
+The resulting greedy algorithm constructs an approximation of the optimal labeled set that consistently outperforms all other algorithms by a significant margin, while requiring relatively low computational cost ($\mathcal{O}(B\tau)$).
+\todo{Da wir den Fallback haben, sollten wir das Oracle vielleicht einfach als Erweiterung von MarginSampling verkaufen?}
+We fix $\tau = 20$ in this work, as this gave us an average lift of 5\% over the best performing acquisition function per dataset (which is significant for AL settings) and we expect diminishing returns for larger $\tau$.
+The pseudocode for our oracle can be found in App. \ref{app:pseudocode}.
+%In the algorithm $\operatorname{Train}(\LL, \hat y_\theta)$ trains the classification model $\hat y_\theta$ on $\LL$. \\
+%Alg. \ref{alg:oracle} replaces the acquisition function $\Omega$ in the AL loop (Appendix \ref{app:pseudocode} Alg. \ref{alg:active_learning}).
+Even though our proposed algorithm is more efficient than other approaches, the computational costs for high budget datasets like Cifar10 and FashionMnist meant that we could not compute the oracle for all 10000 datapoints.
+To still provide an oracle for these two datasets, we select two points per iteration instead of one and stop the oracle computation at a budget of 2000.
+The rest of the curve is forecast with a simple linear regression that asymptotically approaches the upper bound performance of the dataset. 
+A detailed description can be found in App. \ref{app:oracle_forecasting}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -765,7 +767,7 @@ TypiClust      & 8.8 $\pm$ 0.01 & 10.2 $\pm$ 0.01 & 12.0 $\pm$ 0.02 & 7.9 $\pm$ 
 \end{figure}
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Synthetic Datasets for AL}
+\section{Honeypot and Diverging Sine}
 AL approaches can be categorized into two types, uncertainty and geometric approaches.
 Typical members of the first category are variants of uncertainty sampling like entropy-, margin and least-confident-sampling \cite{wang2014new} as well as BALD \cite{gal2017deep}.
 Typical members of the second category are clustering approaches like Coreset \cite{sener2017active}, BADGE \cite{ashdeep} and TypiClust \cite{hacohen2022active}.
@@ -803,7 +805,7 @@ We provide a very small ablation study on the importance of the embeddings by te
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Results on Synthetic Data}
+\subsection{Results}
 Our results on Honeypot reveal principled shortcomings for the two best algorithms in BADGE and margin sampling.
 Both are vulnerable to adverse samples or simply measurement noise, which highlights the need for further research in this area. \\
 Finally, the fact that BADGE is able to perform well on Diverging Sine highlights the importance of embeddings for the clustering algorithms, as the so-called gradient embedding from BADGE seems to be able to encode uncertainty information, guiding the selection into the left hand regions of the dataset. 
