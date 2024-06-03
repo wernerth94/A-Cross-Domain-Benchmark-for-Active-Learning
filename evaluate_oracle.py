@@ -12,8 +12,8 @@ parser.add_argument("--data_folder", type=str, required=True)
 parser.add_argument("--run_id", type=int, default=1)
 parser.add_argument("--pool_seed", type=int, default=1)
 parser.add_argument("--model_seed", type=int, default=1)
-parser.add_argument("--dataset", type=str, default="Cifar10")
-parser.add_argument("--encoded", type=int, default=1)
+parser.add_argument("--dataset", type=str, default="TopV2")
+parser.add_argument("--encoded", type=int, default=0)
 parser.add_argument("--sample_size", type=int, default=20)
 parser.add_argument("--restarts", type=int, default=50)
 parser.add_argument("--store_dataset", type=bool, default=False)
@@ -60,13 +60,14 @@ while run_id < max_run_id:
         done = False
         dataset.reset()
         state = env.reset()
-        iterations = math.ceil(env.env.budget / args.query_size)
+        iterations = math.ceil(env.env.budget / args.points_per_iter)
         iterator = tqdm(range(iterations), miniters=2)
         for i in iterator:
             state, reward, done, truncated, info = env.step()
             if done or truncated:
                 break # fail save; should not happen
 
+    print("Times the oracle needed the fallback", env.env.fall_back_counter)
     save_meta_data(log_path, None, env, dataset, config)
     if args.store_dataset:
         # store dataset for later HP optimization
