@@ -548,31 +548,70 @@ For a detailed description of how every CD diagram is created, please refer to A
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{A Greedy Oracle Algorithm}\label{sec:oracle}
-An oracle method for AL tries to find the oracle set $\mathcal{O}_b$ for a given dataset, model, and training procedure that induces the highest AUC score for a given budget.
-However, due to the combinatorial nature of the problem, it is computationally infeasible for realistic datasets.
-Hence, previous works have proposed approximations to this oracle sequence. 
-\cite{zhou2021towards} used simulated annealing to search for the optimal subset and used the best  solution found after a fixed time budget. 
-Even though their reported performance curves display a significant lift over all other acquisition functions, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs).
-In this paper, we propose a greedy oracle algorithm that constructs an approximation of the optimal set in an iterative fashion.
-Our oracle algorithm evaluates every data point $u_k = \operatorname{unif(\mathcal{U}) \quad k \in [1 \ldots \tau]}$ in a subsample of unlabeled points by recovering the label, fitting the classifier $\hat y$ on $\mathcal{L}^{(i)} \cup \{u_k\}$ and directly measuring the resulting test performance.
-The data point that incurs the largest lift in test performance is selected and added to the labeled pool for that iteration.
+\section{A Greedy Oracle Algorithm}\label{sec:oracle} An oracle method for AL
+tries to find the oracle set $\mathcal{O}_b$ for a given dataset,\todo{Versuchen
+die Beste zu finden tut doch jede AL-Methode! Vlt sowas wie: Ist ein Verfahren,
+dass zwar die Optimale Lösung findet, aber dabei keine Rücksicht auf Laufzeiten nimmt} model, and
+training procedure that induces the probably highest AUC score for a given budget.
+However, due to the combinatorial nature of the problem, it is computationally
+infeasible for realistic datasets. Hence, previous works have proposed
+approximations to this oracle sequence. \cite{zhou2021towards} used simulated
+annealing to search for the optimal subset and used the best  solution found
+after a fixed time budget. \todo{Okay und warum ist das dann keine Aquisition funnktion}Even though their reported performance curves display
+a significant lift over all other acquisition functions, we found the
+computational cost of reproducing this oracle for all our datasets to be
+prohibitive (The authors reported the search to take several days per dataset on
+8 V100 GPUs). In this paper, we propose a greedy oracle algorithm that
+constructs an approximation of the optimal set in an iterative fashion. Our
+oracle algorithm evaluates every data point $u_k =
+\operatorname{unif(\mathcal{U}) \quad k \in [1 \ldots \tau]}$\todo[inline]{Die Notation
+stimmt so nicht, willst du sagen, dass du hier ein Subset der größe $\tau$
+gesamplet hast uniform gesamplet hast? Dann schreibe das: "Our oracle algorithm
+uniformly samples at iteration $i$ a subset $\mathcal{U}_S$ of the not already
+labeled data points $\mathcal{U}^{(i)}$.
+Then it recovers the label $y$ for each of the sampled $u \in \mathcal{U}_S$ and selects the
+point $u \in \mathcal{U}_S$ for which the classifier $\hat{y}$ trained on
+$\mathcal{L}^{(i)} \cup \{u\}$ has the maximal performance. } in a subsample of
+unlabeled points by recovering the label, fitting the classifier $\hat y$ on
+$\mathcal{L}^{(i)} \cup \{u_k\}$ and directly measuring the resulting test
+performance. \todo{Okay, hier verstehe ich was ein Orcale ist. Eine Aquisition
+funktion die schon das wissen über die Labels beim aquirieren nutzen kann?
+Stimmt das?}The data point that incurs the largest lift in test performance is
+selected and added to the labeled pool for that iteration.
 \todo{[Thorben] Ich habe die Erklärung für den Fallback im Oracle neu gemacht. Ist das verständlich?}
-Due to the algorithms greedy nature (just considering the next point to pick), our oracle frequently encounters situations where every point in $u_k$ would incur a negative lift (worsening the test performance).
-This can happen, for example, if the oracle picked a labeled set that enables the classifier to correctly classify a big portion of easy samples in the test set, but now fails to find the next \textbf{single} unlabeled point that would enable the classifier to succeed on one of the hard samples.
-This leads to a situation, where no point can immediately incur an increase in test performance and therefore the selected data point can be considered random.
-To circumvent this problem, we use our best-performing acquisition function (margin sampling \cite{wang2014new}) as a fallback option for the oracle.
-Whenever the oracle does not find an unlabeled point that results in an increase in performance, it defaults to margin sampling in that iteration.
-The resulting greedy algorithm constructs an approximation of the optimal labeled set that consistently outperforms all other algorithms by a significant margin, while requiring relatively low computational cost ($\mathcal{O}(B\tau)$).
+Due to the algorithms greedy nature (just considering the next point to pick),
+our oracle frequently encounters situations where every point in $u_k$ would
+incur a negative lift (worsening the test performance). This can happen, for
+example, if the oracle picked a labeled set that enables the classifier to
+correctly classify a big portion of easy samples in the test set, but now fails
+to find the next \textbf{single} unlabeled point that would enable the
+classifier to succeed on one of the hard samples. This leads to a situation,
+where no point can immediately incur an increase in test performance and
+therefore the selected data point can be considered random. To circumvent this
+problem, we use our best-performing acquisition function (margin sampling
+\cite{wang2014new}) as a fallback option for the oracle. Whenever the oracle
+does not find an unlabeled point that results in an increase in performance, it
+defaults to margin sampling in that iteration. The resulting greedy algorithm
+constructs an approximation of the optimal labeled set that consistently
+outperforms all other algorithms by a significant margin, while requiring
+relatively low computational cost ($\mathcal{O}(B\tau)$).
 \todo{Da wir den Fallback haben, sollten wir das Oracle vielleicht einfach als Erweiterung von MarginSampling verkaufen?}
-We fix $\tau = 20$ in this work, as this gave us an average lift of 5\% over the best performing acquisition function per dataset (which is significant for AL settings) and we expect diminishing returns for larger $\tau$.
-The pseudocode for our oracle can be found in App. \ref{app:pseudocode}.
+We fix $\tau = 20$ in this work, as this gave us an average lift of 5\% over the
+best performing acquisition function per dataset (which is significant for AL
+settings) and we expect diminishing returns for larger $\tau$. The pseudocode
+for our oracle can be found in App. \ref{app:pseudocode}.
 %In the algorithm $\operatorname{Train}(\LL, \hat y_\theta)$ trains the classification model $\hat y_\theta$ on $\LL$. \\
 %Alg. \ref{alg:oracle} replaces the acquisition function $\Omega$ in the AL loop (Appendix \ref{app:pseudocode} Alg. \ref{alg:active_learning}).
-Even though our proposed algorithm is more efficient than other approaches, the computational costs for high budget datasets like Cifar10 and FashionMnist meant that we could not compute the oracle for all 10000 datapoints.
-To still provide an oracle for these two datasets, we select two points per iteration instead of one and stop the oracle computation at a budget of 2000.
-The rest of the curve is forecast with a simple linear regression that asymptotically approaches the upper bound performance of the dataset. 
-A detailed description can be found in App. \ref{app:oracle_forecasting}.
+Even though our proposed algorithm is more efficient than other approaches, the
+computational costs for high budget datasets like Cifar10 and FashionMnist meant
+that we could not compute the oracle for all 10000 datapoints. To still provide
+an oracle for these two datasets, we select two points per iteration instead of
+one and stop the oracle computation at a budget of 2000. The rest of the curve
+is forecast with a simple linear regression that asymptotically approaches the
+upper bound performance of the dataset. A detailed description can be found in
+App. \ref{app:oracle_forecasting}.\todo[inline]{Approached heißt konvergiert,,
+oder? Dann muss das doch nicht stimmen. Ich würde nach "linear regression" einen
+Punkt machen und den Teil danach löschen.}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
