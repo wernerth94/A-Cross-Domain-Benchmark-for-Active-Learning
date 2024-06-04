@@ -91,24 +91,20 @@
 
 
 % TODOs nach Priorität
-% !! "Overfitting on test" für Oracle: Sanity-Check durchführen und eventuell komplett streichen
-% !! Introduction neu schreiben: Wir brauchen eine klare Benennung der Ziele und bessere Abgrenzung zu anderen papern 
-% !! Sec 4 Methodology ist sehr chaotisch. Wir müssen neu sortieren und unwichtige Dinge streichen
-% Contributions neu sortieren und ausführlicher beschreiben
+% Terminologie aufräumen:
+% - Query size vs batch size
+% - Acq. function vs. AL Alg. vs. AL Method
+% - (Un-)encoded vs. semi-supervised/normal
+% Gibt es eine Conclusion für die Encoded-Datasets? Im Moment werden die nicht besprochen
 % Methode zum CD-Diagramm genau erklären (paired-t-test etc.) und die Relevanz fürs paper zeigen
 % Advantage-Matrix von Ji et. al. neu aufarbeiten. Wo sind die Unterschiede? Ist das CD-Diagramm besser/schlechter?
 % (Un-)Encoded durch Normal uns Semi-Supervised ersetzen, um die Verbindung klar zu machen
-% Gibt es eine Conclusion für die Encoded-Datasets? Im Moment werden die nicht besprochen
 % Eventuell Batchsize 1 von den anderen Ergebnissen separieren. Der Vergleich macht mehr Sinn, als einfach die Batchsizes zu mitteln
 % Tabelle 1 für Algorithmen statt Domänen. Das zeigt, dass immer entweder BADGE oder Margin (unsere Top 2) fehlt
-% Oracle Performance mit einer Zahl benennen: z.B. Da wird ~20% lift zu allen Baselines haben, brauchen wir kein aufwendigeres Oracle
 % Unsere Rankings mit Literatur vergleichen. Wie anders sind wir? -> Evtl. besten Alg. pro Benchmark sammeln und vergleichen
 % Causalitäten checken: Viele Dinge werden einfach genannt, ohne das der Grund richtig eingeführt wird
-% "reproducible" als Aufhänger für 50 repeats ist nicht intuitiv
 % Fig. 1: Schlechte Performance am Anfang verwirrt nur. Entweder BADGE benutzen, anders plotten, oder im Text in Kontext setzen
-% Eventuell Honeypot und Diverging Sine direkt in den Contributions nennen
 % Oracle Forecast im Appendix erklären 
-% Tabelle mit AUCs in den Appendix
 
 %%%%%%%%%%%%%%%%%%
 % DONE
@@ -117,7 +113,15 @@
 % !! Least-Confident Baseline
 % Conclusion: Es gibt Unterschiede bei der Top 1 zwischen den Domänen, aber die Top 3 ist konstant
 % !! Sec 3 Related Work sollte Ji et al. im Detail einführen, weil wir uns an deren Guidelines halten. Alles andere sollte dort gekürzt werden
+% !! "Overfitting on test" für Oracle: Sanity-Check durchführen und eventuell komplett streichen
+% !! Introduction neu schreiben: Wir brauchen eine klare Benennung der Ziele und bessere Abgrenzung zu anderen papern 
 % Infos und Ergebnisse für die syntetischen Datensätze in ein Kapitel bündeln und direkt auf die Contribution beziehen
+% !! Sec 4 Methodology ist sehr chaotisch. Wir müssen neu sortieren und unwichtige Dinge streichen
+% Contributions neu sortieren und ausführlicher beschreiben
+% Oracle Performance mit einer Zahl benennen: z.B. Da wird ~20% lift zu allen Baselines haben, brauchen wir kein aufwendigeres Oracle
+% "reproducible" als Aufhänger für 50 repeats ist nicht intuitiv
+% Eventuell Honeypot und Diverging Sine direkt in den Contributions nennen
+% Tabelle mit AUCs in den Appendix
 
 
 %%%%%%%%%%%%%%%%
@@ -199,78 +203,6 @@ are not able to outperform the random baseline.
 % domain-specific and overall rankings of AL algorithms.
 % \end{abstract}
 
-% \section{Introduction-Old Backup}
-% Deep neural networks (NN) have produced state-of-the-art results on many important supervised learning tasks.
-% Since Deep NNs usually require large amounts of labeled training data, Active Learning (AL) can be used to instead select the most informative samples out of a large pool of unlabeled data, so that only these samples need to be labeled.
-% It has been shown that a small labeled set of this nature can be used to train well-performing models \cite{beck2021effective, hu2021towards, li2022empirical, zhou2021towards}. \\
-% On top of providing a principled way to label unlabeled datasets, active learning is one of the two major approaches besides semi-supervised learning to make deep learning models more data efficient by requiring only a limited set of manually labeled data.
-% %Both approaches are at their core orthogonal and can freely be combined and therefore we should continue our research efforts for both approaches. \\
-% In the last decade, many different algorithms for AL have been proposed.
-% Even though, almost every method has reported lifts over all its predecessors,
-% \footnote{Out of all considered algorithms for this paper, only BALD \cite{gal2017deep} did not claim a new SOTA performance in their result section.}
-% AL research faces four central difficulties:
-% {\let\thefootnote\relax\footnotetext{Code available at: anonymous}}
-% %\let\thefootnote\relax\footnotetext{Code available at: \url{https://github.com/wernerth94/comparable-active-learning}}
-% (i) The experiments are often carried out on different datasets and model architectures, hindering direct comparison,
-% (ii) generalize poorly across different domains,
-% (iii) the reported results can be subject to very high variance across restarts and
-% (iv) are not always compared against important baselines like margin sampling \cite{wang2014new}.
-% While multiple benchmark suites have been proposed to solve (i), to the best of our knowledge, we are the first to report results on all 3 data domains of tabular, image and text.
-% Additionally, we provide synthetic datasets to highlight principled shortcoming of existing AL algorithms.
-% Regarding (ii) and (iii), \cite{zhou2021towards} has pointed out severe inconsistencies in results of AL papers in recent years. 
-% They conducted a meta analysis of reported results of several different AL algorithms and found that all considered algorithms only provided significant lifts in their own original papers, while following literature reported performances no better that uncertainty sampling, or in some cases no better than random sampling for the same algorithm (\cite{zhou2021towards} Appendix A).
-% These outlined issues lead to an inconclusive landscape of AL algorithms, where the vast majority of reported lifts are neither statistically significant, nor prove to be generalizable.
-% This makes it very hard to identify the best AL algorithm, or even identifying state-of-the-art algorithms.
-% In this work we propose an evaluation protocol that was designed to handle the high variance in the performances of AL algorithms as well as being fully controllable regardless of the combination of dataset, model and AL algorithm. 
-% We base our work largely on \cite{ji2023randomness}, following their guidelines for a reliable evaluation of AL algorithms, while extending the number of evaluated data domains from 1 to 5. \\
-% We focus on pool-based AL where a pool of unlabeled samples is fixed at the start of each experiment and one or more samples are chosen sequentially.
-% In addition to the default scenario of selecting a batch of samples every iteration we incorporate the single sample case into our benchmark.
-% Batched algorithms (and benchmarks) do not have a principled advantage over single-sample AL except for speed of computation.
-% The problem of optimizing a portfolio of unlabeled samples in each iteration is more complicated to solve and the algorithms have systematically less information per sample to work with leading to a generally worse performance, that impacts some algorithms more than others. 
-% %In Fig. \ref{fig:batch_vs_single} we present a comparison of Badge \cite{ashdeep} and Coreset\cite{sener2017active}, in the batch and single-sample setting.
-% %Even though both algorithms were designed for batch sampling, both perform better in the single-sample setting.
-% We propose single-sample AL as an important tool to identify the best acquisition function, rather than the best combination of acquisition function and diversity regularization. \\
-% %\begin{figure}
-% %    \centering
-% %    \includegraphics[width=\linewidth]{img/ablation_batch_single}
-% %    \caption{Comparison of single-sample vs. batch selection for two acquisition functions that were specifically designed for batch selection. Even when designed for batch selection, acquisition functions tend to perform better in the single sample setting.}
-% %    \label{fig:batch_vs_single}
-% %\end{figure}
-% Table \ref{tab:benchmark_comparison} shows a feature comparison between our proposed benchmark and several existing benchmarks in the literature. 
-% We offer our datasets in two versions - normal and encoded.
-% An encoded dataset was pre-encoded by an self-supervised encoder model, providing a different use case for active learning.
-% Our synthetic and text datasets (which use word embeddings in the normal setting) are exempt from this, bringing our total dataset count to 14 across 5 domains (Tabular, Image, Text, Synthetic, Encoded).
-% \begin{table}
-% 	\centering
-%         \caption{Comparison of our benchmark with the existing literature. Oracle curves serve as an approximation of the best possible AL algorithm. Including the encoded versions of our datasets we reach 14 datasets. "Semi" indicates whether the paper is employing any form of self- or semi-supervised learning. A "-" for repetitions means that we could not determine how often each experiment is repeated in the respective framework.}
-% 	\label{tab:benchmark_comparison}
-% 	\resizebox{\columnwidth}{!}{
-% \begin{tabular}{lccccllllcl}
-% Paper & Sampling & \#Data & \#Alg & \multicolumn{1}{l}{Img} & Txt & Tab & Synth & Semi & Oracle & Repetitions \\ \hline
-% \multicolumn{1}{l|}{Beck et al. \cite{beck2021effective}} & batch & 4 & 7 & \checkmark & - & - & - & - & - & - \\
-% \multicolumn{1}{l|}{Hu et al. \cite{hu2021towards}} & batch & 5 & 13 & \checkmark & \checkmark & - & - & - & - & 3 \\
-% \multicolumn{1}{l|}{Zhou et al. \cite{zhou2021towards}} & batch & 3 & 2 & \checkmark & \checkmark & - & - & - & \checkmark & 5 \\
-% \multicolumn{1}{l|}{Zhan et al. \cite{zhan2021comparative}} & sngl+batch & 35 & 18 & - & - & \checkmark & \checkmark & - & \checkmark & 10-100 \\
-% \multicolumn{1}{l|}{Munjal et al. \cite{munjal2022towards}} & batch & 2 & 8 & \checkmark & - & - & - & - & - & 3 \\
-% \multicolumn{1}{l|}{Li et al. \cite{li2022empirical}} & batch & 5 & 13 & \checkmark & - & - & - & \checkmark & - & - \\
-
-% \multicolumn{1}{l|}{Rauch et al. \cite{rauch2023activeglae}} & batch & 11 & 5 & - & \checkmark & - & - & - & - & 5 \\
-% \hdashline
-% \multicolumn{1}{l|}{Ji et al. \cite{ji2023randomness}} & batch & 3 & 8 & \checkmark & - & - & - & - & - & - \\
-% \multicolumn{1}{l|}{Lueth et al. \cite{luth2024navigating}} & batch & 4 & 5 & \checkmark & - & - & - & \checkmark & - & 3 \\
-% \multicolumn{1}{l|}{\textbf{Ours}} & sngl+batch & 9(14) & 11 & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & 50 
-% \end{tabular}
-% }
-% \end{table}
-
-% \subsection*{Contributions}
-% %Maybe absorb this into the introduction text
-% \begin{enumerate}
-% 	\item[C1] Study on the reproducibility of AL experiments, providing evidence that previous works might have not repeated their experiments often enough to provide reliable results
-% 	\item[C2] Efficient and performant algorithm for an oracle that can be constructed greedily and does not rely on search
-% 	\item[C3] Two novel synthetic datasets that highlight principled shortcomings of of the top-performing AL algorithms
-%     \item[C4] Extending the evaluation of Active Learning algorithms to 5 data domains and revealing significant differences in algorithm performance between them
-% \end{enumerate}
 
 \section{Introduction}
 Deep neural networks (NN) have produced state-of-the-art results on many
@@ -385,94 +317,35 @@ By being the first benchmark to proving these things in one code-base,
 we believe that \emph{ALBench} is a major step forward of assessing the overall state of Active Learning research, independent of
 specific application domains. \emph{ALBench} is publicly available under \emph{anonymous}. \\ [1mm]
 Our contributions include the following:
-
+%
 \begin{enumerate}
-\item We show that the small of repetitions that previous works have employed is not
+\item\label{cont:repetitions} We show that the small of repetitions that previous works have employed is not
 sufficient for meaningful conclusions. Sometimes even making it impossible to assess if a performance is above or below random.
-\item We propose an efficient and performant oracle which is constructed iteratively in a greedy fashion,
+\item\label{cont:oracle} We propose an efficient and performant oracle which is constructed iteratively in a greedy fashion,
 overcoming major computational hurdles.
 % one of the major obstacles for sufficient repetitions of AL experiments. 
 % [Thorben] Das können wir so nicht sagen, glaube ich. Niemand verlangt von uns, dass wir das Oracle auch 50 mal wiederholen
-\item We propose \emph{IMTSBench}, the first general benchmark providing tasks
+\item\label{cont:domains} We propose \emph{ALBench}, the first general benchmark providing tasks
 in the domains of images, text and tabular learning. It further contains
 synthetic and pre-encoded data to allow for a sophisticated evaluation of AL
 methods. Our experiments show, that there is no clear state-of-the art method
 for active learning across different domains.
-\item We propose \emph{Honeypot} and \emph{Diverging Sin}, two synthetic datasets
+\item\label{cont:synthdata} We propose \emph{Honeypot} and \emph{Diverging Sin}, two synthetic datasets
 designed to hinder active learning by naive decision-boundary- or
 clustering-based approaches respectively. Thus, they provide an important tool to identify 
 shortcomings of existing AL methods.
 \end{enumerate}
-
-%\todo{Ich bin mir nicht ganz sicher, wie man Honeypot und Diverging Sin verkauft. Macht as mit der Lower bar sinn?}
-% \begin{enumerate}
-% \item[C1] Study on the reproducibility of AL experiments, providing evidence
-% that previous works might have not repeated their experiments often enough to
-% provide reliable results
-% \item[C2] Efficient and performant algorithm for an oracle that can be
-% constructed greedily and does not rely on search
-% \item[C3] Two novel synthetic datasets that highlight principled shortcomings of
-% of the top-performing AL algorithms
-% \item[C4] Extending the evaluation of Active Learning algorithms to 5 data
-% domains and revealing significant differences in algorithm performance between
-% them to overcome one of the major obstacles for sufficient 
-% \end{enumerate}
-
-% we are the first to report results on all 3 data domains of
-% tabular, image and text. Additionally, we provide synthetic datasets to
-% highlight principled shortcoming of existing AL algorithms. Regarding (ii) and
-% (iii), \cite{zhou2021towards} has pointed out severe inconsistencies in results
-% of AL papers in recent years. They conducted a meta analysis of reported results
-% of several different AL algorithms and found that all considered algorithms only
-% provided significant lifts in their own original papers, while following
-% literature reported performances no better that uncertainty sampling, or in some
-% cases no better than random sampling for the same algorithm
-% (\cite{zhou2021towards} Appendix A). These outlined issues lead to an
-% inconclusive landscape of AL algorithms, where the vast majority of reported
-% lifts are neither statistically significant, nor prove to be generalizable. This
-% makes it very hard to identify the best AL algorithm, or even identifying
-% state-of-the-art algorithms. In this work we propose an evaluation protocol that
-% was designed to handle the high variance in the performances of AL algorithms as
-% well as being fully controllable regardless of the combination of dataset, model
-% and AL algorithm. We base our work largely on \cite{ji2023randomness}, following
-% their guidelines for a reliable evaluation of AL algorithms, while extending the
-% number of evaluated data domains from 1 to 5. \\
-% We focus on pool-based AL where a pool of unlabeled samples is fixed at the
-% start of each experiment and one or more samples are chosen sequentially. In
-% addition to the default scenario of selecting a batch of samples every iteration
-% we incorporate the single sample case into our benchmark. Batched algorithms
-% (and benchmarks) do not have a principled advantage over single-sample AL except
-% for speed of computation. The problem of optimizing a portfolio of unlabeled
-% samples in each iteration is more complicated to solve and the algorithms have
-% systematically less information per sample to work with leading to a generally
-% worse performance, that impacts some algorithms more than others. 
-% %In Fig. \ref{fig:batch_vs_single} we present a comparison of Badge \cite{ashdeep} and Coreset\cite{sener2017active}, in the batch and single-sample setting.
-% %Even though both algorithms were designed for batch sampling, both perform better in the single-sample setting.
-% We propose single-sample AL as an important tool to identify the best
-% acquisition function, rather than the best combination of acquisition function
-% and diversity regularization. \\
-%\begin{figure}
-%    \centering
-%    \includegraphics[width=\linewidth]{img/ablation_batch_single}
-%    \caption{Comparison of single-sample vs. batch selection for two acquisition functions that were specifically designed for batch selection. Even when designed for batch selection, acquisition functions tend to perform better in the single sample setting.}
-%    \label{fig:batch_vs_single}
-%\end{figure}
-% Table \ref{tab:benchmark_comparison} shows a feature comparison between our proposed benchmark and several existing benchmarks in the literature. 
-% We offer our datasets in two versions - normal and encoded.
-% An encoded dataset was pre-encoded by an self-supervised encoder model, providing a different use case for active learning.
-% Our synthetic and text datasets (which use word embeddings in the normal
-% setting) are exempt from this, bringing our total dataset count to 14 across 5
-% domains (Tabular, Image, Text, Synthetic, Encoded). 
+%
 \begin{table}
 	\centering
-\caption{Comparison of our benchmark with the existing literature. Oracle curves
-serve as an approximation of the best possible AL algorithm. Including the
-encoded versions of our datasets we reach 14 datasets, without we have 9. "Semi"
-indicates whether the paper is employing any form of self- or semi-supervised
-learning. A "-" for repetitions means that we could not determine how often each
-experiment is repeated in the respective framework. \emph{ALBench} is the only
-benchmark which reports over enough runs for meaningful results and considers
-all 5 domains.}
+	\caption{Comparison of our benchmark with the existing literature. Oracle curves
+	serve as an approximation of the best possible AL algorithm. Including the
+	encoded versions of our datasets we reach 14 datasets, without we have 9. "Semi"
+	indicates whether the paper is employing any form of self- or semi-supervised
+	learning. A "-" for repetitions means that we could not determine how often each
+	experiment is repeated in the respective framework. \emph{ALBench} is the only
+	benchmark which reports over enough runs for meaningful results and considers
+	all 5 domains.}
 	\label{tab:benchmark_comparison}
 	\resizebox{\columnwidth}{!}{
 \begin{tabular}{lccc|cllll|cl}
@@ -522,12 +395,12 @@ Both of these algorithms rely on search and are computationally very expensive, 
 %They test for several different properties of the models including robustness, response to compression techniques and final performance.
 %\cite{zhou2021towards} proposed an oracle algorithm for AL that uses Simulated Annealing search to approximate a solution for the optimal subset of labeled data.
 %Additionally, they study the generalization behavior of subsets of labeled data in the text an image domain.
-The two closest related works to this benchmark are \cite{ji2023randomness} and \cite{luth2024navigating}, who also place a much higher emphasis on the problem of evaluating AL algorithms under many forms of variance than their predecessors (indicated in Tab. \ref{tab:benchmark_comparison} by a dashed line).
+The two closest related works to this benchmark are \cite{ji2023randomness} and \cite{luth2024navigating}, who also place a much higher emphasis on the problem of evaluating AL algorithms under high variance than their predecessors (indicated in Tab. \ref{tab:benchmark_comparison} by a dashed line).
 The authors of \cite{ji2023randomness} posed a total of 12 "recommendations" for reliable evaluation of AL algorithms.
-We largely adapt the proposed recommendations of \cite{ji2023randomness} and extend their work to multiple domains, batch sizes and comparisons.
+We largely adapt the proposed recommendations and extend their work to multiple domains and batch sizes.
 For a complete list of the recommendations and our implementation of them, please refer to App. \ref{app:recommendations}.
 This work also pays attention to the so-called "pitfalls" of AL evaluation proposed in \cite{luth2024navigating}.
-For a complete list of the pitfalls and our implementation of them, please refer to App. \ref{app:pitfalls}.
+For a complete list of the pitfalls and our considerations regarding them, please refer to App. \ref{app:pitfalls}.
 To the best of our knowledge, we are the first to extend reliable SOTA (based on \cite{ji2023randomness, luth2024navigating}) experimentation to a total of 5 data domains and a high number of restarts per experiment.
 
 
@@ -556,12 +429,38 @@ We found significant differences in the performance of acquisition functions on 
 This partly explains the ongoing difficulties in reproducing results for AL experiments and benchmarks.
 The details can be found in App. \ref{app:rank_difference}.
 For this benchmark we employ 50 restarts of every experiment.
+\begin{wraptable}{R}{0.65\textwidth}
+	\vspace{-0.7cm}
+	\caption{Employed model, chosen budget and available batch sizes for each dataset}
+	\vspace{0.1cm}
+	\label{tab:batch_sizes}
+	{\scriptsize
+		\begin{tabular}{l|l|c|c|c|c|c|c|c|c}
+			& Model  & B & 1 & 5 & 20 & 50 & 100 & 500 & 1K \\
+			\hline
+			Enc. DNA    & Linear & 40 & o & o &&&&& \\
+			Enc. Splice & Linear & 100 & o & o & o & o &&&\\
+			TopV2       & BiLSTM & 200 & o & o & o & o &&& \\
+			Splice      & MLP    & 400 & o & o & o & o & o && \\
+			DNA         & MLP    & 300 & o & o & o & o & o && \\
+			USPS        & MLP    & 400 & o & o & o & o & o && \\
+			Enc. Cifar10& Linear & 450 & o & o & o & o & o && \\
+			Enc. FMnist & Linear & 500 & o & o & o & o & o && \\
+			Enc. USPS   & Linear & 600 & o & o & o & o & o && \\
+			News        & BiLSTM & 3K &&& o & o & o & o &\\
+			FMnist      & ResNet18& 10K &&&&&& o & o\\
+			Cifar10     & ResNet18& 10K &&&&&& o & o \\
+		\end{tabular}
+	}
+	\vspace{-0.55cm}
+\end{wraptable}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Seeding vs. Restarts}\label{sec:reproducibility}
 Considering the high computational cost of 50 repetitions, another approach to ensure consistency between experiments would be to reduce the amount of variance in the experiment by keeping as many subsystems (weight initialization, data splits, etc.) as possible fixed with specialized seeding. \\
 We describe a novel seeding strategy in Appendix \ref{app:seeding_strategy} that creates 3 separate Random Number Generators (RNG) based on 3 different seeds.
+\todo{Wahrscheinlich zu wenig Erklärung für den main body. Eventuell die gesamten Erklärungen zum seeding in den appendix?}
 In short, we introduce three different seeds: $s_\Omega$ for the AL algorithm, $s_\mathcal{D}$ for dataset splitting and mini-batch sampling, and $s_\theta$ for model initialization and sampling of dropout masks.
 Unless stated otherwise, we will keep $s_\Omega$ fixed, while $s_\mathcal{D}$ and $s_\theta$ are incremented by 1 between restarts to introduce stochasticity into our framework.
 While this seeding strategy is capable of controlling the amount variance in the experiment, previous works have noted that an actively sampled, labeled set does not generalize well between model architectures or even different initializations of the same model (\cite{zhou2021towards, lowell2018practical}), providing a bad approximation of the quality of an AL algorithm (i.e. measured performances for an algorithm might not even transfer to a different model initialization).
@@ -582,12 +481,14 @@ We use \textbf{Splice}, \textbf{DNA} and \textbf{USPS} from LibSVMTools \cite{li
 \textbf{Image:}
 We use \textbf{FashionMNIST} \cite{xiao2017fashion} and \textbf{Cifar10} \cite{krizhevsky2009learning}, since both are widely used in AL literature.\\
 \textbf{Text:}
+\todo{Schwache Erklärung}
 We use \textbf{News Category} \cite{misra2022news} and \textbf{TopV2} \cite{chen-etal-2020-low-resource}.
 Text datasets have seen less attention in AL research, but most of the papers that evaluate on text (\cite{hu2021towards}, \cite{zhou2021towards}) use at least one of these datasets.\\ [1mm]
 %
 We would like to point out that these datasets are selected for speed of computation (both in terms of the required classifier and the necessary budget to solve the dataset). 
-However, similar to our argumentation for picking smaller classifiers, we are solely focused on comparing different AL algorithms in this paper and do not aim to develop novel classification models on these datasets.
-Our assumption is that a well-performing algorithm in our benchmark will also generalize well to larger real-world datasets, because we included multiple different data domains and classifier sizes in our experiments. \\ [1mm]
+However, we are solely focused on comparing different AL algorithms in this paper and do not aim to develop novel classification models on these datasets.
+Our assumption is that a well-performing algorithm in our benchmark will also generalize well to larger real-world datasets, because we included multiple different data domains and classifier types and sizes in our experiments. \\ [1mm]
+\todo{Muss die Verbindung zwischen encodings und semi-supervised learning klarer?}
 Adapting the semi-supervised setting from \cite{hacohen2022active}, we offer all our datasets un-encoded (normal) as well as pre-encoded by a fixed embedding model that was trained by unsupervised contrastive learning. 
 The text datasets are an exception to this, as they are only offered in their encoded form.
 Pre-encoded datasets enable us to test small query sizes on more complex datasets like Cifar10 and FashionMnist.
@@ -599,32 +500,6 @@ To ensure that enough information from the data is encoded by our embedding mode
 To this end, we attached a linear classification head to the encoder, fine-tuned it to the data and evaluated this classifier for test accuracy. 
 The checkpoint of each encoder model will be provided together with the framework. \\ [1mm]
 Every dataset has a fixed size for the seed set of 1 sample per class, with the only exceptions being un-encoded FashionMnist and Cifar10 with 100 examples per class to alleviate the cold-start problem in these complex domains. 
-
-\begin{wraptable}{R}{0.65\textwidth}
-    \vspace{-0.7cm}
-    \caption{Employed model, chosen budget and available batch sizes for each dataset}
-    \vspace{0.1cm}
-    \label{tab:batch_sizes}
-    {\scriptsize
-    \begin{tabular}{l|l|c|c|c|c|c|c|c|c}
-                    & Model  & B & 1 & 5 & 20 & 50 & 100 & 500 & 1K \\
-        \hline
-        Enc. DNA    & Linear & 40 & o & o &&&&& \\
-        Enc. Splice & Linear & 100 & o & o & o & o &&&\\
-        TopV2       & BiLSTM & 200 & o & o & o & o &&& \\
-        Splice      & MLP    & 400 & o & o & o & o & o && \\
-        DNA         & MLP    & 300 & o & o & o & o & o && \\
-        USPS        & MLP    & 400 & o & o & o & o & o && \\
-        Enc. Cifar10& Linear & 450 & o & o & o & o & o && \\
-        Enc. FMnist & Linear & 500 & o & o & o & o & o && \\
-        Enc. USPS   & Linear & 600 & o & o & o & o & o && \\
-        News        & BiLSTM & 3K &&& o & o & o & o &\\
-        FMnist      & ResNet18& 10K &&&&&& o & o\\
-        Cifar10     & ResNet18& 10K &&&&&& o & o \\
-    \end{tabular}
-	}
-    \vspace{-0.85cm}
-\end{wraptable}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Batch Sizes}\label{sec:batch_sizes}
@@ -653,9 +528,8 @@ We employ the normalized area under the accuracy curve (AUC):
 \begin{equation}\label{eq:auc}
 	\operatorname{AUC}(\D_\test, \hat y, B) := \frac{1}{B} \sum_{i=1}^{B} \operatorname{Acc}(\D_\test, \hat y^{(i)})
 \end{equation}
-The AUC incorporates performance in early stages (low budget) as well as capabilities to push the classifier in later stages (high budget).
-AL algorithms have to perform well in both scenarios. 
-\\ [1mm]
+%The AUC incorporates performance in early stages (low budget) as well as capabilities to push the classifier in later stages (high budget).
+%AL algorithms have to perform well in both scenarios. \\ [1mm]
 Since AUC is still influenced by the budget, we define a set of rules to set this hyperparameter upfront, so that we are not favoring a subset of algorithms by handcrafting a budget.
 In this work, we choose the budget per dataset to be the first point at which one of 2 stopping conditions apply: (i) an algorithm (except Oracle) manages to reach 99\% of the full-dataset-performance (using the smallest query size) or (ii) the best algorithm (except oracle) did not improve the classifier's accuracy by at least 2\% in the last 20\% of iterations.
 The first rule follows \cite{ji2023randomness}, while the second rule prevents excessive budgets for cases with diminishing returns in the budget.
@@ -666,6 +540,7 @@ Each restart retains the train/test split (often given by the dataset itself), b
 Apart from plotting standard performance curves and reporting their AUC values per dataset in App. \ref{app:all_results}, we primarily rely on ranks to aggregate the performance of an acquisition function across datasets.
 For each dataset and query size, the AUC values of all acquisition functions are sorted and assigned a rank based on position, with the best rank being 1.
 These ranks can safely be averages across datasets as they are no longer subjected to scaling differences of each dataset.
+\todo{Erklärung zum paired-t-test ist schlecht geschrieben. Wie machen wir es besser?}
 Additionally, we employ Critical Difference (CD) diagrams (like Fig. \ref{fig:ranks_by_domain}) for statistical testing.
 CD diagrams use the Wilcoxon signed-rank test, which is a variant of the paired T-test, to find significant differences of ranks between acquisition functions.
 For these diagrams, each combination of dataset, query size and run is considered a separate experiment, i.e. the results of \verb|Dataset1-QuerySize1-run5| of an acquisition function \verb|x| is only compared to the results of \verb|Dataset1-QuerySize1-run5| of acquisition function \verb|y|.
@@ -677,9 +552,9 @@ For a detailed description of how every CD diagram is created, please refer to A
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{A Greedy Oracle Algorithm}\label{sec:oracle}
-%an oracle set was so far always described as the optimal set and therefore
-A oracle method for AL tries to find the oracle set $\mathcal{O}_b$ for a given dataset, model, and training procedure that induces the highest AUC score for a given budget.
-However, since this combinatorial problem is computationally infeasible for realistic datasets, previous works have proposed approximations to this oracle sequence. 
+An oracle method for AL tries to find the oracle set $\mathcal{O}_b$ for a given dataset, model, and training procedure that induces the highest AUC score for a given budget.
+However, due to the combinatorial nature of the problem, it is computationally infeasible for realistic datasets.
+Hence, previous works have proposed approximations to this oracle sequence. 
 \cite{zhou2021towards} used simulated annealing to search for the optimal subset and used the best  solution found after a fixed time budget. 
 Even though their reported performance curves display a significant lift over all other acquisition functions, we found the computational cost of reproducing this oracle for all our datasets to be prohibitive (The authors reported the search to take several days per dataset on 8 V100 GPUs).
 In this paper, we propose a greedy oracle algorithm that constructs an approximation of the optimal set in an iterative fashion.
@@ -708,6 +583,7 @@ A detailed description can be found in App. \ref{app:oracle_forecasting}.
 \section{Experiments}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Implementation Details}\label{sec:implementation_details}
+\todo{[Thorben] Sollten wir den ganzen ersten Teil steichen? Wir haben uns von technischen Beschreibungen weitesgehend wegbewegt.}
 At each iteration $i$ the acquisition function $\Omega$ picks an unlabeled datapoint based on a fixed set of information $\{\mathcal{L}^{(i)}, \mathcal{U}^{(i)}, B, |\mathcal{L}^{(i)}|-|\mathcal{L}^{(1)}|, \text{acc}^{(i)}, \text{acc}^{(1)}, \hat y^{(i)}, \text{opt}_{\hat y}\}$, where $\text{opt}_{\hat y}$ is the optimizer used to fit $\hat y^{(i)}$.
 This set grants full access to the labeled and unlabeled set, as well as all parameters of the classifier and the optimizer.
 Additionally, we provide meta-information, like the size of the seed set through $|\mathcal{L}^{(i)}|-|\mathcal{L}^{(1)}|$, the remaining budget though the addition of $B$ and the classifiers potential though $\text{acc}^{(1)}$ and $\text{acc}^{(i)}$.
@@ -726,11 +602,12 @@ Our fine-tuning scheme always trains for at least one epoch and employs an aggre
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Results on Real-world Data}
 In Table \ref{tab:results} we provide the rank of each acquisition function per dataset and averaged for each (un-)encoded dataset. 
-Please note, that for Tab \ref{tab:results} we are averaging not only over runs, but also over query sizes per dataset. 
+Please note, that for Tab. \ref{tab:results} we are averaging not only over runs, but also over query sizes per dataset. 
+This leads to a negative impact for AL methods that do not adapt well to larger batch sizes.
 For the results per query size, please refer to App. \ref{app:auc_by_query_size}. \\
-As stated in contribution C4, our results on real-world data shows significant differences in the performance of the tested algorithms between data domains.
+As mentioned in contribution \ref{cont:domains}, our results on real-world data shows significant differences in the performance algorithms between data domains.
 Not only do some algorithms overperform on some domains (like least confidence sampling on Images), but the Top-3 of algorithms (except Oracle) does not contain the same three algorithms for any two domains.
-Most interestingly, the image domain, which received the most attention in benchmarking so far could even be considered an outlier, as this is the only domain where the Top-1 algorithm changes.
+Most interestingly, the image domain, which received most of the attention in benchmarking so far could even be considered an outlier, as this is the only domain where the Top-1 algorithm changes.
 This highlights the dire need for diverse data domains in AL benchmarking. \\ [1mm]
 \begin{table}[]
 	\caption{Performances for acquisition functions on real-world datasets, aggregated for un-encoded and encoded datasets. Performance is shown as average ranks over restarts (1.0 is the best rank). Algorithms are sorted by aggregated performance on un-encoded datasets. }
@@ -764,6 +641,7 @@ TypiClust & 8.8 $\pm$ {\small 0.01} & 10.2 $\pm$ {\small 0.01} & 12.0 $\pm$ {\sm
     \includegraphics[width=0.49\linewidth]{img/macro_text.jpg}
     \includegraphics[width=0.49\linewidth]{img/macro_img.jpg}
     \includegraphics[width=0.49\linewidth]{img/macro_enc.jpg}
+    \vspace{-7mm}
 \end{figure}
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -776,12 +654,13 @@ To test for these specific shortcomings, we created two synthetic datasets, name
 To avoid algorithms memorizing these datasets they are generated from scratch for each experiment, depending on $s_\D$. \\
 \begin{figure}[]
 	\centering
+	\caption{Synthetic "Honeypot" and "Diverging Sine" datasets. The optimal decision boundary is not part of the dataset and serves only as a visual guide.}
 	\includegraphics[width=0.4\linewidth]{img/honeypot.jpg}
 	\includegraphics[width=0.4\linewidth]{img/diverging_sin.jpg}
-	\caption{Synthetic "Honeypot" and "Diverging Sine" datasets. The optimal decision boundary is not part of the dataset and serves only as a visual guide.}
 	\label{fig:synthDataAppendix}
 \end{figure}
 %
+\todo{Hier könnte gekürzt werden. Wir brauchen wohl kaum die genaue Anzahl der Punkte}
 Honeypot creates to two easy to distinguish clusters with 150 samples each and one overlapping "honeypot" that represents a noisy region of the dataset with potentially miss-labeled, miss-measured or generally adverse samples.
 This honeypot contains 150 samples of each class, creating a balance of 50\% beneficial samples and 50\% adverse samples in the dataset.
 The honeypot is located on the likely decision boundary of a classifier that is trained on the beneficial samples to maximize its negative impact on purely uncertainty based acquisition functions.
@@ -794,7 +673,7 @@ Both datasets have a budget of $B=60$ and are tested with query sizes 1 and 5.\\
 Results for the Honeypot dataset reveal expected shortcomings of uncertainty sampling algorithms like margin, entropy and least confident sampling as well as BALD.
 In addition, BADGE is underperforming for this dataset compared to real-world data. 
 Results for Diverging Sine also confirm expected behavior, as clustering algorithms (Coreset, TypiClust) fall behind uncertainty algorithms (Entropy-, Margin-Sampling), with the exception of BADGE. \\
-We provide a very small ablation study on the importance of the embeddings by testing a version of Coreset and TypiClust on this dataset that does not use the embeddings produced by the classification model, but rather clusters the data directly.
+We provide a small ablation study on the importance of the embeddings by testing a version of Coreset and TypiClust on this dataset that does not use the embeddings produced by the classification model, but rather clusters the data directly.
 "Coreset Raw" and "TypiClust Raw" both perform worse than their embedding-based counterpart.
 \begin{figure}
 	\centering

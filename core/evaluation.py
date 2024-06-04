@@ -386,9 +386,9 @@ if __name__ == '__main__':
                      "Random", "Coreset", "TypiClust"]
 
     # generate_rank_leaderboard(add_std=True)
-    # generate_rank_leaderboard(add_std=False, subsample_runs=3)
+    generate_rank_leaderboard(add_std=False, subsample_runs=5)
 
-    generate_auc_leaderboard(sorted_agents)
+    # generate_auc_leaderboard(sorted_agents)
 
     # _find_missing_runs()
 
