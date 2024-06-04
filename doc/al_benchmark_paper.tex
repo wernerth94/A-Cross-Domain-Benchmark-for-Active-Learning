@@ -271,7 +271,7 @@ multiple application domains and reports a large amount of runs per
 experiment, so that the significance of performance differences can can be
 estimated. Specifically, \emph{ALBench} consists of datasets from
 computer vision, natural language processing and the tabular domain. We provide
-our datasets both in raw format %(i.e. consisting of text, images etc) 
+our datasets both in normal format %(i.e. consisting of text, images etc)
 as well as ``embedded'' by a fixed embedding model, enabling evaluation of AL methods in
 this semi-supervised setting.
 Furthermore, we propose two novel synthetic datasets to highlight general
@@ -489,10 +489,10 @@ We would like to point out that these datasets are selected for speed of computa
 However, we are solely focused on comparing different AL algorithms in this paper and do not aim to develop novel classification models on these datasets.
 Our assumption is that a well-performing algorithm in our benchmark will also generalize well to larger real-world datasets, because we included multiple different data domains and classifier types and sizes in our experiments. \\ [1mm]
 \todo{Muss die Verbindung zwischen encodings und semi-supervised learning klarer?}
-Adapting the semi-supervised setting from \cite{hacohen2022active}, we offer all our datasets un-encoded (normal) as well as pre-encoded by a fixed embedding model that was trained by unsupervised contrastive learning. 
+Adapting the semi-supervised setting from \cite{hacohen2022active}, we offer all our datasets un-encoded (normal) as well as pre-encoded by a fixed embedding model that was trained by unsupervised contrastive learning (semi-supervised).
 The text datasets are an exception to this, as they are only offered in their encoded form.
 Pre-encoded datasets enable us to test small query sizes on more complex datasets like Cifar10 and FashionMnist.
-They also serve the purpose of investigating the interplay between self-supervised learning techniques and AL, as well as alleviating the cold-start problem described in \cite{luth2024navigating} as they require a way smaller seed set.
+They also serve the purpose of investigating the interplay between semi-supervised learning techniques and AL, as well as alleviating the cold-start problem described in \cite{luth2024navigating} as they require a way smaller seed set.
 The classification model for every encoded dataset is a single linear layer with softmax activation.
 The embedding model was trained with the SimCLR \cite{chen2020simple} algorithm adopting the protocol from \cite{hacohen2022active}. 
 %For Cifar10 and FashionMnist we adapt the reported hyperparameters from \cite{hacohen2022active} and for the tabular datasets we use random search to optimize the hyperparameters.
