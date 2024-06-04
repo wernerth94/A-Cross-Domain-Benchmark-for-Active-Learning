@@ -263,8 +263,10 @@ def _create_plot_for_query_size(ax, dataset, query_size, y_label, title, smoothi
         ax.set_ylim(*y_lim)
     ax.grid(True)
 
-def full_plot(dataset, query_size=None, show_auc=True, radjust=0.8, forecast_oracle=True,
-              smoothing_weight=0.0, y_label="Accuracy", y_lim=None):
+def full_plot(dataset:str, query_size=None, show_auc=True, radjust=0.8, forecast_oracle=True,
+              smoothing_weight=0.0, y_label="Accuracy", y_lim=None, plot_title=None):
+    if plot_title is None:
+        plot_title = dataset
     if query_size is None:
         base_path = os.path.join("runs", dataset)
         query_size = list(os.listdir(base_path))
@@ -281,7 +283,7 @@ def full_plot(dataset, query_size=None, show_auc=True, radjust=0.8, forecast_ora
         legend_created = False
         for i in range(len(query_size)):
             _create_plot_for_query_size(ax[i], dataset, query_size[i], y_label if i%2==0 else "",
-                                        f"{dataset} - {query_size[i]}", smoothing_weight, show_auc,
+                                        f"{plot_title} - {query_size[i]}", smoothing_weight, show_auc,
                                         forecast_oracle, y_lim)
             if not legend_created:
                 fig.legend(loc=7)

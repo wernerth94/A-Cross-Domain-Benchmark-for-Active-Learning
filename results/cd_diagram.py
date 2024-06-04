@@ -447,9 +447,9 @@ if __name__ == '__main__':
     # draw_cd_diagram(df, title="Encoded", file="doc/img/macro_enc.jpg")
 
     # Single Datasets
-    # df = combine_agents_into_df(dataset="ThreeClust", include_oracle=True)
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Honeypot", file="doc/img/micro_honeypot.jpg")
+    df = combine_agents_into_df(dataset="ThreeClust", include_oracle=True)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="Honeypot", file="doc/img/micro_honeypot.jpg")
 
     df = combine_agents_into_df(dataset="DivergingSin", include_oracle=True)
     df = prepare_df(df)

@@ -95,6 +95,7 @@
 % - Query size vs batch size
 % - Acq. function vs. AL Alg. vs. AL Method
 % - (Un-)encoded vs. semi-supervised/normal
+% - ThreeClust vs. Honeypot
 % Gibt es eine Conclusion für die Encoded-Datasets? Im Moment werden die nicht besprochen
 % Methode zum CD-Diagramm genau erklären (paired-t-test etc.) und die Relevanz fürs paper zeigen
 % Advantage-Matrix von Ji et. al. neu aufarbeiten. Wo sind die Unterschiede? Ist das CD-Diagramm besser/schlechter?
@@ -158,16 +159,15 @@ that only a small number of repetitions of experiments are conducted. To overcom
 this obstacles, we propose \emph{ALBench}, the first active learning benchmark
 which includes tasks in computer vision, natural language processing and tabular
 learning. Furthermore, by providing an efficient greedy oracle, \emph{ALBench}
-can be evaluated with 50 runs for each experiment. We will show, that both the
+can be evaluated with 50 runs for each experiment. We show, that both the
 cross-domain character and the large amount of repetitions are crucial for
-sophisticated evaluation of AL research. Concretely, we will show that the
+sophisticated evaluation of AL research. Concretely, we show that the
 superiority of specific methods varies over the different domains, making it
 important to evaluate Active Learning with a cross-domain benchmark.
 Additionally, we show, that having a large amount of runs is crucial. With only
 conducting five runs as often done in the literature, the superiority of
-specific methods can strongly vary with the specific runs. This effect goes so
-far, that it may even happen that dedicated methods like \emph{margin-sampling}
-are not able to outperform the random baseline.
+specific methods can strongly vary with the specific runs. This effect is so strong, that, depending on the seed, even a well-established method's performance can be significantly better and significantly
+worse than random for the same dataset. 
 \end{abstract}
 
 % \begin{abstract}
@@ -204,7 +204,7 @@ are not able to outperform the random baseline.
 % \end{abstract}
 
 
-\section{Introduction}
+\section{Introduction}\label{sec:introduction}
 Deep neural networks (NN) have produced state-of-the-art results on many
 important supervised learning tasks. Since Deep NNs usually require large
 amounts of labeled training data, Active Learning (AL) deals with
@@ -286,9 +286,7 @@ produce to misleading results.
 To be more specific, we show that if only 3 restarts are employed for each experiment, 
 the performance of specific methods strongly varies. As we will see, even the ranking of
 the different methods averaged over many datasets fluctuates with the specific set of runs. 
-This effect is so strong, that even for a well-established method such
-as margin-sampling, it's performance can be significantly better and significantly
-worse than random for the same dataset, depending on the seed. 
+This effect is so strong, that, depending on the seed, even a well-established method's performance can be significantly better and significantly worse than random for the same dataset. 
 
 To enable the computation of an oracle performance for a protocol with large amounts of restarts
 we propose a \emph{greedy oracle function} 
@@ -315,7 +313,7 @@ efficient oracle approximation, multiple application domains, enough repetitions
 draw valid conclusions and two synthetic tasks to highlight shortcomings of AL methods. 
 By being the first benchmark to proving these things in one code-base, 
 we believe that \emph{ALBench} is a major step forward of assessing the overall state of Active Learning research, independent of
-specific application domains. \emph{ALBench} is publicly available under \emph{anonymous}. \\ [1mm]
+specific application domains. \emph{ALBench} is publicly available under \emph{anonymous} \todo{Github}. \\ [1mm]
 Our contributions include the following:
 %
 \begin{enumerate}
@@ -413,7 +411,6 @@ Our best algorithm is margin sampling and we chose the Splice dataset for its av
 This allows us firstly, to obtain a very strong estimation of the "true" average performance of margin sampling on this dataset and secondly, to draw subsets from this pool of 100 runs.
 Setting the size of our draws to $\alpha$ and sampling uniformly, we can approximate a cross-validation process with $\alpha$ restarts.
 Each of these draws can be interpreted as a \textbf{reported result in AL literature} where the authors employed $\alpha$ restarts.
-%We provide evidence in Fig. \ref{fig:restarts} that previous works might not have evaluated their experiments with a sufficient number of restarts.
 Figure \ref{fig:restarts} shows the "true" mean performance of margin sampling (green) in relation to random sampling (black) and the oracle performance (red).
 We display 5 random draws of size $\alpha$ in blue.
 We can observe that even for a relatively high number of restarts the variance between the samples is extremely high, resulting in some performance curves being worse that random and some being significantly better.
@@ -421,7 +418,7 @@ When setting $\alpha = 50$ we observe all samples to converge close to the true 
 \begin{figure}
         \hspace{-20mm}
 	\includegraphics[width=1.24\linewidth]{img/ablation_restarts}
-	\caption{Random draws from a pool of 100 runs for margin sampling on the Splice dataset with different numbers of repetitions ($\alpha=\{5,10,50\}$). Green curves are the mean performance of all 100 runs, while the samples are blue. Even with 5 or 10 repetitions, we can observe that single draws for margin sampling display below-random performance (black), while the true mean should be above random.}
+	\caption{Random draws from a pool of 100 runs for margin sampling on the Splice dataset with different numbers of repetitions ($\alpha=\{3,5,50\}$). Green curves are the mean performance of all 100 runs, while the samples are blue. Even with 3 or 5 repetitions, we can observe that single draws for margin sampling display below-random performance (black), while the true mean should be above random.}
 	\label{fig:restarts}
 \end{figure}
 In addition to this motivating example, we carried out our main evaluation (Tab. \ref{tab:results}) multiple times by uniformly sampling 3 random from our available runs and comparing the results.
@@ -711,6 +708,72 @@ anonymous
 
 \bibliographystyle{plain}
 \bibliography{al_benchmark_paper.bib} 
+\begin{itemize}
+	\item Did you include the license to the code and datasets? \answerYes{See Section~\ref{gen_inst}.}
+	\item Did you include the license to the code and datasets? \answerNo{The code and the data are proprietary.}
+	\item Did you include the license to the code and datasets? \answerNA{}
+\end{itemize}
+
+\begin{enumerate}
+	
+	\item For all authors...
+	\begin{enumerate}
+		\item Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
+		\answerYes{See list of contributions in the Sec. \ref{sec:introduction}.}
+		\item Did you describe the limitations of your work?
+		\answerTODO{}
+		\item Did you discuss any potential negative societal impacts of your work?
+		\answerTODO{}
+		\item Have you read the ethics review guidelines and ensured that your paper conforms to them?
+		\answerTODO{}
+	\end{enumerate}
+	
+	\item If you are including theoretical results...
+	\begin{enumerate}
+		\item Did you state the full set of assumptions of all theoretical results?
+		\answerTODO{}
+		\item Did you include complete proofs of all theoretical results?
+		\answerTODO{}
+	\end{enumerate}
+	
+	\item If you ran experiments (e.g. for benchmarks)...
+	\begin{enumerate}
+		\item Did you include the code, data, and instructions needed to reproduce the main experimental results (either in the supplemental material or as a URL)?
+		\answerTODO{}
+		\item Did you specify all the training details (e.g., data splits, hyperparameters, how they were chosen)?
+		\answerTODO{}
+		\item Did you report error bars (e.g., with respect to the random seed after running experiments multiple times)?
+		\answerTODO{}
+		\item Did you include the total amount of compute and the type of resources used (e.g., type of GPUs, internal cluster, or cloud provider)?
+		\answerTODO{}
+	\end{enumerate}
+	
+	\item If you are using existing assets (e.g., code, data, models) or curating/releasing new assets...
+	\begin{enumerate}
+		\item If your work uses existing assets, did you cite the creators?
+		\answerTODO{}
+		\item Did you mention the license of the assets?
+		\answerTODO{}
+		\item Did you include any new assets either in the supplemental material or as a URL?
+		\answerTODO{}
+		\item Did you discuss whether and how consent was obtained from people whose data you're using/curating?
+		\answerTODO{}
+		\item Did you discuss whether the data you are using/curating contains personally identifiable information or offensive content?
+		\answerTODO{}
+	\end{enumerate}
+	
+	\item If you used crowdsourcing or conducted research with human subjects...
+	\begin{enumerate}
+		\item Did you include the full text of instructions given to participants and screenshots, if applicable?
+		\answerTODO{}
+		\item Did you describe any potential participant risks, with links to Institutional Review Board (IRB) approvals, if applicable?
+		\answerTODO{}
+		\item Did you include the estimated hourly wage paid to participants and the total amount spent on participant compensation?
+		\answerTODO{}
+	\end{enumerate}
+	
+\end{enumerate}
+
 
 \appendix
 \newpage
@@ -855,9 +918,9 @@ P3 Query size. Based on our evaluation of the query size we can empirically conf
 with regard to 1) general AL performance and 2) counteracting the cold start problem. The are,
 however, surprising findings indicating that the exact interaction between query size and performance
 remains an open research question. For instance, we observe the cold start problem for BALD with
-Self-SL on CIFAR-100 (∼ 50% accuracy at 2k labeled samples for query sizes of 500 (low-label
+Self-SL on CIFAR-100 (~50\% accuracy at 2k labeled samples for query sizes of 500 (low-label
 regime) and 1k (mid-label regime). On the other hand, in the high label regime (budget of 5k and
-query size of 5k) ST and Self-SL models with similar accuracies of 50% and 60%, respectively,
+query size of 5k) ST and Self-SL models with similar accuracies of 50\% and 60\%, respectively,
 benefit from BALD. Since cold start problems are commonly associated with large query sizes, this
 finding seems counter-intuitive, but has been reported before although without further investigations
 [6, 20, 43]. To gain a better understanding of this phenomenon and how QMs interact with query
@@ -877,7 +940,7 @@ for higher label regimes [4, 58].
 P4 Classifer configuration. Our results show that method configuration on a properly sized validation
 set is essential for realistic evaluation in AL. For instance, our method configuration has the same
 effect on the classifier performance as increasing the number of labeled training samples by a factor
-of ∼ 5 (e.g. our ST model reach approximately the same accuracy of ∼ 44% trained on 200 samples
+of ~5 (e.g. our ST model reach approximately the same accuracy of ~44\% trained on 200 samples
 compared to models in the AL study by Bengar et al. [6] trained on 1k samples). The effectiveness of
 our proposed lightweight HP selection on the starting budget including only three parameters (Sec. 3)
 is demonstrated by the fact that all our ST models substantially outperform respective models found
@@ -1206,313 +1269,89 @@ This highlights the need for many repetitions in AL experiments.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Individual Results}\label{app:all_results}
 % Splice
-\begin{minipage}{0.65\linewidth}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{img/eval_splice}\\ [2mm]
-    \includegraphics[width=\linewidth]{img/micro_splice.jpg}
+    \caption{Performance curves per query size for normal (un-encoded) Splice}
+    \includegraphics[width=\linewidth]{img/eval_splice}
 \end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-    &Splice \\
-    \hline
-    Oracle&0.811 $\pm$ 0.010\\
-    BALD&0.785 $\pm$ 0.013\\
-    Coreset&0.778 $\pm$ 0.014\\
-    Entropy&0.774 $\pm$ 0.016\\
-    Margin&0.773 $\pm$ 0.016\\
-    Badge&0.770 $\pm$ 0.016\\
-    Random&0.768 $\pm$ 0.014\\
-    TypiClust&0.766 $\pm$ 0.014\\
-\end{tabular}
-\end{minipage}
-%DNA
-\begin{minipage}{0.65\linewidth}
-\begin{figure}[H]
-    \centering
-	\includegraphics[width=\linewidth]{img/eval_dna} \\ [2mm]
-        \includegraphics[width=\linewidth]{img/micro_dna.jpg}
-\end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&DNA \\
-\hline
-Oracle&0.842 $\pm$ 0.021\\
-Margin&0.807 $\pm$ 0.035\\
-Entropy&0.805 $\pm$ 0.038\\
-Coreset&0.796 $\pm$ 0.028\\
-Badge&0.789 $\pm$ 0.056\\
-TypiClust&0.788 $\pm$ 0.036\\
-Random&0.768 $\pm$ 0.024\\
-BALD&0.749 $\pm$ 0.044\\
-\end{tabular}
-\end{minipage}
-%USPS
-\begin{minipage}{0.65\linewidth}
-\begin{figure}[H]
-    \centering
-	\includegraphics[width=\linewidth]{img/eval_usps} \\ [2mm]
-	\includegraphics[width=\linewidth]{img/micro_usps.jpg}
-\end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&USPS\\
-\hline
-TypiClust&0.830 $\pm$ 0.007\\
-Oracle&0.823 $\pm$ 0.011\\
-Margin&0.809 $\pm$ 0.013\\
-Entropy&0.807 $\pm$ 0.013\\
-Badge&0.795 $\pm$ 0.018\\
-Coreset&0.788 $\pm$ 0.017\\
-Random&0.774 $\pm$ 0.012\\
-BALD&0.725 $\pm$ 0.050\\
-\end{tabular}
-\end{minipage}
 %Splice Enc
-\begin{minipage}{0.65\linewidth}
+\begin{figure}[H]
+\centering
+\caption{Performance curves per query size for semi-supervised (encoded) Splice}
+\includegraphics[width=\linewidth]{img/eval_splice_enc}
+\end{figure}
+%DNA
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{img/eval_splice_enc} \\ [2mm]
-    \includegraphics[width=\linewidth]{img/micro_splice_enc.jpg}
+    \caption{Performance curves per query size for normal (un-encoded) DNA}
+	\includegraphics[width=\linewidth]{img/eval_dna}
 \end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&SpliceEncoded \\
-\hline
-Oracle&0.728 $\pm$ 0.022\\
-Coreset&0.648 $\pm$ 0.027\\
-TypiClust&0.645 $\pm$ 0.042\\
-Random&0.643 $\pm$ 0.036\\
-Entropy&0.636 $\pm$ 0.033\\
-Margin&0.636 $\pm$ 0.033\\
-Badge&0.627 $\pm$ 0.040\\
-BALD&0.565 $\pm$ 0.049\\
-\end{tabular}
-\end{minipage}
 %DNA Enc
-\begin{minipage}{0.65\linewidth}
+\begin{figure}[H]
+\centering
+\caption{Performance curves per query size for semi-supervised (encoded) DNA}
+\includegraphics[width=\linewidth]{img/eval_dna_enc} 
+\end{figure}
+%USPS
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{img/eval_dna_enc}\\ [2mm]
-    \includegraphics[width=\linewidth]{img/micro_dna_enc.jpg} 
+    \caption{Performance curves per query size for normal (un-encoded) USPS}
+	\includegraphics[width=\linewidth]{img/eval_usps}
 \end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&DNAEncoded\\
-\hline
-Oracle&0.709 $\pm$ 0.023\\
-TypiClust&0.672 $\pm$ 0.029\\
-Margin&0.648 $\pm$ 0.047\\
-Badge&0.647 $\pm$ 0.037\\
-Coreset&0.640 $\pm$ 0.041\\
-Entropy&0.629 $\pm$ 0.062\\
-Random&0.626 $\pm$ 0.035\\
-BALD&0.594 $\pm$ 0.039\\
-\end{tabular}
-\end{minipage}
 %USPS Enc
-\begin{minipage}{0.65\linewidth}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{img/eval_usps_enc}\\ [2mm]
-    \includegraphics[width=\linewidth]{img/micro_usps_enc.jpg} 
+    \caption{Performance curves per query size for semi-supervised (encoded) USPS}
+    \includegraphics[width=\linewidth]{img/eval_usps_enc}
 \end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&USPSEncoded\\
-\hline
-Oracle&0.522 $\pm$ 0.021\\
-TypiClust&0.507 $\pm$ 0.025\\
-Margin&0.496 $\pm$ 0.030\\
-Random&0.468 $\pm$ 0.025\\
-Entropy&0.459 $\pm$ 0.021\\
-Badge&0.440 $\pm$ 0.026\\
-Coreset&0.435 $\pm$ 0.027\\
-BALD&0.402 $\pm$ 0.052\\
-\end{tabular}
-\end{minipage}
 %Cifar10
-\begin{minipage}{0.65\linewidth}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{img/eval_cifar10}\\ [2mm]
-    \includegraphics[width=\linewidth]{img/micro_cifar10.jpg}
+    \caption{Performance curves per query size for normal (un-encoded) Cifar10}
+    \includegraphics[width=\linewidth]{img/eval_cifar10}
 \end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&Cifar10\\
-\hline
-Oracle&0.500 $\pm$ 0.010\\
-Badge&0.453 $\pm$ 0.012\\
-Coreset&0.453 $\pm$ 0.009\\
-Margin&0.451 $\pm$ 0.010\\
-Random&0.450 $\pm$ 0.012\\
-Entropy&0.449 $\pm$ 0.010\\
-TypiClust&0.436 $\pm$ 0.010\\
-BALD&0.436 $\pm$ 0.010\\
-\end{tabular}
-\end{minipage}
-%FMnist
-\begin{minipage}{0.65\linewidth}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{img/eval_fmnist}\\ [2mm]
-    \includegraphics[width=\linewidth]{img/micro_fmnist.jpg}
-\end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&FashionMnist\\
-\hline
-Oracle&0.862 $\pm$ 0.003\\
-BALD&0.854 $\pm$ 0.003\\
-Margin&0.851 $\pm$ 0.003\\
-Badge&0.851 $\pm$ 0.003\\
-Entropy&0.847 $\pm$ 0.004\\
-TypiClust&0.846 $\pm$ 0.004\\
-Coreset&0.840 $\pm$ 0.004\\
-Random&0.837 $\pm$ 0.004\\
-\end{tabular}
-\end{minipage}
 %Cifar10 Encoded
-\begin{minipage}{0.65\linewidth}
+\begin{figure}[H]
+\centering
+\caption{Performance curves per query size for semi-supervised (encoded) Cifar10}
+\includegraphics[width=\linewidth]{img/eval_cifar10_enc}
+\end{figure}
+%FMnist
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{img/eval_cifar10_enc} \\ [2mm]
-    \includegraphics[width=\linewidth]{img/micro_cifar10_enc.jpg} 
+    \caption{Performance curves per query size for normal (un-encoded) FashionMnist}
+    \includegraphics[width=\linewidth]{img/eval_fmnist}
 \end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&Cifar10Encoded\\
-\hline
-Oracle&0.714 $\pm$ 0.007\\
-Entropy&0.654 $\pm$ 0.013\\
-Coreset&0.653 $\pm$ 0.012\\
-Badge&0.653 $\pm$ 0.012\\
-BALD&0.650 $\pm$ 0.016\\
-Margin&0.647 $\pm$ 0.012\\
-TypiClust&0.636 $\pm$ 0.009\\
-Random&0.607 $\pm$ 0.013\\
-\end{tabular}
-\end{minipage}
 %FashionMnist Encoded
-\begin{minipage}{0.65\linewidth}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{img/eval_fmnist_enc} \\ [2mm]
-\includegraphics[width=\linewidth]{img/micro_fmnist_enc.jpg} 
+    \caption{Performance curves per query size for semi-supervised (encoded) FashionMnist}
+    \includegraphics[width=\linewidth]{img/eval_fmnist_enc}
 \end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&FashionMnistEncoded\\
-\hline
-Oracle&0.732 $\pm$ 0.006\\
-Coreset&0.686 $\pm$ 0.008\\
-Badge&0.685 $\pm$ 0.008\\
-Entropy&0.684 $\pm$ 0.009\\
-Margin&0.682 $\pm$ 0.011\\
-BALD&0.668 $\pm$ 0.009\\
-TypiClust&0.652 $\pm$ 0.009\\
-Random&0.640 $\pm$ 0.011\\
-\end{tabular}
-\end{minipage}
 %TopV2
-\begin{minipage}{0.65\linewidth}
 \begin{figure}[H]
     \centering
-\includegraphics[width=\linewidth]{img/eval_topv2} \\[2mm]
-\includegraphics[width=\linewidth]{img/micro_topv2.jpg}
+    \caption{Performance curves per query size for normal (GloVe) TopV2}
+\includegraphics[width=\linewidth]{img/eval_topv2}
 \end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&TopV2\\
-\hline
-Oracle&0.862 $\pm$ 0.006\\
-BALD&0.831 $\pm$ 0.013\\
-Badge&0.826 $\pm$ 0.015\\
-Coreset&0.823 $\pm$ 0.016\\
-Margin&0.822 $\pm$ 0.015\\
-TypiClust&0.805 $\pm$ 0.015\\
-Entropy&0.801 $\pm$ 0.025\\
-Random&0.787 $\pm$ 0.015\\
-\end{tabular}
-\end{minipage}
 %News
-\begin{minipage}{0.65\linewidth}
 \begin{figure}[H]
     \centering
-\includegraphics[width=\linewidth]{img/eval_news} \\[2mm]
-\includegraphics[width=\linewidth]{img/micro_news.jpg}
+    \caption{Performance curves per query size for normal (GloVe) News}
+\includegraphics[width=\linewidth]{img/eval_news}
 \end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&News\\
-\hline
-Oracle&0.502 $\pm$ 0.005\\
-Margin&0.427 $\pm$ 0.007\\
-BALD&0.421 $\pm$ 0.008\\
-Badge&0.420 $\pm$ 0.011\\
-Entropy&0.416 $\pm$ 0.010\\
-Coreset&0.415 $\pm$ 0.011\\
-Random&0.409 $\pm$ 0.008\\
-TypiClust&0.385 $\pm$ 0.010\\
-\end{tabular}
-\end{minipage}
 %ThreeClust
-\begin{minipage}{0.65\linewidth}
 \begin{figure}[H]
     \centering
-\includegraphics[width=\linewidth]{img/eval_threeclust.pdf} \\[2mm]
-\includegraphics[width=\linewidth]{img/micro_threeclust.jpg}
+    \caption{Performance curves per query size for normal (un-encoded) Honeypot}
+\includegraphics[width=\linewidth]{img/eval_honeypot}
 \end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&ThreeClust \\
-\hline
-Oracle&0.722 $\pm$ 0.097\\
-Coreset&0.698 $\pm$ 0.058\\
-TypiClust&0.697 $\pm$ 0.055\\
-Entropy&0.682 $\pm$ 0.098\\
-Random&0.672 $\pm$ 0.067\\
-Margin&0.669 $\pm$ 0.095\\
-Badge&0.524 $\pm$ 0.086\\
-BALD&0.507 $\pm$ 0.050\\
-\end{tabular}
-\end{minipage}
 %DivergingSin
-\begin{minipage}{0.65\linewidth}
 \begin{figure}[H]
     \centering
-\includegraphics[width=\linewidth]{img/eval_divergingsin.pdf} \\[2mm]
-\includegraphics[width=\linewidth]{img/micro_divsin.jpg}
+    \caption{Performance curves per query size for normal (un-encoded) Diverging Sine}
+\includegraphics[width=\linewidth]{img/eval_diverging_sine}
 \end{figure}
-\end{minipage}
-\begin{minipage}{0.29\linewidth}
-\begin{tabular}{c|c}
-&DivergingSin\\
-\hline
-Oracle&0.948 $\pm$ 0.198\\
-Entropy&0.936 $\pm$ 0.202\\
-TypiClust&0.930 $\pm$ 0.196\\
-Margin&0.929 $\pm$ 0.201\\
-Random&0.919 $\pm$ 0.191\\
-Badge&0.914 $\pm$ 0.202\\
-Coreset&0.914 $\pm$ 0.197\\
-BALD&0.661 $\pm$ 0.167\\
-\end{tabular}
-\end{minipage}
 
 
 \section{Seeding Strategy}\label{app:seeding_strategy}
