@@ -762,11 +762,189 @@ anonymous
 TODO
 
 
+Recommendation. Use the backbone architecture with
+the community-accepted definition that is best suited
+for the dataset at hand and consistently use it across all
+experiments. In the image classification domain, we
+suggest using ResNet18 for CIFAR-10 and CIFAR-100.
+
+Recommendation. Control the type of optimizer across
+methods for comparative evaluations to ensure that the
+yield performance difference stems from an active learning method itself. As SGD often generalizes better, we
+encourage its use for deep active learning.
+
+Recommendation. Pragmatically fix the learning rate
+to 0.1 for SGD on image datasets. While continuous
+hyperparameter tuning can improve overall performance,
+a fixed learning rate does not change the ranking of AL
+methods from a comparative evaluation’s point of view.
+
+Recommendation. One may use data augmentation if
+applied consistently across methods, such that it does
+not affect the overall ranking. However, a commonly
+accepted baseline is needed, e.g., random horizontal flipping and random cropping for image classification.
+
+Recommendation. Refine model parameters across AL
+batch (“warm starts”) to prevent exhaustive reinitialization and feed initialization of the backbone model’s
+weights and the “init sets” with fixed inputs over multiple runs to average out the randomness. Moreover, use
+identical seeds for all methods under investigation.
+
+Recommendation. Run experiments multiple times to
+compensate for non-deterministic operations. If the resulting variance is larger than the gained improvement,
+use deterministic operations stringently
+
+Recommendation SW. Configure and verify influence parameter in active learning implementations thoroughly. To foster future research, we
+provide implementations as part of our framework at:
+https://intellisec.de/research/eval-al
+
+Recommendation HW. Ensure that comparative evaluations are run on identical hardware. While it is not
+necessary to execute all experiments on the same physical device, the GPU model, for instance, should be the
+same. Do not mix hardware and list hardware details.
+
+Recommendation. Consider multiple query-batch sizes
+in the evaluation. The choice of the sizes needs to be
+appropriate for the total number of unlabeled samples.
+
+Recommendation. Compare active learning strategies
+without sub-sampling, unless one of the approaches uses
+it as a fundamental building block. In this case a detailed
+analysis of the influence of sub-sampling is necessary.
+
+Recommendation. Evaluate active learning strategies
+on multiple benchmark datasets, that comprise balanced,
+imbalanced, small-scale, and large-scale datasets to cover
+most relevant cases in practice.
+
+Recommendation. For a comprehensive analysis of
+AL strategies, the overall comparative evaluation should
+incorporate as many variables from Section 3 to yield a
+summarized PPM that is as expressive as possible.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{AL Pitfalls from Lueth et al.}\label{app:pitfalls}
 TODO
+
+P1 Data distribution. The proposed evaluation over a diverse selection of dataset distributions
+including specific roll-out datasets proved essential for realistic evaluation of QMs as well as the
+different training strategies. One main insight is the fact that class distribution is a crucial predictor
+for the potential performance gains of AL on a dataset: Performance gains of AL are generally higher
+on imbalanced datasets and occur consistently even for ST models with a small starting budget,
+which are typically prone to experience cold start problems. This observation is consistent with a few
+previous studies [30, 35, 54]. Further, our results underpin the importance of the roll-out datasets e.g.
+when looking at the sub-random performance of BALD (with Self-SL) and Entropy (with ST) on
+MIO-TCD. Such worst-case failures of AL application (increased compute and labeling effort due to
+AL) could not have been predicted based on development data where all AL-parameters are optimized.
+Another example is the lack of generalizability of Semi-SL, where performance in relation to other
+Self-SL and ST decreases gradually with data complexity (going from CIFAR-10 to CIFAR-100/-10
+LT to the two roll-out datasets MIO-TCD and ISIC-2019.)
+
+P2 Starting budget. The comprehensive study of various starting budgets on all datasets reveals
+that AL methods are more robust with regard to small starting budgets than previously reported
+[6, 20, 43]. With the exception of Entropy we did not observe cold start problems even for any QM
+even in combination with notoriously prone ST models. The described robustness is presumably
+enabled by our thorough classifier configuration (P4) and heuristically adapted query sizes (P3). This
+finding has great impact potential suggesting that AL can be applied at earlier points in the annotation
+process thereby further reducing the labeling cost, especially in combination with BADGE which
+performed consistently better or on par with Random. Similarly for Self-SL models, AL performs
+well on small starting budgets with the exceptions of CIFAR-100 (BALD, Entropy) and MIO-TCD
+(BALD, Core-Set, Entropy).
+
+P3 Query size. Based on our evaluation of the query size we can empirically confirm its importance
+with regard to 1) general AL performance and 2) counteracting the cold start problem. The are,
+however, surprising findings indicating that the exact interaction between query size and performance
+remains an open research question. For instance, we observe the cold start problem for BALD with
+Self-SL on CIFAR-100 (∼ 50% accuracy at 2k labeled samples for query sizes of 500 (low-label
+regime) and 1k (mid-label regime). On the other hand, in the high label regime (budget of 5k and
+query size of 5k) ST and Self-SL models with similar accuracies of 50% and 60%, respectively,
+benefit from BALD. Since cold start problems are commonly associated with large query sizes, this
+finding seems counter-intuitive, but has been reported before although without further investigations
+[6, 20, 43]. To gain a better understanding of this phenomenon and how QMs interact with query
+size in the low-label regime, we performed a dedicated experiment series for Self-SL training on
+CIFAR-100 and ISIC-2019 (see Figure 3 and Appendix F.2). Due to a significant improvement
+of BALD on CIFAR-100 for even smaller query sizes from sub-Random to Random performance
+and no worsening on ISIC-2019, we can conclude that small query sizes represent an effective
+countermeasure against the cold-start problem for BALD contrary to the findings of [44, 58] and
+currently not considered as a solution [6, 20, 43]. This potentially explains the gap between these
+findings and more theoretical works which advertise using the smallest query size possible [19, 33].
+Importantly, while smaller query sizes appear as a potential solution for the observed instabilities of
+BALD, they seem to have no considerable effect on the other QMs. Moreover, our ablation reveals
+that even in the low-label settings, BADGE is the overall most reliable of all compared QMs and
+exhibits no sub-Random performance. This adds to the existing reports of the robustness of BADGE
+for higher label regimes [4, 58].
+
+P4 Classifer configuration. Our results show that method configuration on a properly sized validation
+set is essential for realistic evaluation in AL. For instance, our method configuration has the same
+effect on the classifier performance as increasing the number of labeled training samples by a factor
+of ∼ 5 (e.g. our ST model reach approximately the same accuracy of ∼ 44% trained on 200 samples
+compared to models in the AL study by Bengar et al. [6] trained on 1k samples). The effectiveness of
+our proposed lightweight HP selection on the starting budget including only three parameters (Sec. 3)
+is demonstrated by the fact that all our ST models substantially outperform respective models found
+in relevant literature [6, 20, 30, 35, 43, 54, 55] where HP optimization is generally neglected. Details
+for this comparison are provided in Appendix H. This raises the question of to which extent reported
+AL advantages could have been achieved by simple classifier configurations. Further, our models
+also generally outperform expensively configured models by Munjal et al. [44]. Thus, we conclude
+that manually constraining the search space renders HP optimization feasible in practice without
+decreasing performance and ensures performance gains by Active Learning are not overstated. The
+importance of the proposed strategy to optimize HPs on the starting budget for each new dataset is
+supported by the fact that the resulting configurations change across datasets.
+
+P5 Alternative training paradigms. Based on our study benchmarking AL in the context of
+both Self-SL and Semi-SL, we see that while Self-SL generally leads to improvements across all
+experiments, Semi-SL only leads to considerably improved performance on the simpler datasets
+CIFAR-10/100, on which Semi-SL methods are typically developed. Generally, models trained
+with either of the two training paradigms receive a lower performance gain from AL (over random
+querying) compared to ST. Crucially, Self-SL models converge around 2.5 times faster than ST
+models, while the training time of Semi-SL models is around 80 times longer than ST and often yields
+only small benefits over Self-SL or ST models. The fact that AL entails multiple training iterations
+amplifies the computational burden of Semi-SL, rendering their combination prohibitively expensive
+in most practical scenarios. Further, the fact that our Semi-SL models based on Fixmatch do not seem
+to generalize to more complex datasets in our setting stands in stark contrast to conclusions drawn by
+[20, 43] as to which the emergence of Semi-SL renders AL redundant. Interestingly, the exact settings
+where Semi-SL does not provide benefits in our study are the ones where AL proved advantageous.
+The described contradiction with the literature underlines the importance of our proposed protocol
+testing for a method’s generalizability to unseen datasets. This is especially critical for Semi-SL,
+which is known for unstable performance on noisy and class imbalanced datasets as noted by studies
+focusing on Semi-SL [7, 22, 23, 29, 45, 56].
+
+
+OPTIONAL - aus deren conclusion
+Main empirical insights revealed by our study:
+\begin{itemize}
+\item Assessment of AL methods in the literature is substantially hampered by subpar classifier configurations, but meaningful assessment can be restored by our protocol for lightweight hyperparameter
+tuning on the starting budget.
+\item AL generally provides substantial gains in class-imbalanced settings.
+\item BADGE is the best-performing QM across a realistic range of datasets, starting budgets, and query
+sizes and exhibits no failure modes (i.e. sub-Random performance).
+\item Combining AL with Self-SL considerably improves performance, shortens the training time, and
+stabilizes optimization, especially in low-label settings.
+\item FixMatch results indicate that Semi-SL methods perform well on datasets where they have been
+developed, but may struggle to generalize to more realistic scenarios such as class imbalanced data.
+Combining the paradigm with AL additionally suffers from extensive training times.
+\item BALD with Self-SL pre-trained models benefits from smaller query sizes on small starting budgets
+possibly circumventing the "cold start problem".
+\end{itemize}
+
+Take-aways for developing and proposing new Active Learning algorithms:
+AL methods should be tested for generalizability on roll-out datasets and come with a clear recipe
+for real-world application including how to adapt all design choices to new settings. Since the
+expected benefit of AL on a new setting increases with lower application costs, we believe there is a
+high potential for wide-spread real-world use of AL by reducing the two prevalent cost factors: 1)
+Engineering costs, which are reduced by building easy-to-use AL tools. 2) Computational costs,
+which are reduced by explicitly including methods that shorten the training time in AL.
+
+Take-aways for the cost-benefit analysis of deploying Active Learning:
+\begin{enumerate}
+\item Since we identify BADGE as a robust query method exhibiting no sub-random-sampling performance across all tested settings, the potential harm of AL is minimized allowing to base decisions
+around deploying AL on the described cost-benefit analysis.
+\item The expected benefit is high in settings, where there is a mismatch between the task-specific
+importance of individual classes and their frequency in the dataset (e.g. class-imbalanced datasets
+in combination with tasks requiring a balanced classifier).
+\item The expected benefit further increases with the labeling cost that will be reduced by AL. AL is thus
+likely to yield a net benefit in settings with high label cost and low computational and engineering
+costs.
+\end{enumerate}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
