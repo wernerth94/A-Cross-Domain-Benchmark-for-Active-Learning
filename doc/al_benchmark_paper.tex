@@ -96,7 +96,7 @@ sophisticated evaluation of AL research. Concretely, we show that the
 superiority of specific methods varies over the different domains, making it
 important to evaluate Active Learning with a cross-domain benchmark.
 Additionally, we show that having a large amount of runs is crucial. With only
-conducting five runs as often done in the literature, the superiority of
+conducting three runs as often done in the literature, the superiority of
 specific methods can strongly vary with the specific runs. This effect is so strong, that, depending on the seed, even a well-established method's performance can be significantly better and significantly
 worse than random for the same dataset. 
 \end{abstract}
@@ -189,7 +189,7 @@ shortcomings of different algorithms and wether they are domain-independent are 
 
 Here we step in with \emph{CDALBench}, an AL benchmark which covers
 multiple application domains and reports a large amount of runs per
-experiment, so that the significance of performance differences can can be
+experiment, so that the significance of performance differences can be
 estimated. Specifically, \emph{CDALBench} consists of datasets from
 computer vision, natural language processing and the tabular domain. We provide
 our datasets both in normal format %(i.e. consisting of text, images etc)
@@ -304,7 +304,7 @@ $$\min \quad \frac{1}{B} \sum\limits_{i=0}^B \mathbb{E}_{(x,y) \sim \rho} \ell(y
 While multiple benchmark suites have been proposed for AL, none of them provide experiments for more than two domains.
 The authors of \cite{beck2021effective}, \cite{munjal2022towards}, \cite{li2022empirical}, \cite{ji2023randomness} and \cite{luth2024navigating} even focus exclusively on the image domain.
 Especially the tabular domain is underrepresented in preceding benchmarks, as only \cite{zhan2022comparative} provides experiments for it.
-Experiments on the interplay between AL and semi-supervised learning are similarly under-researched, as only two works exist \cite{li2022empirical, luth2024navigating}, both of them only using images.
+The interplay between AL and semi-supervised learning is similarly under-researched, as only two works exist \cite{li2022empirical, luth2024navigating}, both of them only using images.
 An oracle algorithm has been proposed by two works \cite{zhou2021towards, zhan2022comparative}. 
 Both of these algorithms rely on search and are computationally very expensive, while our proposed method efficiently can be constructed sequentially.
 %While \cite{beck2021effective} discuss a new metric to measure AL performance, which they call ``Label Efficiency'' and provide experiments on many common configurations of data preparation, model training, and other hyperparameters, \cite{li2022empirical} focuses on combined approaches of AL and semi-supervised learning.
@@ -351,7 +351,7 @@ For this benchmark we employ 50 repetitions of every experiment.
 \subsection{Seeding vs. Repetitions}\label{sec:reproducibility}
 Considering the high computational cost of 50 repetitions, another approach to ensure consistency between experiments would be to reduce the amount of variance in the experiment by keeping as many subsystems (weight initialization, data splits, etc.) as possible fixed with specialized seeding. \\
 We describe a novel seeding strategy in Appendix \ref{app:seeding_strategy} that is capable of tightly controlling the amount variance in the experiment.
-However, previous works have noted that an actively sampled, labeled set does not generalize well between model architectures or even different initializations of the same model (\cite{zhou2021towards, lowell2018practical}), providing a bad approximation of the quality of an AL method (i.e. measured performances for an method might not even transfer to a different model initialization).
+However, previous works have noted that an actively sampled, labeled set does not generalize well between model architectures or even different initializations of the same model (\cite{zhou2021towards, lowell2018practical}), providing a bad approximation of the quality of an AL method (i.e. measured performances for an AL method might not even transfer to a different model initialization).
 Hence, we opt for letting the subsystems vary in controlled way (For details, please refer to App. \ref{app:seeding_strategy}) and combine that with a high number of repetitions to obtain a good average of the generalization performance of each AL method. 
 
 
@@ -368,15 +368,15 @@ Hence, we opt for letting the subsystems vary in controlled way (For details, pl
 		\begin{tabular}{l|l|c|c|c|c|c|c|c|c}
 			& Model  & B & 1 & 5 & 20 & 50 & 100 & 500 & 1K \\
 			\hline
-			Enc. DNA    & Linear & 40 & o & o &&&&& \\
-			Enc. Splice & Linear & 100 & o & o & o & o &&&\\
+			Semi DNA    & Linear & 40 & o & o &&&&& \\
+			Semi Splice & Linear & 100 & o & o & o & o &&&\\
 			TopV2       & BiLSTM & 200 & o & o & o & o &&& \\
 			Splice      & MLP    & 400 & o & o & o & o & o && \\
 			DNA         & MLP    & 300 & o & o & o & o & o && \\
 			USPS        & MLP    & 400 & o & o & o & o & o && \\
-			Enc. Cifar10& Linear & 450 & o & o & o & o & o && \\
-			Enc. FMnist & Linear & 500 & o & o & o & o & o && \\
-			Enc. USPS   & Linear & 600 & o & o & o & o & o && \\
+			Semi Cifar10& Linear & 450 & o & o & o & o & o && \\
+			Semi FMnist & Linear & 500 & o & o & o & o & o && \\
+			Semi USPS   & Linear & 600 & o & o & o & o & o && \\
 			News        & BiLSTM & 3K &&& o & o & o & o &\\
 			FMnist      & ResNet18& 10K &&&&&& o & o\\
 			Cifar10     & ResNet18& 10K &&&&&& o & o \\
@@ -398,9 +398,9 @@ Text datasets have seen less attention in AL research, but most of the papers th
 We use both, as they complement each other in size and complexity. \\ [1mm]
 %
 We would like to point out that these datasets are selected for speed of computation (both in terms of the required classifier and the necessary budget to solve the dataset). 
-However, we are solely focused on comparing different AL methods in this paper and do not aim to develop novel classification models on these datasets.
-Our assumption is that a well-performing method in our benchmark will also generalize well to larger real-world datasets, because we included multiple different data domains, classifier types and sizes in our experiments. \\ [1mm]
-Adapting the semi-supervised setting from \cite{hacohen2022active}, we offer all our datasets un-encoded (normal) as well as pre-encoded by a fixed embedding model that was trained by unsupervised contrastive learning (semi-supervised).
+We are solely focused on comparing different AL methods in this paper and do not aim to develop novel classification models on these datasets.
+Our assumption is that a well-performing method in our benchmark will also generalize well to larger datasets and classifiers, because we included multiple different data domains, classifier types and sizes in our experiments. \\ [1mm]
+Adapting the semi-supervised setting from \cite{hacohen2022active}, we offer all our datasets un-encoded (normal) as well as pre-encoded (semi-supervised) by a fixed embedding model that was trained by unsupervised contrastive learning .
 The text datasets are an exception to this, as they are only offered in their encoded form.
 Pre-encoded datasets enable us to test small query sizes on more complex datasets like Cifar10 and FashionMnist.
 They also serve the purpose of investigating the interplay between semi-supervised learning techniques and AL, as well as alleviating the cold-start problem described in \cite{luth2024navigating} as they require a way smaller seed set.
@@ -410,7 +410,7 @@ The embedding model was trained with the SimCLR \cite{chen2020simple} algorithm 
 To ensure that enough information from the data is encoded by our embedding model, the quality of embeddings during pretext training was measured after each epoch.
 To this end, we attached a linear classification head to the encoder, fine-tuned it to the data and evaluated this classifier for test accuracy. 
 The checkpoint of each encoder model will be provided together with the framework. \\ [1mm]
-Every dataset has a fixed size for the seed set of 1 sample per class, with the only exceptions being un-encoded FashionMnist and Cifar10 with 100 examples per class to alleviate the cold-start problem in these complex domains. 
+Every dataset has a fixed size for the seed set $\LL^{(0)}$ of 1 sample per class, with the only exceptions being un-encoded FashionMnist and Cifar10 with 100 examples per class to alleviate the cold-start problem in these complex domains. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Query Sizes}\label{sec:batch_sizes}
@@ -445,8 +445,8 @@ Since AUC is still influenced by the budget, we define a set of rules to set thi
 In this work, we choose the budget per dataset to be the first point at which one of 2 stopping conditions apply: (i) an method (except oracle) manages to reach 99\% of the full-dataset-performance (using the smallest query size) or (ii) the best method (except oracle) did not improve the classifier's accuracy by at least 2\% in the last 20\% of iterations.
 The first rule follows \cite{ji2023randomness}, while the second rule prevents excessive budgets for cases with diminishing returns in the budget.
 The resulting budgets can be found in Tab. \ref{tab:batch_sizes}. \\ [1mm]
-As described in Sec. \ref{sec:restarts}, we repeat each experiment multiple times.
-Each repetition retains the train/test split (often given by the dataset itself), but creates a new validation split that is sampled (based on $s_\D$) from the entire dataset (not just the seed set $\LL^{(0)}$). \\ [1mm]
+As described in Sec. \ref{sec:restarts}, we repeat each experiment 50 times.
+Each repetition retains the train/test split (often given by the dataset itself), but creates a new validation split that is sampled from the entire dataset (not just the seed set $\LL^{(0)}$). \\ [1mm]
 %
 Apart from plotting standard performance curves and reporting their AUC values per dataset in App. \ref{app:all_results}, we primarily rely on ranks to aggregate the performance of an AL method across datasets.
 For each dataset and query size, the AUC values of all AL methods are sorted and assigned a rank based on position, with the best rank being 1.
@@ -460,12 +460,12 @@ For a detailed description of how every CD diagram is created, please refer to A
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{A Greedy Oracle Algorithm}\label{sec:oracle} 
-Using additional resources, like excessive training time, or direct access to the labeled test set, an oracle method for AL finds the oracle set $\mathcal{O}_b$ for a given dataset, model, and
+Using additional resources, like excessive training time, or direct access to a labeled test set, an oracle method for AL finds the oracle set $\mathcal{O}_b$ for a given dataset, model, and
 training procedure that induces the highest AUC score for a given budget.
-However, due to the combinatorial nature of the problem, it is computationally
+However, due to the combinatorial nature of the problem, this is computationally
 infeasible for realistic datasets. Hence, previous works have proposed
 approximations to this oracle sequence. \cite{zhou2021towards} used simulated
-annealing to search for a subset with maximal test accuracy and used the best solution found
+annealing to search for a subset with maximal test accuracy and used the best solution
 after a fixed time budget. 
 Even though their reported performance curves display
 a significant lift over all other AL methods, we found the
@@ -474,10 +474,10 @@ prohibitive (The authors reported the search to take several days per dataset on
 8 V100 GPUs). In this paper, we propose a greedy oracle algorithm that
 constructs an approximation of the optimal set in an iterative fashion. 
 Our oracle algorithm
-uniformly samples at iteration $i$ a subset $\mathcal{U}_S$ of the not already
+uniformly samples at iteration $i$ a subset $\mathcal{U}_S$ of size $\tau$ of the not already
 labeled data points $\mathcal{U}^{(i)}$.
 Then it recovers the label $y$ for each of the sampled $u \in \mathcal{U}_S$ and selects the
-point $u$ for which the classifier $\hat{y}$ trained on
+point $u$ for which the classifier $\hat{y}^{(i)}$ trained on
 $\mathcal{L}^{(i)} \cup \{u\}$ has maximal performance.
 %Our oracle algorithm evaluates every data point $u_k =
 %\operatorname{unif(\mathcal{U}) \quad k \in [1 \ldots \tau]}$ in a subsample of
@@ -487,7 +487,7 @@ $\mathcal{L}^{(i)} \cup \{u\}$ has maximal performance.
 %The data point that incurs the largest lift in test performance is
 %selected and added to the labeled pool for that iteration.
 Due to the algorithms greedy nature (considering only the next point to pick),
-our oracle frequently encounters situations where every point in $u_k$ would
+our oracle frequently encounters situations where every point in $u$ would
 incur a negative lift (worsening the test performance). This can happen, for
 example, if the oracle picked a labeled set that enables the classifier to
 correctly classify a big portion of easy samples in the test set, but now fails
@@ -498,7 +498,8 @@ therefore the selected data point can be considered random. To circumvent this
 problem, we use our best-performing AL method (margin sampling
 \cite{wang2014new}) as a fallback option for the oracle. Whenever the oracle
 does not find an unlabeled point that results in an increase in performance, it
-defaults to margin sampling in that iteration. The resulting greedy algorithm
+defaults to margin sampling from the entire unlabeled pool $\mathcal{U}^{(i)}$ in that iteration.
+The resulting greedy algorithm
 constructs an approximation of the optimal labeled set that consistently
 outperforms all other algorithms by a significant margin, while requiring
 relatively low computational cost ($\mathcal{O}(B\tau)$).
@@ -523,16 +524,16 @@ App. \ref{app:oracle_forecasting}.
 \section{Experiments}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Implementation Details}\label{sec:implementation_details}
-At each iteration $i$ the AL method $\Omega$ picks an unlabeled datapoint based on a fixed set of information $\{\mathcal{L}^{(i)}, \mathcal{U}^{(i)}, B, |\mathcal{L}^{(i)}|-|\mathcal{L}^{(1)}|, \text{acc}^{(i)}, \text{acc}^{(1)}, \hat y^{(i)}, \text{opt}_{\hat y}\}$, where $\text{opt}_{\hat y}$ is the optimizer used to fit $\hat y^{(i)}$.
+At each iteration $i$ the AL method picks an unlabeled datapoint based on a fixed set of information $\{\mathcal{L}^{(i)}, \mathcal{U}^{(i)}, B, |\mathcal{L}^{(i)}|-|\mathcal{L}^{(1)}|, \text{acc}^{(i)}, \text{acc}^{(1)}, \hat y^{(i)}, \text{opt}_{\hat y}\}$, where $\text{opt}_{\hat y}$ is the optimizer used to fit $\hat y^{(i)}$.
 This set grants full access to the labeled and unlabeled set, as well as all parameters of the classifier and the optimizer.
 Additionally, we provide meta-information, like the size of the seed set through $|\mathcal{L}^{(i)}|-|\mathcal{L}^{(1)}|$, the remaining budget though the addition of $B$ and the classifiers potential through $\text{acc}^{(1)}$ and $\text{acc}^{(i)}$.
 We allow AL methods to derive information from this set, e.g. predictions of the classifier $\hat y^{(i)}(x); \hspace{2mm} x \in \mathcal{U}^{(i)} \cup \mathcal{L}^{(i)}$, clustering, or even training additional models.
 However, the method may not incorporate external information e.g. other datasets, queries to recover additional labels, additional training steps for $\hat y$, or the test/validation set. \\
-For our study we selected acquisition functions with good performances reported by multiple different sources that can work with the set of information stated above.
+For our study we selected AL methods with good performances reported by multiple different sources that can work with the set of information stated above.
 For a list of all AL methods, please refer to Table \ref{tab:results}, with detailed descriptions being found in Appendix \ref{app:acquisition_functions}. \\ [1mm]
 %
-The model $\hat y$ can be trained in two ways. Either the parameters of the model are reset to a fixed initial setting $\hat y^{(0)}$ after each AL iteration and the classifier is trained from scratch with the updated labeled set $\mathcal{L}^{(i)}$, or the previous state $\hat y^{(i-1)}$ is retained and the classifier is fine-tuned on $\mathcal{L}^{(i)}$ for a reduced number of epochs.
-In this work, we use the fine-tuning method for un-encoded datasets to save computational time, while we use the from-scratch training for embedded datasets since they have very small classifiers and this approach generally produces better results.
+The model $\hat y^{(i)}$ can be trained in two ways. Either the parameters of the model are reset to a fixed initial setting $\hat y^{(0)}$ after each AL iteration and the classifier is trained from scratch with the updated labeled set $\mathcal{L}^{(i)}$, or the previous state $\hat y^{(i-1)}$ is retained and the classifier is fine-tuned on $\mathcal{L}^{(i)}$ for a reduced number of epochs.
+In this work, we use the fine-tuning method for un-encoded datasets to save computational time, while we use the from-scratch training for encoded datasets since they have very small classifiers and this approach generally produces better results.
 Our fine-tuning scheme always trains for at least one epoch and employs an aggressive early stopping with a patience of 2 afterwards.
 %This work employs a validation split that is produced from the source dataset itself before active learning instead of splitting it from the seed set or omitting it altogether.
 %Even though the use of a fully labeled validation set might be regarded as impractical, since such a set will never exist during deployment, we strongly advocate for using it in \textbf{research}, as it can be used for hyperparameter tuning, resulting in more stable hyperparameters and reducing the overall training stochasticity.
@@ -541,14 +542,13 @@ Our fine-tuning scheme always trains for at least one epoch and employs an aggre
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Results on Real-world Data}
 In Table \ref{tab:results} we provide the rank of each AL method per dataset. 
-Please note, that we are averaging not only over runs, but also over query sizes per dataset. 
-This leads to a negative impact for AL methods that do not adapt well to larger query sizes.
+Please note, that we are averaging not only over runs, but also over query sizes per dataset, impacting AL methods that do not adapt well to a wide range of query sizes.
 For the results per query size, please refer to App. \ref{app:auc_by_query_size}. 
-As mentioned in contribution \ref{cont:domains}, our results on real-world data show significant differences in the performance of methods between data domains.
+As mentioned in contribution \ref{cont:domains}, our results on real-world data show significant differences in the performance of methods between data domains:
 Not only do some methods overperform on some domains (like least confidence (LC) sampling on images), but the Top-3 of methods (except oracle) does not contain the same three methods for \textbf{any} two domains.
 Most interestingly, the image domain, which received most of the attention in benchmarking so far could even be considered an outlier, as this is the only domain where the Top-1 method changes.
 This highlights the dire need for diverse data domains in AL benchmarking. \\
-Results for the semi-supervised domain appear mostly in line with the other 3 domains, but a closer analysis of performances split into semi-sup. images and semi-sup. tabular reveals the need for further research.
+Results for the semi-supervised domain appear mostly in line with the other 3 domains, but a closer analysis of performances split into encoded images and encoded tabular reveals the need for further research.
 For details, please refer to App. \ref{app:semi_sup_analysis}.
 \begin{table}[]
 	\caption{Performances for AL methods on real-world datasets, aggregated for un-encoded (normal) and encoded (semi-supervised) datasets. Performance is shown as average ranks over repetitions (1.0 is the best rank). Methods are sorted by aggregated performance on un-encoded (normal) datasets. }
@@ -590,9 +590,9 @@ TypiClust & 8.8 $\pm$ {\small 0.01} & 10.2 $\pm$ {\small 0.01} & 12.0 $\pm$ {\sm
 AL approaches can be categorized into two types: uncertainty and geometric approaches.
 Typical members of the first category are variants of uncertainty sampling like entropy, margin and LC sampling \cite{wang2014new} as well as BALD \cite{gal2017deep}.
 Typical members of the second category are clustering approaches like Coreset \cite{sener2017active}, BADGE \cite{ashdeep} and TypiClust \cite{hacohen2022active}.
-Both types of methods have principled shortcomings in terms of the utilized information that makes them unsuitable for certain data distributions. 
+Both types of methods have principled shortcomings in terms of their utilized information that makes them unsuitable for certain data distributions. 
 To test for these specific shortcomings, we created two synthetic datasets, namely ``Honeypot" and ``Diverging Sine", that are hard to solve for methods focused on the classifier's decision boundary or data clustering respectively. 
-To avoid methods memorizing these datasets they are generated from scratch for each experiment, depending on $s_\D$. \\
+To avoid methods memorizing these datasets, they are generated from scratch for each experiment. \\
 \begin{figure}[]
 	\centering
 	\caption{Synthetic ``Honeypot" and ``Diverging Sine" datasets. The optimal decision boundary is not part of the dataset and serves only as a visual guide.}
@@ -607,8 +607,8 @@ To avoid methods memorizing these datasets they are generated from scratch for e
 %
 Honeypot creates two easy to distinguish clusters and one ``honeypot" that represents a noisy region of the dataset with potentially miss-labeled, miss-measured or generally adverse samples.
 %This honeypot contains 150 samples of each class, creating a balance of 50\% beneficial samples and 50\% adverse samples in the dataset.
-The honeypot is located on the likely decision boundary of a classifier that is trained on the beneficial samples to maximize its negative impact on purely uncertainty-based AL methods.
-Diverging Sine samples the datapoints for each class from two diverging sinusoidal functions that are originating from the same y-intercept.
+The honeypot is located on the likely decision boundary of a classifier that is trained on the beneficial samples to maximize its adverse impact on purely uncertainty-based AL methods.
+Diverging Sine samples datapoints for each class from two diverging sinusoidal functions that are originating from the same y-intercept.
 This creates a challenging region on the left hand side, where a lot of datapoints need to be sampled, and an easy region on the right hand side, where very few datapoints are sufficient. 
 The repeating nature of a sine function encourages diversity-based AL methods to equally sample the entire length, drastically oversampling the right hand side of the dataset. \\
 Both datasets have a budget of $B=60$ and are tested with query sizes 1 and 5. \\[1mm]
@@ -617,7 +617,7 @@ Both datasets have a budget of $B=60$ and are tested with query sizes 1 and 5. \
 We provide the rank of all AL Methods on Honeypot and Diverging Sine in Fig. \ref{fig:synth_results}.
 Results for the Honeypot dataset reveal expected shortcomings of uncertainty sampling methods like margin, entropy and LC sampling as well as BALD.
 In addition, BADGE is underperforming for this dataset compared to real-world data. 
-Both margin sampling and BADGE (the two best methods) being vulnerable to adverse samples or simply measurement noise, highlights the need for further research in this area. \\
+Both margin sampling and BADGE (the two best methods) being vulnerable to adverse samples or simply measurement noise, highlights the need for further research into robust AL methods. \\
 %
 Results for Diverging Sine also confirm expected behavior, as clustering methods (Coreset, TypiClust) fall behind uncertainty methods (entropy, margin, LC sampling), with the exception of BADGE. 
 The fact that BADGE is able to perform well on Diverging Sine highlights the importance of embeddings for the clustering methods, as the gradient embedding from BADGE seems to be able to encode uncertainty information, guiding the selection into the left hand regions of the dataset. 
