@@ -441,19 +441,19 @@ if __name__ == '__main__':
     # df = prepare_df(df)
     # draw_cd_diagram(df, title="Image", file="doc/img/macro_img.jpg")
 
-    df = combine_agents_into_df(["Cifar10Encoded", "DNAEncoded", "FashionMnistEncoded",
-                                         "SpliceEncoded", "USPSEncoded"], include_oracle=True)
-    df = prepare_df(df)
-    draw_cd_diagram(df, title="Semi-Supervised", file="doc/img/macro_enc.jpg")
-
-    # Encoded domain, split by data type
-    df = combine_agents_into_df(["DNAEncoded", "SpliceEncoded", "USPSEncoded"], include_oracle=True)
-    df = prepare_df(df)
-    draw_cd_diagram(df, title="Semi Tabular", file="doc/img/macro_enc_tabular.jpg")
-
-    df = combine_agents_into_df(["Cifar10Encoded", "FashionMnistEncoded"], include_oracle=True)
-    df = prepare_df(df)
-    draw_cd_diagram(df, title="Semi Image", file="doc/img/macro_enc_img.jpg")
+    # df = combine_agents_into_df(["Cifar10Encoded", "DNAEncoded", "FashionMnistEncoded",
+    #                                      "SpliceEncoded", "USPSEncoded"], include_oracle=True)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Semi-Supervised", file="doc/img/macro_enc.jpg")
+    #
+    # # Encoded domain, split by data type
+    # df = combine_agents_into_df(["DNAEncoded", "SpliceEncoded", "USPSEncoded"], include_oracle=True)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Semi Tabular", file="doc/img/macro_enc_tabular.jpg")
+    #
+    # df = combine_agents_into_df(["Cifar10Encoded", "FashionMnistEncoded"], include_oracle=True)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Semi Image", file="doc/img/macro_enc_img.jpg")
 
     # Single Datasets
     # df = combine_agents_into_df(dataset="ThreeClust", include_oracle=True)
@@ -463,3 +463,8 @@ if __name__ == '__main__':
     # df = combine_agents_into_df(dataset="DivergingSin", include_oracle=True)
     # df = prepare_df(df)
     # draw_cd_diagram(df, title="Diverging Sine", file="doc/img/micro_diverging_sin.jpg")
+
+    # Rebuttal
+    df = combine_agents_into_df(dataset="TopV2", query_size=["5", "20", "50"], include_oracle=True)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="TopV2", file="doc/img/micro_topv2.jpg")

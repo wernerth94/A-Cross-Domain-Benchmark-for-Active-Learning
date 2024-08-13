@@ -111,8 +111,6 @@ def plot_upper_bound(ax, dataset, x_values, color, alpha=0.8, percentile=0.99, l
 
 
 _all_query_sizes = [1, 5, 20, 50, 100, 500]
-_all_agents = ["Badge", "BALD", "CoreGCN", "Coreset_Greedy", "DSA", "LSA", "MarginScore", "RandomAgent",
-               "ShannonEntropy", "LeastConfident", "TypiClust", "TypiClust_Raw", "Coreset_Raw", "Oracle"]
 _agent_colors = {
     "Oracle": "red",
     "UpperBound": "black",
@@ -129,6 +127,7 @@ _agent_colors = {
     "TypiClust": "pink",
     "TypiClust_Raw": "hotpink",
     "Coreset_Raw": "magenta",
+    "Galaxy": "darkslategray",
 }
 _agent_names = { # only corrected names
     "Coreset_Greedy": "Coreset",
@@ -228,12 +227,12 @@ def _create_plot_for_query_size(ax, dataset, query_size, y_label, title, smoothi
     inferred_x_axis = None
     sorted_agents = []
     # Normal Agents
-    for agent in _all_agents:
+    for agent in _agent_colors.keys():
         try:
             display_name = _agent_names.get(agent, agent)
             color = _agent_colors[agent]
             x, mean, _ = _load_eval_data(dataset, query_size, agent, smoothing_weight)
-            if agent != "Oracle":
+            if agent not in ["Oracle", "UpperBound"]:
                 if inferred_x_axis is not None and x != inferred_x_axis:
                     print(f"[Warning]: axis of agent {agent} is different from others")
                     print(f"{agent}: {x}")
@@ -458,7 +457,7 @@ if __name__ == '__main__':
     # show_auc = True
     # qs = 20
 
-    full_plot("News", query_size=None, radjust=0.7, forecast_oracle=True)
+    full_plot("TopV2", query_size=[5, 20], radjust=0.7, forecast_oracle=True)
     plt.show()
     exit(0)
 
