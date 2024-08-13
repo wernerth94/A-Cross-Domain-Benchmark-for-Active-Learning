@@ -3,9 +3,19 @@ rating: 7, confidence 3
 ```
 Thank you for your review...
 ```
-The results on the synthetic benchmarks are unsurprising.
+
+The results on the synthetic benchmarks are unsurprising and the contribution is unclear since they show that methods that focus on uncertainty sampling like margin fail on distributions that are adversarially designed to make them fail.
+```
+```
+
 The algorithm for the greedy oracle has no clear guarantees, the design choices are unclear and the description is hard to follow.
+```
+```
+
 The evaluation is done with relatively small models and datasets and it is unclear whether it translates to larger ones.
+```
+Verweis auf Zhang et. al., siehe unten
+```
 
 # Reviewer 3W2R
 rating: 7, confidence 3
