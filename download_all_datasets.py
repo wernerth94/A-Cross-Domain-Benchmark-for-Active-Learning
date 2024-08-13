@@ -5,7 +5,7 @@ import numpy as np
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_folder", type=str, required=True)
+parser.add_argument("--data_folder", type=str, default="../datasets")
 parser.add_argument("--encode", type=int, default=0)
 args = parser.parse_args()
 args.encode = bool(args.encode)
@@ -29,7 +29,8 @@ for name in all_names:
         config = yaml.load(f, yaml.Loader)
     pool_rng = np.random.default_rng(1)
     DatasetClass = get_dataset_by_name(name)
-    DatasetClass(args.data_folder, config, pool_rng, encoded=False)
+    d = DatasetClass(args.data_folder, config, pool_rng, encoded=False)
+    print("Class balance", d.y_train.sum(dim=0))
     if args.encode:
         try:
             DatasetClass(args.data_folder, config, pool_rng, encoded=True)
