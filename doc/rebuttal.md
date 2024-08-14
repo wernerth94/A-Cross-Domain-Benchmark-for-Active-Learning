@@ -29,7 +29,7 @@ We will add Zhang et al to Table 1 and our Related Work
 
 The "oracle" needs to be explained earlier. It is discussed and referenced a lot, but you don't actually describe what it is until section 6. I was very confused, since typically "oracle" might also refer to an annotator. Things made sense at section 6, but a preview of what exactly the oracle does should be discussed as soon as possible. Looking again, it is discussed at line 53 but I actually found this paragraph very vague.
 ```
-The entire section explaining the oracle will be revised for the camera ready version, apart from introducing the concept earlier in the paper, we aim to improve the understanding of readers without prior knowledge.
+The entire section explaining the oracle will be revised for the camera ready version, apart from introducing the concept earlier in the paper, we aim to improve the understanding of readers without prior knowledge (also mentioned by another reviewer).
 ```
 
 what is "sngl" in Table 1? Single point sampling per round?
@@ -39,7 +39,7 @@ Yes, we will improve the clarity in Table 1
 
 what is 9(14) in Table 1 in the last row?
 ```
-We have 9 datasets in our benchmark, 5 of whichhave a pre-encoded version (excluding text and synthetic) , which brings the total number of experiments to 14.
+We have 9 datasets in our benchmark, 5 of which have a pre-encoded version (excluding text and synthetic) , which brings the total number of experiments to 14.
 ```
 
 not sure what i\in means really after line 93
@@ -55,8 +55,10 @@ Similar to the explanations about the oracle, we aim to revise this section to i
 
 the choice of validation on the entire dataset needs more discussion (line 194). This is a huge criticism of active learning research, to choose parameters based on a full validation set. I understand the argument for lower variance in research evaluation, but I don't think the justification here is sufficient. In particular, Figure 1 argues that the high variance in research results is a problem. Why mask it, with an unrealistic validation? Won't that make things worse?
 ```
-@Max 
-
+It is true that, by proposing to use a fully labeled validation set, we implicitly claim that most AL research so far was done wrong.
+However, we don't want to invalidate AL literature as a whole, but rather push for a stronger separation of AL research (with validation set) and AL applications (without validation set).
+With our idea, we don't try to mask the high variance, but rather claim that **due** to the high variance we should consider fully optimizing our hyperparameters on validation to not make the effects of it worse.
+The core hypothesis is that a top-performing algorithm in an experiment with good hyperparameters also performs well in the application case with bad/worse hyperparameters.
 ```
 
 # Reviewer x7yL
@@ -123,16 +125,18 @@ This will also include a more in-depth comparison of our results with other benc
 
 The proposed metric of average ranking may not be a convenient/intuitive metric for benchmarks. Specifically, whenever a new algorithm is introduced, the scores of every algorithm will change. Moreover, practitioners are generally interested in either accuracy or label-efficiency (number of labels needed to reach a certain accuracy). The adopted metric does not capture any of these quantities directly. In some cases, entropy, badge and margin may all perform very similarly in accuracy/label-efficiency but remains stable in their relative ranking. The metric in this paper would significantly penalize the algorithms that perform relatively worse, which does not give an accurate quantification in the actual performance of the algorithms themselves.
 ```
-We fully agree with the reviewer that accuracy scores need to be reported for any classification problem that is not severely imbalanced.
+We fully agree with the reviewer that accuracy scores need to be reported for any classification problem.
 We have all accuracy scores in Appendix K, including standard deviations and the amount of wins per algorithm.
-We would like to point out that our benchmark aggregrates results from different datasets, from which we cannot simply average the accuracies to display them in a table, etc.
+We would like to point out that our benchmark aggregrates results from different datasets, which we cannot be done by simply averaging the accuracies to display them in a table, etc.
 For a fair comparison, we rely on the paired-t-test, which the Critical-Difference-Diagrams conveniently provide.
-Lastly, we have been unable to include a second results table besides Table 3 within the page limit.
+Lastly, we have been unable to include a second results table besides Table 3 within the page limit and therefore located our accuracy values in the Appendix.
 ```
 
 An interesting finding in LabelBench is imbalanced active learning algorithms like GALAXY performs significantly better on imbalanced datasets. Since most of the language and tabular datasets are imbalanced, it would be interesting to see how such algorithms perform. The conclusion that "entropy sampling" or "margin sampling" is the best may not be entirely accurate.
 ```
 We omitted information about class imbalance for our datasets, as we did not focus on that aspect.
 However, both our text, and 2 out of 3 tabular datasets are imbalanced by nature. Implementing GALAXY and discussing results along this dimension as well is a great suggestion. 
-Since testing GALAXY on our entire benchmark is a significant computational effort, we only provide preliminary experiments on the TopV2 dataset.
+Since testing GALAXY on our entire benchmark is a significant computational effort, we can only provide experiments on the TopV2 dataset for this rebuttal (doc/img/micro_dna).
+However, GALAXY is indeed the top performing algorithm on the unbalanced TopV2 dataset.
+We thank the reviewer for this valuable addition to the benchmark and will fully incorporate GALAXY for the paper ready version.
 ```
