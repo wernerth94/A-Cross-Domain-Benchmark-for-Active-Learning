@@ -465,6 +465,6 @@ if __name__ == '__main__':
     # draw_cd_diagram(df, title="Diverging Sine", file="doc/img/micro_diverging_sin.jpg")
 
     # Rebuttal
-    df = combine_agents_into_df(dataset="TopV2", query_size=["5", "20", "50"], include_oracle=True)
+    df = combine_agents_into_df(dataset="TopV2", query_size=["1", "5", "20", "50"], include_oracle=True)
     df = prepare_df(df)
     draw_cd_diagram(df, title="TopV2", file="doc/img/micro_topv2.jpg")
