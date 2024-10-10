@@ -396,17 +396,18 @@ def prepare_df(df):
         "accuracy": df_res["auc"]
     })
     # copy oracle results for every present query size of a dataset
-    for d in pd.unique(df["dataset"]):
-        sub_df = df[(df["dataset"] == d).astype(bool) & (df["agent"] != "Oracle").astype(bool)]
-        query_sizes = pd.unique(sub_df["query_size"].astype(int))
-        sample_agent_name = pd.unique(df_res["classifier_name"])[0]
-        num_trials = len(pd.unique(df[df["agent"]==sample_agent_name]["trial"]))
-        oracle_acc = oracle_data[oracle_data["dataset"]==d]["auc"].values[0]
-        for q in query_sizes:
-            for t in range(num_trials):
-                df_res = df_res._append(pd.DataFrame({"classifier_name":["Oracle"],
-                                              "dataset_name":str(d)+str(q)+str(t),
-                                              "accuracy":oracle_acc}))
+    if len(oracle_data) > 0:
+        for d in pd.unique(df["dataset"]):
+            sub_df = df[(df["dataset"] == d).astype(bool) & (df["agent"] != "Oracle").astype(bool)]
+            query_sizes = pd.unique(sub_df["query_size"].astype(int))
+            sample_agent_name = pd.unique(df_res["classifier_name"])[0]
+            num_trials = len(pd.unique(df[df["agent"]==sample_agent_name]["trial"]))
+            oracle_acc = oracle_data[oracle_data["dataset"]==d]["auc"].values[0]
+            for q in query_sizes:
+                for t in range(num_trials):
+                    df_res = df_res._append(pd.DataFrame({"classifier_name":["Oracle"],
+                                                  "dataset_name":str(d)+str(q)+str(t),
+                                                  "accuracy":oracle_acc}))
 
     # replace names for agents
     for wrong, right in name_corrections.items():
@@ -428,43 +429,39 @@ if __name__ == '__main__':
     # "DivergingSin", "ThreeClust"]
     datasets_encoded = ["SpliceEncoded", "DNAEncoded", "USPSEncoded",
                         "Cifar10Encoded", "FashionMnistEncoded"]
+    incl_oracle = False
 
-    # df = combine_agents_into_df(["Splice", "DNA", "USPS"], include_oracle=True)
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Tabular", file="doc/img/macro_vector.jpg")
+    df = combine_agents_into_df(["Splice", "DNA", "USPS"], include_oracle=incl_oracle)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="Tabular", file="doc/img/macro_vector_poster.jpg")
 
-    # df = combine_agents_into_df(["TopV2", "News"], include_oracle=True)
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Text", file="doc/img/macro_text.jpg")
-    #
-    # df = combine_agents_into_df(["Cifar10", "FashionMnist"], include_oracle=True)
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Image", file="doc/img/macro_img.jpg")
+    df = combine_agents_into_df(["TopV2", "News"], include_oracle=incl_oracle)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="Text", file="doc/img/macro_text_poster.jpg")
 
-    # df = combine_agents_into_df(["Cifar10Encoded", "DNAEncoded", "FashionMnistEncoded",
-    #                                      "SpliceEncoded", "USPSEncoded"], include_oracle=True)
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Semi-Supervised", file="doc/img/macro_enc.jpg")
-    #
-    # # Encoded domain, split by data type
-    # df = combine_agents_into_df(["DNAEncoded", "SpliceEncoded", "USPSEncoded"], include_oracle=True)
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Semi Tabular", file="doc/img/macro_enc_tabular.jpg")
-    #
-    # df = combine_agents_into_df(["Cifar10Encoded", "FashionMnistEncoded"], include_oracle=True)
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Semi Image", file="doc/img/macro_enc_img.jpg")
+    df = combine_agents_into_df(["Cifar10", "FashionMnist"], include_oracle=incl_oracle)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="Image", file="doc/img/macro_img_poster.jpg")
+
+    df = combine_agents_into_df(["Cifar10Encoded", "DNAEncoded", "FashionMnistEncoded",
+                                         "SpliceEncoded", "USPSEncoded"], include_oracle=incl_oracle)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="Semi-Supervised", file="doc/img/macro_enc_poster.jpg")
+
+    # Encoded domain, split by data type
+    df = combine_agents_into_df(["DNAEncoded", "SpliceEncoded", "USPSEncoded"], include_oracle=incl_oracle)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="Semi Tabular", file="doc/img/macro_enc_tabular_poster.jpg")
+
+    df = combine_agents_into_df(["Cifar10Encoded", "FashionMnistEncoded"], include_oracle=incl_oracle)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="Semi Image", file="doc/img/macro_enc_img_poster.jpg")
 
     # Single Datasets
-    # df = combine_agents_into_df(dataset="ThreeClust", include_oracle=True)
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Honeypot", file="doc/img/micro_honeypot.jpg")
-    #
-    # df = combine_agents_into_df(dataset="DivergingSin", include_oracle=True)
-    # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Diverging Sine", file="doc/img/micro_diverging_sin.jpg")
-
-    # Rebuttal
-    df = combine_agents_into_df(dataset="TopV2", query_size=["1", "5", "20", "50"], include_oracle=True)
+    df = combine_agents_into_df(dataset="ThreeClust", include_oracle=incl_oracle)
     df = prepare_df(df)
-    draw_cd_diagram(df, title="TopV2", file="doc/img/micro_topv2.jpg")
+    draw_cd_diagram(df, title="Honeypot", file="doc/img/micro_honeypot_poster.jpg")
+
+    df = combine_agents_into_df(dataset="DivergingSin", include_oracle=incl_oracle)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="Diverging Sine", file="doc/img/micro_diverging_sin_poster.jpg")

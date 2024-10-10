@@ -13,17 +13,21 @@ These datasets mainly serve as a resource for benchmarking future AL methods, pa
 
 The algorithm for the greedy oracle has no clear guarantees, the design choices are unclear and the description is hard to follow.
 ```
-Guarantees:
-Design Choices:
-The description of the Oracle was negatively pointed out by two other reviewers as well. 
-The entire section explaining the oracle will be revised for the camera ready version. 
-Apart from introducing the concept earlier in the paper, we aim to improve the understanding of readers without prior knowledge.
+We designed our oracle based in the following two ideas:
+- Have an algorithm that does not rely on search or excessive enumeration, so it can be computed efficiently 
+- Pose a performance that is "good enough", so that it beats every AL algorithm on average without wasting computational resources for diminishing lifts
+
+Since we are mainly interested in beating other AL algorithms and not a theoretically optimal upper bound we did not see the need derive a performance guarantee for our oracle. 
+
+To improve the description of the oracle, we will add comments to the pseudocode in Appendix H and reference it more clearly in the main body:
+Remove Line 258: The pseudocode for our oracle can be found in App. H.
+Add: For a detailed description of the oracle algorithm and how it is used in the AL loop, please refer to App. H.
 ```
 
 The evaluation is done with relatively small models and datasets and it is unclear whether it translates to larger ones.
 ```
 We agree that no comparable benchmark has shown a systematic conversion of small-model setup to large-model setups.
-However, we have evidence in domain-specific literature that supports our hypothesis:
+However, we have evidence in domain-specific literature that supports our hypothesis that our ranking transfers to larger models:
 [4] use larger image models like ViT-B32 and also find least confidence sampling and BADGE to be the best algorithms for images
 [5] use BERT models in the text domain and also find BADGE to be the best (they don't evaluate margin sampling)
 [6] use considerably larger MLPs for the tabular domain than we do, but also find margin sampling to be consistenly top-performing
@@ -46,8 +50,8 @@ We will add Zhang et al to Table 1 and our Related Work
 
 The "oracle" needs to be explained earlier. It is discussed and referenced a lot, but you don't actually describe what it is until section 6. I was very confused, since typically "oracle" might also refer to an annotator. Things made sense at section 6, but a preview of what exactly the oracle does should be discussed as soon as possible. Looking again, it is discussed at line 53 but I actually found this paragraph very vague.
 ```
-The entire section explaining the oracle will be revised for the camera ready version. 
-Apart from introducing the concept earlier in the paper, we aim to improve the understanding for readers without prior knowledge (also mentioned by another reviewer).
+We will insert a sentence in line 55 to clarify the main idea of our oracle algorithm early on:
+"Our oracle relies on directly testing a small sample of points in every iteration if they induce an improvement in test accuracy and selects the optimal point from that small sample."
 ```
 
 what is "sngl" in Table 1? Single point sampling per round?
@@ -58,6 +62,7 @@ Yes, we will improve the clarity in Table 1
 what is 9(14) in Table 1 in the last row?
 ```
 We have 9 datasets in our benchmark, 5 of which have a pre-encoded version (excluding text and synthetic) , which brings the total number of experiments to 14.
+We will include this description in the caption of Table 1.
 ```
 
 not sure what i\in means really after line 93
@@ -68,13 +73,14 @@ We will improve the clarity here as well
 
 I think Figure 1 needs better descriptions and a better legend. I think I get the main point but it's confusing. E.g., "True mean" is vague, what is that the true mean of? Purple curve doesn't even appear on the legend.
 ```
-Similar to the explanations about the oracle, we aim to revise this section to improve the understanding of readers without prior knowledge.
+We will add all visible curves to the legend in Figure 1.
+Additionally, we will revise the caption of Figure 1 to make it more accessible for the readers.
 ```
 
 the choice of validation on the entire dataset needs more discussion (line 194). This is a huge criticism of active learning research, to choose parameters based on a full validation set. I understand the argument for lower variance in research evaluation, but I don't think the justification here is sufficient. In particular, Figure 1 argues that the high variance in research results is a problem. Why mask it, with an unrealistic validation? Won't that make things worse?
 ```
 It is true that, by proposing to use a fully labeled validation set, we implicitly claim that most AL research so far had been flawed.
-However, we don't want to invalidate AL literature as a whole, but rather push for a stronger separation of AL research (with validation set) and AL applications (without validation set).
+However, we don't want to challenge AL literature as a whole, but rather push for a stronger separation of AL research (with validation set) and AL applications (without validation set).
 With our approach, we are not trying to mask the high variance; instead, we argue that **due** to the high variance, we should fully optimize our hyperparameters on validation to avoid exacerbating its effects.
 The core hypothesis is that a top-performing algorithm in an experiment with good hyperparameters also performs well in the application case with bad/worse hyperparameters.
 ```
@@ -104,8 +110,7 @@ The same is true for experimenting across different domains. Everyone knows that
 
 This paper takes too much space on the greedy oracle algorithm and seeding strategies, which may be complex for some readers to fully get the meaning.
 ```
-We will revise the entire section about our oracle algorithm and collaborate with more colleagues from outside the paper to ensure that it can be understood without prior knowledge.
-Based on the suggestion of another reviewer, we will also generally extend our explanations about the oracle, placing a high-level introduction of the algorithm early in the paper to introduce the reader to the concept.
+See below
 ```
 
 In the main manuscript, the author takes too much space to discuss why they need to have such experimental settings and how they set the experiments. The discussions of the experimental results are weak. Maybe this paper is more suitable to submit to a journal.
@@ -137,8 +142,7 @@ Thank you for your review...
 Include more related benchmarks. For example [1] studies extensively the behavior of active learning in tabular datasets. LabelBench [2] has also proposed using embedded features and semi-supervised learning as part of their benchmark. While the authors in this paper conjecture "a well-performing method in our benchmark will also generalize well to larger datasets and classifiers", LabelBench has already demonstrated this to be true. In addition, margin sampling performing well on tabular datasets is also found in [1].
 ```
 [1] and [2] will be integrated into Table 1 and our related work section.
-Based on the comment of another reviewer we aim to extend our discussion section. 
-This will also include a more in-depth comparison of our results with other benchmarks like [1].
+Based on the comment of another reviewer we aim to extend our discussion of our results in the appendix, which will also include a more in-depth comparison of our results with other benchmarks like [1].
 ```
 
 The proposed metric of average ranking may not be a convenient/intuitive metric for benchmarks. Specifically, whenever a new algorithm is introduced, the scores of every algorithm will change. Moreover, practitioners are generally interested in either accuracy or label-efficiency (number of labels needed to reach a certain accuracy). The adopted metric does not capture any of these quantities directly. In some cases, entropy, badge and margin may all perform very similarly in accuracy/label-efficiency but remains stable in their relative ranking. The metric in this paper would significantly penalize the algorithms that perform relatively worse, which does not give an accurate quantification in the actual performance of the algorithms themselves.

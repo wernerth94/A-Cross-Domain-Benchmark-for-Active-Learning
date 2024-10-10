@@ -2,7 +2,6 @@ import itertools, math
 import os
 from os.path import exists, join
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
@@ -161,6 +160,7 @@ def _query_to_list(query, current_folder):
     else:
         raise ValueError(f"Query not recognized: {query}")
     return result_list
+
 
 def generate_rank_leaderboard(precision=1, add_std=True, subsample_runs=None):
     datasets_raw = ["Splice", "DNA", "USPS", "Cifar10", "FashionMnist", "TopV2", "News",]
@@ -354,6 +354,7 @@ def average_out_columns(df:pd.DataFrame, columns:list):
             result_list.append(sub_df)
         result_df = pd.concat(result_list)
     return result_df
+
 
 def std_for_column(df:pd.DataFrame, column:str):
     result_df = df.copy(deep=True)

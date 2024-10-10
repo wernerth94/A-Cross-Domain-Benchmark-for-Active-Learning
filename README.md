@@ -21,7 +21,9 @@ Via pip:
 - torchvision
 - gym
 - matplotlib
+- 
 - Pandas
+- requests
 - scikit-learn
 - faiss-cpu
 - nltk (additional download for `nltk.word_tokenize` in News/TopV2 needed)
