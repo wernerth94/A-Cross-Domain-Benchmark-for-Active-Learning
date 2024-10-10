@@ -1,11 +1,9 @@
-import itertools, math
 import os
 from os.path import exists, join
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from scipy.stats import t
 from core.helper_functions import _insert_oracle_forecast, _create_plot_for_query_size
 
 name_corrections = {
@@ -67,87 +65,6 @@ def sort_according_to_reference(unsorted_list:list, reference:list):
         if entry in unsorted_list:
             result.append(entry)
     return result
-
-def _t_value_for_samplesize(n_samples, sig_level= 0.95):
-    return t.ppf(sig_level, n_samples)
-
-def two_tailed_paired_t_test(df:pd.DataFrame, treatment_col, sample_col, max_sample=50):
-    """
-    Based on: Randomness is the Root of All Evil: More Reliable Evaluation of Deep Active Learning
-    Github: https://intellisec.de/research/eval-al/
-    """
-    df = df[ df[sample_col] < max_sample ]
-    all_agents = list(df['agent'].unique())
-    t_values = []
-    avg_b = df.groupby(treatment_col)
-    for agent_pair in tqdm(itertools.combinations(all_agents, 2), total=int((len(all_agents)**2 - len(all_agents))/2)):
-        for treatment, sub_df in avg_b:
-            sub_df = sub_df.loc[(sub_df['agent'] == agent_pair[0]) | (sub_df['agent'] == agent_pair[1])]
-            if len(list(sub_df['agent'].unique())) == 2:
-                n_samples = len(sub_df[sample_col].unique())
-                sub_df_g = sub_df.groupby(sample_col)
-                acc_diff = []
-                for sample, sub_sub_df in sub_df_g:
-                    try:
-                        acc_diff.append(sub_sub_df.loc[sub_df['agent'] == agent_pair[0]]['acc'].values[0] -
-                                        sub_sub_df.loc[sub_df['agent'] == agent_pair[1]]['acc'].values[0])
-                    except:
-                        print(f"Problem for {agent_pair} at treatment {treatment} and sample {sample}")
-                mean_difference = np.array(acc_diff).mean()
-                std = np.array(acc_diff).std()
-                n = len(acc_diff)
-                std_error = std / math.sqrt(n)
-                t_value = mean_difference / std_error
-                t_value_s = t.ppf(0.95, n_samples)
-                if t_value > t_value_s:
-                    t_values.append([agent_pair[0], agent_pair[1], treatment, t_value, True])
-                elif t_value < - t_value_s:
-                    t_values.append([agent_pair[1], agent_pair[0], treatment, t_value, True])
-                else:
-                    t_values.append([agent_pair[0], agent_pair[1], treatment, t_value, False])
-                    t_values.append([agent_pair[1], agent_pair[0], treatment, t_value, False])
-
-    t_values_df = pd.DataFrame(t_values, columns=['M0', 'M1', treatment_col, 't_value', 'score'])
-    return t_values_df
-
-
-def plot_heatmap_individual(t_tables:pd.DataFrame, means, plots_path):
-    """
-    Based on: Randomness is the Root of All Evil: More Reliable Evaluation of Deep Active Learning
-    Github: https://intellisec.de/research/eval-al/
-    """
-    plt.rcParams['xtick.bottom'] = plt.rcParams['xtick.labelbottom'] = False
-    plt.rcParams['xtick.top'] = plt.rcParams['xtick.labeltop'] = True
-    # fig, axn = plt.subplots(2, 1, sharey=False, figsize=(20, 8), gridspec_kw={'height_ratios': [6, 1]})
-    cmap = sns.cm.rocket_r
-
-    # plt.subplots_adjust(left=0.06, bottom=0.05, right=0.85, top=None, wspace=None, hspace=0.05)
-    # bbox = axn[0].axes.get_subplotspec().get_position(fig)
-    # bbox1 = axn[1].axes.get_subplotspec().get_position(fig)
-    # cbar_ax = fig.add_axes([0.88, 0.05, 0.02, bbox.height + bbox1.height + 0.02])
-    # cbar_ax.tick_params(labelsize=50)
-    # fname = f'B4000_3trials_t.png'
-
-    pivot_df = t_tables.pivot_table(values="score", index="M1", columns="M0", aggfunc="mean")
-
-    h_det = sns.heatmap(data=pivot_df, robust=True, annot=True, cmap=cmap, #xticklabels=x,
-                        yticklabels=False,
-                        #cbar_ax=cbar_ax,
-                        cbar_kws={'format': '%.2f'},
-                        vmin=0, vmax=1, annot_kws={"fontsize": 10}, fmt='.2f')
-    plt.tick_params(axis='both', which='major', pad=18)
-    h_det.set_xticklabels(h_det.get_xticklabels(), rotation=45, fontsize=10)
-    # m_h = sns.heatmap(data=means[key].transpose(), robust=True, annot=True, cmap=cmap,
-    #                   xticklabels=False,
-    #                   yticklabels=False, cbar=None, vmin=0, vmax=1, annot_kws={"fontsize": 50}, fmt='.2f')
-    # plt.tick_params(axis='both', which='major', pad=20)
-
-    # fpath = plots_path / fname
-    # print("Saved at: ", fpath)
-    # os.makedirs(plots_path, exist_ok=True)
-    # plt.savefig(fpath)
-    plt.tight_layout()
-    plt.show()
 
 
 def _query_to_list(query, current_folder):
@@ -392,14 +309,5 @@ if __name__ == '__main__':
     # generate_auc_leaderboard(sorted_agents)
 
     # _find_missing_runs()
-
-    # run = "runs/Splice"
-    # df = combine_agents_into_df(dataset="Splice")
-    # df = average_out_columns(df, ["iteration"])
-    # df = df.drop("dataset", axis=1)
-    # t_table = two_tailed_paired_t_test(df, treatment_col="query_size", sample_col="trial")
-    # heatmap_data = t_table[t_table["query_size"] == "1"]#.drop(["query_size"], axis=1)
-    # plot_heatmap_individual(heatmap_data, None, None)
-    # plot_heatmap_individual(t_table.pivot(index="M0", columns="M1", values="t_value"), None, None)
 
 
