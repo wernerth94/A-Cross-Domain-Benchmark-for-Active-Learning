@@ -214,15 +214,16 @@ challenges for AL methods.
 			\multicolumn{1}{l|}{Beck et al. \cite{beck2021effective}} & batch & 4 & 7 & \checkmark & - & - & - & - & - & - \\
 			\multicolumn{1}{l|}{Hu et al. \cite{hu2021towards}} & batch & 5 & 13 & \checkmark & \checkmark & - & - & - & - & 3 \\
 			\multicolumn{1}{l|}{Zhou et al. \cite{zhou2021towards}} & batch & 3 & 2 & \checkmark & \checkmark & - & - & - & \checkmark & 5 \\
-			\multicolumn{1}{l|}{Zhan et al. \cite{zhan2021comparative}} & sngl+batch & 35 & 18 & - & - & \checkmark & \checkmark & - & \checkmark & 10-100 \\
+			\multicolumn{1}{l|}{Zhan et al. \cite{zhan2021comparative}} & single+batch & 35 & 18 & - & - & \checkmark & \checkmark & - & \checkmark & 10-100 \\
 			\multicolumn{1}{l|}{Munjal et al. \cite{munjal2022towards}} & batch & 2 & 8 & \checkmark & - & - & - & - & - & 3 \\
 			\multicolumn{1}{l|}{Li et al. \cite{li2022empirical}} & batch & 5 & 13 & \checkmark & - & - & - & \checkmark & - & - \\
 			
 			\multicolumn{1}{l|}{Rauch et al. \cite{rauch2023activeglae}} & batch & 11 & 5 & - & \checkmark & - & - & - & - & 5 \\
+			\multicolumn{1}{l|}{Zhang et al. \cite{zhang2024labelbench}} & batch & 6 & 7 & \checkmark & - & - & - & - & - & 2-4 \\
 			\hdashline
 			\multicolumn{1}{l|}{Ji et al. \cite{ji2023randomness}} & batch & 3 & 8 & \checkmark & - & - & - & - & - & - \\
 			\multicolumn{1}{l|}{Lueth et al. \cite{luth2024navigating}} & batch & 4 & 5 & \checkmark & - & - & - & \checkmark & - & 3 \\
-			\multicolumn{1}{l|}{\textbf{Ours}} & sngl+batch & 9(14) & 11 & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & 50 
+			\multicolumn{1}{l|}{\textbf{Ours}} & single+batch & 9(14) & 11 & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & 50 
 		\end{tabular}
 	}
 \end{table}
@@ -240,7 +241,9 @@ This effect is so strong, that, depending on the seed, even a well-established m
 To enable the computation of an oracle performance for a protocol with large amounts of restarts,
 we propose a \emph{greedy oracle algorithm} 
 which uses only a small amount of search steps to estimate the
-optimal solution. While being more time-efficient than established oracle
+optimal solution. 
+Our oracle relies on directly testing a small sample of points in every iteration whether they induce an improvement in test accuracy and selects the optimal point from that small sample.
+While being more time-efficient than established oracle
 functions, it possibly underestimates the real upper bound performance. 
 However, as our experiments will show, it is still outperforming all current AL methods
 by at least 5\% and thus is suitable as an upper bound.
@@ -1242,7 +1245,8 @@ Clustering is done in a semantically meaningful space by encoding the data with 
 It has to be pointed out that TypiClust was designed for low-budget scenarios, but we think it is still worthwhile to test and compare this method with higher budgets. \\
 \textbf{Core-GCN \cite{caramalau2021sequential}} trains a Graph-Convolutional-Network (GCN) on embeddings of the unlabeled pool, obtained from the classifier (Similar to Coreset and TypiClust). 
 This GCN model propagates uncertainty information through the graph and therefore enhances the nodes uncertainty quantification. Lastly, the node that displays the highest amount of uncertainty is selected for labeling. \\
-\textbf{DSA/LSA \cite{kim2019guiding}} use the metric of test adequacy to construct a set of points that is diverse, ranging from points that are close to points in $\LL$ and points that are significantly different. DSA and LSA measure the diversity of points by distance in embedding space or likelihood estimation under the given classifier respectively. \\ [2mm]
+\textbf{DSA/LSA \cite{kim2019guiding}} use the metric of test adequacy to construct a set of points that is diverse, ranging from points that are close to points in $\LL$ and points that are significantly different. DSA and LSA measure the diversity of points by distance in embedding space or likelihood estimation under the given classifier respectively. \\
+\textbf{GALAXY \cite{zhang2022galaxy}} construct a graph, where every point in $\U$ is a node and the edges are constructed from the current classifiers output. The algorithm then queries points from $\U$ based on edges in the graph, that are connected to two nodes with different predicted labels. \\ [2mm]
 %
 \textbf{Excluded Methods}\\
 \textbf{Learning Loss for AL \cite{yoo2019learning}}
@@ -1484,12 +1488,12 @@ Both the reasons, for the sub-random performance of most methods, and the bad pe
 	\begin{tabular}{l || l | l | l}
 		Method & \makecell{Sample\\Size} & Other & Source\\
 		\hline
-		BADGE & 100 & & Based on \cite{ashdeep, curelab}\\
-		BALD & 100 & Dropout Trials: 5 & Based on \cite{pycls} \\
-		Coreset & 8000 & & Own \\
-		TypiClust & 10000 & \makecell[tl]{Min Cluster Size: 5\\Max \# Clusters: 500} & Based on \cite{hacohen2022active} \\
-		Margin & 8000 & & Own\\
-		Entropy & 8000 &  & Own\\
+		BADGE & 5000 & & Based on \cite{ashdeep, curelab}\\
+		BALD & 5000 & Dropout Trials: 5 & Based on \cite{pycls} \\
+		Coreset & 5000 & & Own \\
+		TypiClust & 5000 & \makecell[tl]{Min Cluster Size: 5\\Max \# Clusters: 500} & Based on \cite{hacohen2022active} \\
+		Margin & 5000 & & Own\\
+		Entropy & 5000 &  & Own\\
 	\end{tabular}
 \end{table}
 
