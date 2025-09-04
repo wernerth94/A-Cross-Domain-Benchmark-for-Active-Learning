@@ -16,7 +16,7 @@
 \useunder{\uline}{\ul}{}
 \usepackage{makecell}
 \usepackage{arydshln}
-\usepackage{neurips_data_2024}
+\usepackage[final]{neurips_data_2024} % nonatbib for arxiv
 \usepackage{paralist}
 \usepackage{cleveref}
 \usepackage{todonotes}
@@ -43,7 +43,6 @@
 \title{A Cross-Domain Benchmark for Active Learning}
 
 \author{%
-	Anonymous Authors
 	Thorben Werner 
 	\thanks{Institute of Computer Science - Information Systems and Machine Learning Lab (ISMLL)} 
 	\\
@@ -149,7 +148,7 @@ labeled set of this nature can be used to train well-performing models.
 % manually labeled data.
 %Both approaches are at their core orthogonal and can freely be combined and therefore we should continue our research efforts for both approaches. \\
 In the last decade, many different algorithms for AL have been proposed and
-almost every method has reported lifts over all its predecessors. \footnote{Out
+almost every method has reported lifts over every single one of its predecessors. \footnote{Out
 of all considered algorithms for this paper, only BALD \cite{gal2017deep} did
 not claim a new state-of-the-art (SOTA) performance in their result section.} However, real
 insights into the current state of AL are hard to draw from these works, due to
@@ -267,8 +266,8 @@ efficient oracle approximation, multiple application domains, enough repetitions
 draw valid conclusions and two synthetic tasks to highlight shortcomings of AL methods. 
 By being the first benchmark to providing these points in one code-base, 
 we believe that \emph{CDALBench} is a major step forward of assessing the overall state of AL research, independent of
-specific application domains. \emph{CDALBench} is publicly available under %\url{https://github.com/wernerth94/A-Cross-Domain-Benchmark-for-Active-Learning/}. 
-\url{https://anonymous.4open.science/r/A-Cross-Domain-Benchmark-for-Active-Learning-CCB1/README.md}
+specific application domains. \emph{CDALBench} is publicly available under \url{https://github.com/wernerth94/A-Cross-Domain-Benchmark-for-Active-Learning/}. 
+%\url{https://anonymous.4open.science/r/A-Cross-Domain-Benchmark-for-Active-Learning-CCB1/README.md}
 \\ [1mm]
 Our contributions include the following:
 %
@@ -556,7 +555,9 @@ Not only do some methods overperform on some domains (like least confidence (LC)
 Most interestingly, the image domain, which received most of the attention in benchmarking so far could even be considered an outlier, as this is the only domain where the Top-1 method changes.
 This highlights the dire need for diverse data domains in AL benchmarking. \\
 Results for the semi-supervised domain appear mostly in line with the other 3 domains, but a closer analysis of performances split into encoded images and encoded tabular reveals the need for further research.
-For details, please refer to App. \ref{app:semi_sup_analysis}.
+For details, please refer to App. \ref{app:semi_sup_analysis}. \\
+Finally, we would like to emphasize that the total average rank of our top 3 algorithms (column "Normal" in Tab. \ref{tab:results}) are 4.8, 4.9 and 5.1.
+No single algorithm was able to perform well in every domain, either being outperformed by a specialist algorithm in each domain, or experiencing a severe drop in performance in a poorly matched domain.
 \begin{table}[]
 	\caption{Performances for AL methods on real-world datasets, aggregated for un-encoded (normal) and encoded (semi-supervised) datasets. Performance is shown as average ranks over repetitions (1.0 is the best rank). Methods are sorted by aggregated performance on un-encoded (normal) datasets. }
 	\label{tab:results}
@@ -565,18 +566,20 @@ For details, please refer to App. \ref{app:semi_sup_analysis}.
 \begin{tabular}{l|lllllll|ll}
           & Splice & DNA  & USPS 		 	& Cifar10 & FMnist & TopV2 & News  & Normal & Semi \\
           \hline
-Oracle   & 1.0 $\pm$ {\small 0.01} & 1.0 $\pm$ {\small 0.01} & 1.0 $\pm$ {\small 0.0}  & 1.0 $\pm$ {\small 0.0}  & 1.0 $\pm$ {\small 0.0}  & 1.0 $\pm$ {\small 0.01} & 1.0 $\pm$ {\small 0.0} & 1.0 & 2.0 \\
-Margin   & 6.6 $\pm$ {\small 0.02} & 4.3 $\pm$ {\small 0.01} & 2.1 $\pm$ {\small 0.01} & 6.3 $\pm$ {\small 0.01} & 4.4 $\pm$ {\small 0.0}  & 2.4 $\pm$ {\small 0.01} & 3.7 $\pm$ {\small 0.0} & 4.3 & 4.2 \\
-Badge    & 5.2 $\pm$ {\small 0.01} & 6.3 $\pm$ {\small 0.01} & 2.9 $\pm$ {\small 0.01} & 5.2 $\pm$ {\small 0.01} & 4.7 $\pm$ {\small 0.0}  & 3.3 $\pm$ {\small 0.01} & 3.5 $\pm$ {\small 0.0} & 4.5 & 5.4 \\
-LeastConf & 9.2 $\pm$ {\small 0.02} & 10.3 $\pm$ {\small 0.02} & 8.1 $\pm$ {\small 0.02} & 2.1 $\pm$ {\small 0.01} & 4.0 $\pm$ {\small 0.0}  & 7.9 $\pm$ {\small 0.02} & 3.0 $\pm$ {\small 0.01} & 6.4 & 6.5 \\
-DSA      & 7.4 $\pm$ {\small 0.02} & 7.3 $\pm$ {\small 0.01} & 7.5 $\pm$ {\small 0.01} & 5.4 $\pm$ {\small 0.01} & 5.1 $\pm$ {\small 0.0}  & 6.0 $\pm$ {\small 0.02} & 7.3 $\pm$ {\small 0.01} & 6.6 & 6.7 \\
-BALD     & 4.0 $\pm$ {\small 0.01} & 4.7 $\pm$ {\small 0.01} & 5.4 $\pm$ {\small 0.01} & 12.0 $\pm$ {\small 0.01} & 7.6 $\pm$ {\small 0.0}  & 7.6 $\pm$ {\small 0.02} & 5.0 $\pm$ {\small 0.0} & 6.6 & 7.6 \\
-CoreGCN  & 6.9 $\pm$ {\small 0.01} & 4.9 $\pm$ {\small 0.01} & 10.4 $\pm$ {\small 0.01} & 7.6 $\pm$ {\small 0.01} & 6.5 $\pm$ {\small 0.01} & 4.0 $\pm$ {\small 0.01} & 6.8 $\pm$ {\small 0.0} & 6.7 & 8.2 \\
-Entropy  & 6.6 $\pm$ {\small 0.02} & 3.9 $\pm$ {\small 0.01} & 7.6 $\pm$ {\small 0.01} & 7.6 $\pm$ {\small 0.01} & 4.9 $\pm$ {\small 0.01} & 9.8 $\pm$ {\small 0.02} & 9.6 $\pm$ {\small 0.0} & 7.1 & 6.5 \\
-LSA      & 6.1 $\pm$ {\small 0.01} & 6.8 $\pm$ {\small 0.01} & 5.3 $\pm$ {\small 0.01} & 7.7 $\pm$ {\small 0.01} & 10.6 $\pm$ {\small 0.01} & 7.5 $\pm$ {\small 0.01} & 7.3 $\pm$ {\small 0.01} & 7.3 & 7.5 \\
-Random   & 9.0 $\pm$ {\small 0.01} & 9.3 $\pm$ {\small 0.01} & 5.3 $\pm$ {\small 0.01} & 8.4 $\pm$ {\small 0.01} & 11.1 $\pm$ {\small 0.0}  & 7.9 $\pm$ {\small 0.01} & 8.0 $\pm$ {\small 0.0} & 8.4 & 6.9 \\
-Coreset  & 7.1 $\pm$ {\small 0.01} & 9.0 $\pm$ {\small 0.01} & 10.5 $\pm$ {\small 0.01} & 6.8 $\pm$ {\small 0.01} & 7.1 $\pm$ {\small 0.0}  & 8.5 $\pm$ {\small 0.02} & 10.8 $\pm$ {\small 0.01} & 8.5 & 7.2 \\
-TypiClust & 8.8 $\pm$ {\small 0.01} & 10.2 $\pm$ {\small 0.01} & 12.0 $\pm$ {\small 0.02} & 7.9 $\pm$ {\small 0.01} & 11.0 $\pm$ {\small 0.01} & 12.0 $\pm$ {\small 0.02} & 12.0 $\pm$ {\small 0.01} & 10.5 & 9.2 \\
+Oracle & 1.0$\pm${\small 0.01} & 1.0$\pm${\small 0.01} & 1.0$\pm${\small 0.0} & 1.0$\pm${\small 0.0} & 1.0$\pm${\small 0.0} & 1.0$\pm${\small 0.01} & 1.0$\pm${\small 0.0} & 1.0 & 2.1 \\
+Margin & 6.8$\pm${\small 0.02} & 4.5$\pm${\small 0.01} & 2.7$\pm${\small 0.01} & 7.2$\pm${\small 0.01} & 4.9$\pm${\small 0.0} & 3.1$\pm${\small 0.01} & 4.5$\pm${\small 0.0} & 4.8 & 4.7 \\
+Galaxy & 9.5$\pm${\small 0.02} & 9.4$\pm${\small 0.02} & 2.4$\pm${\small 0.01} & 2.7$\pm${\small 0.01} & 5.6$\pm${\small 0.01} & 2.6$\pm${\small 0.01} & 2.0$\pm${\small 0.0} & 4.9 & 5.7 \\
+Badge & 6.2$\pm${\small 0.01} & 6.5$\pm${\small 0.01} & 3.8$\pm${\small 0.01} & 6.2$\pm${\small 0.01} & 5.1$\pm${\small 0.0} & 4.2$\pm${\small 0.01} & 3.6$\pm${\small 0.0} & 5.1 & 6.0 \\
+LeastConfident & 9.6$\pm${\small 0.02} & 11.1$\pm${\small 0.02} & 9.1$\pm${\small 0.02} & 2.6$\pm${\small 0.01} & 4.4$\pm${\small 0.0} & 8.9$\pm${\small 0.02} & 5.2$\pm${\small 0.01} & 7.3 & 7.1 \\
+DSA & 7.8$\pm${\small 0.02} & 7.7$\pm${\small 0.01} & 8.5$\pm${\small 0.01} & 6.4$\pm${\small 0.01} & 5.6$\pm${\small 0.0} & 7.0$\pm${\small 0.02} & 8.1$\pm${\small 0.01} & 7.3 & 7.3 \\
+CoreGCN & 7.2$\pm${\small 0.01} & 5.2$\pm${\small 0.01} & 11.4$\pm${\small 0.01} & 8.6$\pm${\small 0.01} & 7.1$\pm${\small 0.01} & 5.0$\pm${\small 0.01} & 7.4$\pm${\small 0.01} & 7.4 & 8.9 \\
+BALD & 4.1$\pm${\small 0.01} & 4.8$\pm${\small 0.01} & 6.4$\pm${\small 0.01} & 13.0$\pm${\small 0.01} & 8.4$\pm${\small 0.0} & 8.6$\pm${\small 0.02} & 7.7$\pm${\small 0.0} & 7.6 & 8.3 \\
+Entropy & 6.8$\pm${\small 0.02} & 4.0$\pm${\small 0.01} & 8.6$\pm${\small 0.01} & 8.6$\pm${\small 0.01} & 5.4$\pm${\small 0.01} & 10.8$\pm${\small 0.02} & 11.1$\pm${\small 0.01} & 7.9 & 7.3 \\
+LSA & 6.2$\pm${\small 0.01} & 7.2$\pm${\small 0.01} & 6.3$\pm${\small 0.01} & 8.6$\pm${\small 0.01} & 11.6$\pm${\small 0.01} & 8.5$\pm${\small 0.01} & 7.7$\pm${\small 0.0} & 8.0 & 8.1 \\
+Random & 9.4$\pm${\small 0.01} & 9.7$\pm${\small 0.01} & 6.3$\pm${\small 0.01} & 9.4$\pm${\small 0.01} & 12.1$\pm${\small 0.0} & 8.9$\pm${\small 0.01} & 8.3$\pm${\small 0.0} & 9.2 & 7.6 \\
+Coreset & 7.3$\pm${\small 0.01} & 9.5$\pm${\small 0.01} & 11.5$\pm${\small 0.01} & 7.7$\pm${\small 0.01} & 7.8$\pm${\small 0.0} & 9.5$\pm${\small 0.02} & 11.5$\pm${\small 0.01} & 9.3 & 7.9 \\
+TypiClust & 9.1$\pm${\small 0.01} & 10.6$\pm${\small 0.01} & 13.0$\pm${\small 0.02} & 8.9$\pm${\small 0.01} & 12.0$\pm${\small 0.01} & 13.0$\pm${\small 0.02} & 13.0$\pm${\small 0.01} & 11.4 & 9.9 \\
+
 \end{tabular}
        	}
 \end{table}
@@ -619,8 +622,7 @@ Diverging Sine samples datapoints for each class from two diverging sinusoidal f
 This creates a challenging region on the left hand side, where a lot of datapoints need to be sampled, and an easy region on the right hand side, where very few datapoints are sufficient. 
 The repeating nature of a sine function encourages diversity-based AL methods to equally sample the entire length, drastically oversampling the right hand side of the dataset. \\
 Both datasets have a budget of $B=60$ and are tested with query sizes 1 and 5. \\[1mm]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\subsection{Results}
+%
 We provide the rank of all AL Methods on Honeypot and Diverging Sine in Fig. \ref{fig:synth_results}.
 Results for the Honeypot dataset reveal expected shortcomings of uncertainty sampling methods like margin, entropy and LC sampling as well as BALD.
 In addition, BADGE is underperforming for this dataset compared to real-world data. 
@@ -631,21 +633,27 @@ The fact that BADGE is able to perform well on Diverging Sine highlights the imp
 We provide a small ablation study on the importance of the embeddings by testing a version of Coreset and TypiClust on this dataset that does not use the embeddings produced by the classification model, but rather clusters the data directly.
 ``Coreset Raw" and ``TypiClust Raw" both perform worse than their embedding-based counterpart.
 
-\section{Conclusion}
+
+\section{Comparison to other Benchmarks}
+Comparing our results to the findings of other works based in accuracy scores would be meaningless, as every work employs different models, hyperparameters and training loops.
+We instead opt to compare only the ranking of algorithms to the literature. \\
+Our results generally are reflected in domain-specific benchmarks - \cite{zhang2024labelbench} also find least confidence sampling and BADGE to be the best algorithms for images (they don't test Galaxy), \cite{rauch2023activeglae} also find BADGE to be the best algorithm for text (they don't test margin sampling or Galaxy) and \cite{bahri2024is} also find margin sampling to be the best algorithm for tabular data. \\
+In this work, we provide the first AL benchmark that spans all major data domains and is easily reproducible while matching and extending previous published results from single-domain benchmarks. 
+
+
+\section{Using this Benchmark}
 We strongly advocate to test newly proposed AL methods not only on a wide variety of real data domains, but also to pay close attention to the Honeypot and Diverging Sine datasets to reveal principled shortcomings of the method in question.
 Both tasks can be easily carried out by implementing the new AL method into our code base.
 For Limitations and Future Work, please refer to App. \ref{app:future_work}.
 
 
-% \newpage
-% \paragraph{Acknowledgement}
-% anonymous
-%TODO
-%Funded by the Lower Saxony Ministry of Science and Culture under grant number ZN3492 within the Lower Saxony “Vorab“ of the Volkswagen Foundation and supported by the Center for Digital Innovations (ZDIN).
+\paragraph{Acknowledgement}
+Funded by the Lower Saxony Ministry of Science and Culture under grant number ZN3492 within the Lower Saxony “Vorab“ of the Volkswagen Foundation and supported by the Center for Digital Innovations (ZDIN).
 
 
 
 \bibliographystyle{plain}
+%\bibliographystyle{plainnat}
 \bibliography{al_benchmark_paper.bib} 
 
 \newpage
@@ -1202,7 +1210,7 @@ Alg. \ref{alg:oracle} replaces the AL method $\Omega$ in the AL loop (Alg. \ref{
 
 
 \section{Oracle Curve Forecasting}\label{app:oracle_forecasting}
-Unfortunately, the iterative nature of our oracle means that the computational effort scales in the budget $B$.
+Unfortunately, the iterative nature of our oracle means that the computational effort scales in the budget $O(\tau B)$.
 For datasets with large budgets, like Cifar10 and FashionMnist (both 10K), we were unable to compute the oracle set for the entire 10K iterations. \\
 We compromised by (i) picking the two points with highest test accuracy, instead of only one and (ii) only computed until iteration 2000. \\
 The rest of the curve was forecast using a simple 2-step algorithm, based on linear regression:
@@ -1266,32 +1274,22 @@ All tables are sorted according to the main result in Table \ref{tab:results}.
 \begin{table}[H]
 	\caption{AUC values for each dataset that supports query size 1.}
 	\resizebox{\columnwidth}{!}{
-		\begin{tabular}{l|llllllllllll}
+		\begin{tabular}{l|clllllllllll}
 			& Wins & Splice       & SpliceEnc& DNA          & DNAEnc  & USPS          & USPSEnc  & Cifar10Enc& FMnistEnc& TopV2     & Diverging Sine & ThreeClust \\
 			\hline
-			Oracle &  & 0.803 $\pm$ {\small 0.012} & 0.678 $\pm$ {\small 0.021} & 0.825 $\pm$ {\small 0.009} & 0.721 $\pm$ {\small 0.013} & 0.866 $\pm$ {\small 0.004} & 0.436 $\pm$ {\small 0.057} & 0.749 $\pm$ {\small 0.009} & 0.755 $\pm$ {\small 0.005} & 0.884 $\pm$ {\small 0.006} & 0.957 $\pm$ {\small 0.009} & 0.783 $\pm$ {\small 0.03} \\
-			
-			Margin & 3 & 0.769 $\pm$ {\small 0.021} & \textbf{0.678 $\pm$ {\small 0.032}} & 0.806 $\pm$ {\small 0.013} & 0.642 $\pm$ {\small 0.047} & \textbf{0.858 $\pm$ {\small 0.006}} & 0.426 $\pm$ {\small 0.038} & 0.653 $\pm$ {\small 0.013} & 0.68 $\pm$ {\small 0.012} & \textbf{0.861 $\pm$ {\small 0.009}} & 0.941 $\pm$ {\small 0.018} & 0.704 $\pm$ {\small 0.074} \\
-			
-			Badge & 0 & 0.767 $\pm$ {\small 0.02} & 0.661 $\pm$ {\small 0.026} & 0.78 $\pm$ {\small 0.014} & 0.642 $\pm$ {\small 0.046} & 0.83 $\pm$ {\small 0.008} & 0.371 $\pm$ {\small 0.035} & 0.656 $\pm$ {\small 0.013} & 0.68 $\pm$ {\small 0.009} & 0.826 $\pm$ {\small 0.024} & 0.941 $\pm$ {\small 0.017} & 0.69 $\pm$ {\small 0.083} \\
-			
-			LeastConf & 2 & 0.779 $\pm$ {\small 0.019} & 0.68 $\pm$ {\small 0.032} & 0.809 $\pm$ {\small 0.01} & 0.629 $\pm$ {\small 0.05} & 0.846 $\pm$ {\small 0.009} & 0.421 $\pm$ {\small 0.039} & \textbf{0.668 $\pm$ {\small 0.014}} & \textbf{0.685 $\pm$ {\small 0.009}} & 0.843 $\pm$ {\small 0.013} & 0.94 $\pm$ {\small 0.016} & 0.692 $\pm$ {\small 0.094}\\
-			
-			DSA & 3 & 0.766 $\pm$ {\small 0.021} & 0.691 $\pm$ {\small 0.022} & 0.803 $\pm$ {\small 0.01} & \textbf{0.646 $\pm$ {\small 0.032}} & 0.829 $\pm$ {\small 0.01} & \textbf{0.431 $\pm$ {\small 0.05}} & 0.663 $\pm$ {\small 0.014} & 0.679 $\pm$ {\small 0.01} & 0.844 $\pm$ {\small 0.017} & 0.941 $\pm$ {\small 0.014} & \textbf{0.731 $\pm$ {\small 0.032}}\\
-			
-			BALD & 1 & \textbf{0.78 $\pm$ {\small 0.014}} & 0.649 $\pm$ {\small 0.04} & 0.784 $\pm$ {\small 0.01} & 0.632 $\pm$ {\small 0.042} & 0.819 $\pm$ {\small 0.01} & 0.242 $\pm$ {\small 0.046} & 0.666 $\pm$ {\small 0.014} & 0.644 $\pm$ {\small 0.018} & 0.815 $\pm$ {\small 0.024} & 0.928 $\pm$ {\small 0.014} & 0.698 $\pm$ {\small 0.043}\\
-			
-			CoreGCN & 2 & 0.765 $\pm$ {\small 0.021} & 0.686 $\pm$ {\small 0.023} & 0.804 $\pm$ {\small 0.012} & \textbf{0.646 $\pm$ {\small 0.03}} & 0.753 $\pm$ {\small 0.016} & 0.39 $\pm$ {\small 0.044} & 0.623 $\pm$ {\small 0.018} & 0.647 $\pm$ {\small 0.012} & 0.85 $\pm$ {\small 0.01} & 0.938 $\pm$ {\small 0.014} & \textbf{0.731 $\pm$ {\small 0.028}}\\
-			
-			Entropy & 3 & 0.768 $\pm$ {\small 0.022} & \textbf{0.678 $\pm$ {\small 0.035}} & \textbf{0.812 $\pm$ {\small 0.013}} & 0.635 $\pm$ {\small 0.045} & 0.83 $\pm$ {\small 0.011} & 0.399 $\pm$ {\small 0.035} & 0.663 $\pm$ {\small 0.013} & 0.681 $\pm$ {\small 0.011} & 0.815 $\pm$ {\small 0.021} & \textbf{0.942 $\pm$ {\small 0.017}} & 0.696 $\pm$ {\small 0.083}\\
-			
-			LSA & 0 & 0.772 $\pm$ {\small 0.016} & 0.68 $\pm$ {\small 0.026} & 0.787 $\pm$ {\small 0.012} & 0.618 $\pm$ {\small 0.036} & 0.821 $\pm$ {\small 0.009} & 0.422 $\pm$ {\small 0.037} & 0.613 $\pm$ {\small 0.014} & 0.642 $\pm$ {\small 0.012} & 0.816 $\pm$ {\small 0.013} & 0.932 $\pm$ {\small 0.016} & 0.727 $\pm$ {\small 0.033}\\
-			
-			Random & 0 & 0.76 $\pm$ {\small 0.016} & 0.674 $\pm$ {\small 0.027} & 0.774 $\pm$ {\small 0.013} & 0.63 $\pm$ {\small 0.035} & 0.823 $\pm$ {\small 0.009} & 0.404 $\pm$ {\small 0.036} & 0.613 $\pm$ {\small 0.014} & 0.639 $\pm$ {\small 0.013} & 0.815 $\pm$ {\small 0.012} & 0.933 $\pm$ {\small 0.017} & 0.721 $\pm$ {\small 0.036}\\
-			
-			Coreset & 0 & 0.772 $\pm$ {\small 0.016} & 0.69 $\pm$ {\small 0.017} & 0.79 $\pm$ {\small 0.012} & 0.638 $\pm$ {\small 0.041} & 0.767 $\pm$ {\small 0.016} & 0.404 $\pm$ {\small 0.046} & 0.659 $\pm$ {\small 0.011} & 0.684 $\pm$ {\small 0.009} & 0.826 $\pm$ {\small 0.022} & 0.937 $\pm$ {\small 0.014} & 0.73 $\pm$ {\small 0.031}\\
-			
-			TypiClust & 0 & 0.762 $\pm$ {\small 0.016} & 0.685 $\pm$ {\small 0.025} & 0.778 $\pm$ {\small 0.01} & 0.663 $\pm$ {\small 0.028} & 0.828 $\pm$ {\small 0.007} & 0.396 $\pm$ {\small 0.046} & 0.653 $\pm$ {\small 0.013} & 0.649 $\pm$ {\small 0.007} & 0.831 $\pm$ {\small 0.011} & 0.934 $\pm$ {\small 0.018} & 0.727 $\pm$ {\small 0.033}\\
+Oracle &  & 0.803$\pm${\small0.012} & 0.678$\pm${\small0.021} & 0.825$\pm${\small0.009} & 0.723$\pm${\small0.015} & 0.866$\pm${\small0.004} & 0.436$\pm${\small0.057} & 0.749$\pm${\small0.009} & 0.755$\pm${\small0.005} & 0.884$\pm${\small0.006} & 0.957$\pm${\small0.009} & 0.783$\pm${\small0.03} \\
+Margin & 0 & 0.769$\pm${\small0.021} & 0.678$\pm${\small0.032} & 0.806$\pm${\small0.013} & 0.642$\pm${\small0.047} & 0.858$\pm${\small0.006} & 0.426$\pm${\small0.038} & 0.653$\pm${\small0.013} & 0.68$\pm${\small0.012} & 0.861$\pm${\small0.009} & 0.941$\pm${\small0.018} & 0.704$\pm${\small0.074} \\
+Galaxy & 2 & 0.777$\pm${\small0.02} & 0.68$\pm${\small0.032} & 0.803$\pm${\small0.009} & 0.64$\pm${\small0.043} & \textbf{0.859$\pm${\small0.005}} & 0.42$\pm${\small0.042} & 0.657$\pm${\small0.013} & 0.68$\pm${\small0.01} & \textbf{0.863$\pm${\small0.01}} & 0.941$\pm${\small0.016} & 0.687$\pm${\small0.096} \\
+Badge & 0 & 0.767$\pm${\small0.02} & 0.661$\pm${\small0.026} & 0.78$\pm${\small0.014} & 0.642$\pm${\small0.046} & 0.83$\pm${\small0.008} & 0.371$\pm${\small0.035} & 0.656$\pm${\small0.013} & 0.68$\pm${\small0.009} & 0.826$\pm${\small0.024} & 0.941$\pm${\small0.017} & 0.69$\pm${\small0.083} \\
+LeastConfident & 3 & \textbf{0.779$\pm${\small0.019}} & 0.68$\pm${\small0.032} & 0.809$\pm${\small0.01} & 0.629$\pm${\small0.05} & 0.846$\pm${\small0.009} & 0.421$\pm${\small0.039} & \textbf{0.668$\pm${\small0.014}} & \textbf{0.685$\pm${\small0.009}} & 0.843$\pm${\small0.013} & 0.94$\pm${\small0.016} & 0.692$\pm${\small0.094} \\
+DSA & 4 & 0.766$\pm${\small0.021} & \textbf{0.691$\pm${\small0.022}} & 0.803$\pm${\small0.01} & \textbf{0.646$\pm${\small0.032}} & 0.829$\pm${\small0.01} & \textbf{0.431$\pm${\small0.05}} & 0.663$\pm${\small0.014} & 0.679$\pm${\small0.01} & 0.844$\pm${\small0.017} & 0.941$\pm${\small0.014} & \textbf{0.731$\pm${\small0.032}} \\
+BALD & 0 & 0.78$\pm${\small0.014} & 0.649$\pm${\small0.04} & 0.784$\pm${\small0.01} & 0.632$\pm${\small0.042} & 0.819$\pm${\small0.01} & 0.242$\pm${\small0.046} & 0.666$\pm${\small0.014} & 0.644$\pm${\small0.018} & 0.815$\pm${\small0.024} & 0.928$\pm${\small0.014} & 0.698$\pm${\small0.043} \\
+CoreGCN & 4 & 0.765$\pm${\small0.021} & 0.686$\pm${\small0.023} & 0.804$\pm${\small0.012} & \textbf{0.646$\pm${\small0.03}} & 0.753$\pm${\small0.016} & 0.39$\pm${\small0.044} & 0.623$\pm${\small0.018} & 0.647$\pm${\small0.012} & 0.85$\pm${\small0.01} & 0.938$\pm${\small0.014} & \textbf{0.731$\pm${\small0.028}} \\
+Entropy & 2 & 0.768$\pm${\small0.022} & 0.678$\pm${\small0.035} & \textbf{0.812$\pm${\small0.013}} & 0.635$\pm${\small0.045} & 0.83$\pm${\small0.011} & 0.399$\pm${\small0.035} & 0.663$\pm${\small0.013} & 0.681$\pm${\small0.011} & 0.815$\pm${\small0.021} & \textbf{0.942$\pm${\small0.017}} & 0.696$\pm${\small0.083} \\
+LSA & 0 & 0.772$\pm${\small0.016} & 0.68$\pm${\small0.026} & 0.787$\pm${\small0.012} & 0.618$\pm${\small0.036} & 0.821$\pm${\small0.009} & 0.422$\pm${\small0.037} & 0.613$\pm${\small0.014} & 0.642$\pm${\small0.012} & 0.816$\pm${\small0.013} & 0.932$\pm${\small0.016} & 0.727$\pm${\small0.033} \\
+Random & 0 & 0.76$\pm${\small0.016} & 0.674$\pm${\small0.027} & 0.774$\pm${\small0.013} & 0.63$\pm${\small0.035} & 0.823$\pm${\small0.009} & 0.404$\pm${\small0.036} & 0.613$\pm${\small0.014} & 0.639$\pm${\small0.013} & 0.815$\pm${\small0.012} & 0.933$\pm${\small0.017} & 0.721$\pm${\small0.036} \\
+Coreset & 0 & 0.772$\pm${\small0.016} & 0.69$\pm${\small0.017} & 0.79$\pm${\small0.012} & 0.638$\pm${\small0.041} & 0.767$\pm${\small0.016} & 0.404$\pm${\small0.046} & 0.659$\pm${\small0.011} & 0.684$\pm${\small0.009} & 0.826$\pm${\small0.022} & 0.937$\pm${\small0.014} & 0.73$\pm${\small0.031} \\
+TypiClust & 0 & 0.762$\pm${\small0.016} & 0.685$\pm${\small0.025} & 0.778$\pm${\small0.01} & 0.663$\pm${\small0.028} & 0.828$\pm${\small0.007} & 0.396$\pm${\small0.046} & 0.653$\pm${\small0.013} & 0.649$\pm${\small0.007} & 0.831$\pm${\small0.011} & 0.934$\pm${\small0.018} & 0.727$\pm${\small0.033}
 		\end{tabular}
 	}
 \end{table}
@@ -1299,32 +1297,22 @@ All tables are sorted according to the main result in Table \ref{tab:results}.
 \begin{table}[H]
 	\caption{AUC values for each dataset that supports query size 5.}
 	\resizebox{\columnwidth}{!}{
-		\begin{tabular}{l|llllllllllll}
+		\begin{tabular}{l|clllllllllll}
 			& Wins& Splice & SpliceEnc & DNA & DNAEnc & USPS & USPSEnc & Cifar10Enc & FMnistEnc & TopV2 & DivergingSin & ThreeClust \\
 			\hline
-			Oracle &  & 0.803 $\pm$ {\small 0.012} & 0.678 $\pm$ {\small 0.021} & 0.825 $\pm$ {\small 0.009} & 0.721 $\pm$ {\small 0.013} & 0.866 $\pm$ {\small 0.004} & 0.436 $\pm$ {\small 0.057} & 0.749 $\pm$ {\small 0.009} & 0.755 $\pm$ {\small 0.005} & 0.884 $\pm$ {\small 0.006} & 0.957 $\pm$ {\small 0.009} & 0.783 $\pm$ {\small 0.03} \\
-			
-			Margin & 3 & 0.765 $\pm$ {\small 0.021} & 0.662 $\pm$ {\small 0.032} & 0.794 $\pm$ {\small 0.011} & 0.611 $\pm$ {\small 0.05} & \textbf{0.855 $\pm$ {\small 0.006}} & \textbf{0.508 $\pm$ {\small 0.02}} & 0.656 $\pm$ {\small 0.014} & 0.678 $\pm$ {\small 0.009} & \textbf{0.848 $\pm$ {\small 0.013}} & 0.923 $\pm$ {\small 0.019} & 0.697 $\pm$ {\small 0.055} \\
-			
-			Badge & 2 & 0.768 $\pm$ {\small 0.014} & 0.646 $\pm$ {\small 0.035} & 0.785 $\pm$ {\small 0.011} & \textbf{0.624 $\pm$ {\small 0.036}} & 0.846 $\pm$ {\small 0.007} & 0.48 $\pm$ {\small 0.021} & 0.647 $\pm$ {\small 0.012} & 0.67 $\pm$ {\small 0.009} & 0.847 $\pm$ {\small 0.01} & \textbf{0.924 $\pm$ {\small 0.019}} & 0.72 $\pm$ {\small 0.036} \\
-			
-			LeastConf & 1 & 0.763 $\pm$ {\small 0.023} & 0.643 $\pm$ {\small 0.034} & 0.798 $\pm$ {\small 0.013} & 0.585 $\pm$ {\small 0.065} & 0.831 $\pm$ {\small 0.014} & 0.478 $\pm$ {\small 0.028} & 0.67 $\pm$ {\small 0.01} & \textbf{0.681 $\pm$ {\small 0.009}} & 0.819 $\pm$ {\small 0.023} & 0.921 $\pm$ {\small 0.019} & 0.675 $\pm$ {\small 0.072} \\
-			
-			DSA & 1 & 0.765 $\pm$ {\small 0.023} & 0.653 $\pm$ {\small 0.029} & 0.793 $\pm$ {\small 0.009} & 0.613 $\pm$ {\small 0.034} & 0.822 $\pm$ {\small 0.01} & 0.489 $\pm$ {\small 0.024} & 0.661 $\pm$ {\small 0.013} & 0.662 $\pm$ {\small 0.012} & 0.833 $\pm$ {\small 0.02} & \textbf{0.924 $\pm$ {\small 0.018}} & 0.718 $\pm$ {\small 0.033} \\
-			
-			BALD & 4 & \textbf{0.775 $\pm$ {\small 0.018}} & 0.641 $\pm$ {\small 0.034} & \textbf{0.801 $\pm$ {\small 0.013}} & 0.592 $\pm$ {\small 0.054} & 0.84 $\pm$ {\small 0.008} & 0.332 $\pm$ {\small 0.054} & \textbf{0.681 $\pm$ {\small 0.011}} & \textbf{0.681 $\pm$ {\small 0.013}} & 0.824 $\pm$ {\small 0.023} & 0.893 $\pm$ {\small 0.035} & 0.673 $\pm$ {\small 0.041} \\
-			
-			CoreGCN & 1 & 0.759 $\pm$ {\small 0.018} & 0.662 $\pm$ {\small 0.027} & 0.79 $\pm$ {\small 0.011} & 0.62 $\pm$ {\small 0.03} & 0.755 $\pm$ {\small 0.011} & 0.45 $\pm$ {\small 0.03} & 0.604 $\pm$ {\small 0.016} & 0.609 $\pm$ {\small 0.013} & 0.837 $\pm$ {\small 0.014} & 0.922 $\pm$ {\small 0.018} & \textbf{0.723 $\pm$ {\small 0.034}} \\
-			
-			Entropy & 1 & 0.765 $\pm$ {\small 0.022} & 0.66 $\pm$ {\small 0.03} & 0.798 $\pm$ {\small 0.011} & 0.611 $\pm$ {\small 0.054} & 0.823 $\pm$ {\small 0.013} & 0.464 $\pm$ {\small 0.024} & 0.663 $\pm$ {\small 0.013} & 0.672 $\pm$ {\small 0.011} & 0.801 $\pm$ {\small 0.025} & \textbf{0.924 $\pm$ {\small 0.02}} & 0.689 $\pm$ {\small 0.066} \\
-			
-			LSA & 0 & 0.769 $\pm$ {\small 0.016} & 0.654 $\pm$ {\small 0.032} & 0.781 $\pm$ {\small 0.013} & 0.61 $\pm$ {\small 0.041} & 0.82 $\pm$ {\small 0.009} & 0.484 $\pm$ {\small 0.022} & 0.617 $\pm$ {\small 0.012} & 0.641 $\pm$ {\small 0.011} & 0.816 $\pm$ {\small 0.012} & 0.915 $\pm$ {\small 0.018} & 0.718 $\pm$ {\small 0.038} \\
-			
-			Random & 0 & 0.758 $\pm$ {\small 0.015} & 0.655 $\pm$ {\small 0.026} & 0.771 $\pm$ {\small 0.013} & 0.623 $\pm$ {\small 0.031} & 0.82 $\pm$ {\small 0.009} & 0.476 $\pm$ {\small 0.024} & 0.616 $\pm$ {\small 0.016} & 0.637 $\pm$ {\small 0.012} & 0.812 $\pm$ {\small 0.014} & 0.921 $\pm$ {\small 0.018} & 0.713 $\pm$ {\small 0.034} \\
-			
-			Coreset & 1 & 0.765 $\pm$ {\small 0.017} & \textbf{0.663 $\pm$ {\small 0.023}} & 0.784 $\pm$ {\small 0.014} & 0.603 $\pm$ {\small 0.034} & 0.765 $\pm$ {\small 0.015} & 0.449 $\pm$ {\small 0.022} & 0.657 $\pm$ {\small 0.009} & 0.674 $\pm$ {\small 0.009} & 0.817 $\pm$ {\small 0.017} & 0.92 $\pm$ {\small 0.017} & 0.713 $\pm$ {\small 0.035} \\
-			
-			TypiClust & 0 & 0.759 $\pm$ {\small 0.014} & 0.641 $\pm$ {\small 0.028} & 0.775 $\pm$ {\small 0.01} & 0.603 $\pm$ {\small 0.04} & 0.757 $\pm$ {\small 0.02} & 0.465 $\pm$ {\small 0.027} & 0.596 $\pm$ {\small 0.014} & 0.567 $\pm$ {\small 0.012} & 0.727 $\pm$ {\small 0.026} & 0.916 $\pm$ {\small 0.02} & 0.693 $\pm$ {\small 0.045} \\
+			Oracle &  & 0.803$\pm${\small0.012} & 0.678$\pm${\small0.021} & 0.825$\pm${\small0.009} & 0.723$\pm${\small0.015} & 0.866$\pm${\small0.004} & 0.436$\pm${\small0.057} & 0.749$\pm${\small0.009} & 0.755$\pm${\small0.005} & 0.884$\pm${\small0.006} & 0.957$\pm${\small0.009} & 0.783$\pm${\small0.03} \\
+			Margin & 2 & 0.765$\pm${\small0.021} & 0.662$\pm${\small0.032} & 0.794$\pm${\small0.011} & 0.611$\pm${\small0.05} & \textbf{0.855$\pm${\small0.006}} & \textbf{0.508$\pm${\small0.02}} & 0.656$\pm${\small0.014} & 0.678$\pm${\small0.009} & 0.848$\pm${\small0.013} & 0.923$\pm${\small0.019} & 0.697$\pm${\small0.055} \\
+			Galaxy & 2 & 0.758$\pm${\small0.025} & 0.647$\pm${\small0.042} & 0.799$\pm${\small0.011} & 0.611$\pm${\small0.043} & \textbf{0.855$\pm${\small0.006}} & 0.506$\pm${\small0.023} & 0.661$\pm${\small0.012} & 0.677$\pm${\small0.01} & \textbf{0.854$\pm${\small0.01}} & 0.922$\pm${\small0.02} & 0.674$\pm${\small0.077} \\
+			Badge & 2 & 0.768$\pm${\small0.014} & 0.646$\pm${\small0.035} & 0.785$\pm${\small0.011} & \textbf{0.624$\pm${\small0.036}} & 0.846$\pm${\small0.007} & 0.48$\pm${\small0.021} & 0.647$\pm${\small0.012} & 0.67$\pm${\small0.009} & 0.847$\pm${\small0.01} & \textbf{0.924$\pm${\small0.019}} & 0.72$\pm${\small0.036} \\
+			LeastConfident & 1 & 0.763$\pm${\small0.023} & 0.643$\pm${\small0.034} & 0.798$\pm${\small0.013} & 0.585$\pm${\small0.065} & 0.831$\pm${\small0.014} & 0.478$\pm${\small0.028} & 0.67$\pm${\small0.01} & \textbf{0.681$\pm${\small0.009}} & 0.819$\pm${\small0.023} & 0.921$\pm${\small0.019} & 0.675$\pm${\small0.072} \\
+			DSA & 1 & 0.765$\pm${\small0.023} & 0.653$\pm${\small0.029} & 0.793$\pm${\small0.009} & 0.613$\pm${\small0.034} & 0.822$\pm${\small0.01} & 0.489$\pm${\small0.024} & 0.661$\pm${\small0.013} & 0.662$\pm${\small0.012} & 0.833$\pm${\small0.02} & \textbf{0.924$\pm${\small0.018}} & 0.718$\pm${\small0.033} \\
+			BALD & 3 & 0.775$\pm${\small0.018} & 0.641$\pm${\small0.034} & \textbf{0.801$\pm${\small0.013}} & 0.592$\pm${\small0.054} & 0.84$\pm${\small0.008} & 0.332$\pm${\small0.054} & \textbf{0.681$\pm${\small0.011}} & \textbf{0.681$\pm${\small0.013}} & 0.824$\pm${\small0.023} & 0.893$\pm${\small0.035} & 0.673$\pm${\small0.041} \\
+			CoreGCN & 1 & 0.759$\pm${\small0.018} & 0.662$\pm${\small0.027} & 0.79$\pm${\small0.011} & 0.62$\pm${\small0.03} & 0.755$\pm${\small0.011} & 0.45$\pm${\small0.03} & 0.604$\pm${\small0.016} & 0.609$\pm${\small0.013} & 0.837$\pm${\small0.014} & 0.922$\pm${\small0.018} & \textbf{0.723$\pm${\small0.034}} \\
+			Entropy & 1 & 0.765$\pm${\small0.022} & 0.66$\pm${\small0.03} & 0.798$\pm${\small0.011} & 0.611$\pm${\small0.054} & 0.823$\pm${\small0.013} & 0.464$\pm${\small0.024} & 0.663$\pm${\small0.013} & 0.672$\pm${\small0.011} & 0.801$\pm${\small0.025} & \textbf{0.924$\pm${\small0.02}} & 0.689$\pm${\small0.066} \\
+			LSA & 1 & \textbf{0.769$\pm${\small0.016}} & 0.654$\pm${\small0.032} & 0.781$\pm${\small0.013} & 0.61$\pm${\small0.041} & 0.82$\pm${\small0.009} & 0.484$\pm${\small0.022} & 0.617$\pm${\small0.012} & 0.641$\pm${\small0.011} & 0.816$\pm${\small0.012} & 0.915$\pm${\small0.018} & 0.718$\pm${\small0.038} \\
+			Random & 0 & 0.758$\pm${\small0.015} & 0.655$\pm${\small0.026} & 0.771$\pm${\small0.013} & 0.623$\pm${\small0.031} & 0.82$\pm${\small0.009} & 0.476$\pm${\small0.024} & 0.616$\pm${\small0.016} & 0.637$\pm${\small0.012} & 0.812$\pm${\small0.014} & 0.921$\pm${\small0.018} & 0.713$\pm${\small0.034} \\
+			Coreset & 1 & 0.765$\pm${\small0.017} & \textbf{0.663$\pm${\small0.023}} & 0.784$\pm${\small0.014} & 0.603$\pm${\small0.034} & 0.765$\pm${\small0.015} & 0.449$\pm${\small0.022} & 0.657$\pm${\small0.009} & 0.674$\pm${\small0.009} & 0.817$\pm${\small0.017} & 0.92$\pm${\small0.017} & 0.713$\pm${\small0.035} \\
+			TypiClust & 0 & 0.759$\pm${\small0.014} & 0.641$\pm${\small0.028} & 0.775$\pm${\small0.01} & 0.603$\pm${\small0.04} & 0.757$\pm${\small0.02} & 0.465$\pm${\small0.027} & 0.596$\pm${\small0.014} & 0.567$\pm${\small0.012} & 0.727$\pm${\small0.026} & 0.916$\pm${\small0.02} & 0.693$\pm${\small0.045}
 		\end{tabular}
 	}
 \end{table}
@@ -1335,29 +1323,19 @@ All tables are sorted according to the main result in Table \ref{tab:results}.
 		\begin{tabular}{l|llllllllll}
 			& Wins & Splice       & SpliceEnc& DNA          & USPS         & USPSEnc  & Cifar10Enc& FMnistEnc & TopV2 & News \\
 			\hline
-			Oracle &  & 0.803 $\pm$ {\small 0.012} & 0.678 $\pm$ {\small 0.021} & 0.825 $\pm$ {\small 0.009} & 0.866 $\pm$ {\small 0.004} & 0.436 $\pm$ {\small 0.057} & 0.749 $\pm$ {\small 0.009} & 0.755 $\pm$ {\small 0.005} & 0.884 $\pm$ {\small 0.006} & 0.49 $\pm$ {\small 0.003} \\
-			
-			Margin & 1 & 0.759 $\pm$ {\small 0.027} & 0.618 $\pm$ {\small 0.04} & 0.779 $\pm$ {\small 0.013} & \textbf{0.847 $\pm$ {\small 0.008}} & 0.439 $\pm$ {\small 0.027} & 0.656 $\pm$ {\small 0.01} & 0.67 $\pm$ {\small 0.011} & 0.823 $\pm$ {\small 0.014} & 0.464 $\pm$ {\small 0.007} \\
-			
-			Badge & 3 & 0.767 $\pm$ {\small 0.013} & \textbf{0.619 $\pm$ {\small 0.033}} & 0.776 $\pm$ {\small 0.013} & 0.845 $\pm$ {\small 0.006} & \textbf{0.44 $\pm$ {\small 0.019}} & 0.647 $\pm$ {\small 0.013} & 0.665 $\pm$ {\small 0.007} & \textbf{0.827 $\pm$ {\small 0.016}} & 0.463 $\pm$ {\small 0.007} \\
-			
-			LeastConf & 1 & 0.751 $\pm$ {\small 0.02} & 0.597 $\pm$ {\small 0.05} & 0.748 $\pm$ {\small 0.025} & 0.798 $\pm$ {\small 0.027} & 0.391 $\pm$ {\small 0.024} & \textbf{0.665 $\pm$ {\small 0.013}} & 0.669 $\pm$ {\small 0.011} & 0.775 $\pm$ {\small 0.035} & 0.467 $\pm$ {\small 0.008} \\
-			
-			DSA & 0 & 0.759 $\pm$ {\small 0.02} & 0.599 $\pm$ {\small 0.034} & 0.769 $\pm$ {\small 0.013} & 0.809 $\pm$ {\small 0.012} & 0.421 $\pm$ {\small 0.023} & 0.647 $\pm$ {\small 0.014} & 0.63 $\pm$ {\small 0.013} & 0.793 $\pm$ {\small 0.026} & 0.459 $\pm$ {\small 0.01} \\
-			
-			BALD & 4 & \textbf{0.768 $\pm$ {\small 0.022}} & 0.57 $\pm$ {\small 0.037} & \textbf{0.784 $\pm$ {\small 0.015}} & 0.822 $\pm$ {\small 0.009} & 0.298 $\pm$ {\small 0.039} & 0.675 $\pm$ {\small 0.008} & \textbf{0.673 $\pm$ {\small 0.01}} & 0.789 $\pm$ {\small 0.024} & \textbf{0.468 $\pm$ {\small 0.009}} \\
-			
-			CoreGCN & 0 & 0.759 $\pm$ {\small 0.018} & 0.612 $\pm$ {\small 0.039} & 0.774 $\pm$ {\small 0.012} & 0.754 $\pm$ {\small 0.016} & 0.397 $\pm$ {\small 0.026} & 0.587 $\pm$ {\small 0.015} & 0.583 $\pm$ {\small 0.015} & 0.807 $\pm$ {\small 0.018} & 0.453 $\pm$ {\small 0.006} \\
-			
-			Entropy & 0 & 0.759 $\pm$ {\small 0.027} & 0.618 $\pm$ {\small 0.038} & 0.773 $\pm$ {\small 0.015} & 0.803 $\pm$ {\small 0.019} & 0.372 $\pm$ {\small 0.022} & 0.656 $\pm$ {\small 0.011} & 0.65 $\pm$ {\small 0.012} & 0.773 $\pm$ {\small 0.031} & 0.451 $\pm$ {\small 0.007} \\
-			
-			LSA & 0 & 0.761 $\pm$ {\small 0.014} & 0.611 $\pm$ {\small 0.039} & 0.768 $\pm$ {\small 0.015} & 0.816 $\pm$ {\small 0.009} & 0.411 $\pm$ {\small 0.022} & 0.621 $\pm$ {\small 0.01} & 0.635 $\pm$ {\small 0.011} & 0.796 $\pm$ {\small 0.016} & 0.452 $\pm$ {\small 0.007} \\
-			
-			Random & 0 & 0.755 $\pm$ {\small 0.014} & 0.612 $\pm$ {\small 0.039} & 0.763 $\pm$ {\small 0.012} & 0.818 $\pm$ {\small 0.009} & 0.439 $\pm$ {\small 0.019} & 0.622 $\pm$ {\small 0.013} & 0.633 $\pm$ {\small 0.012} & 0.795 $\pm$ {\small 0.016} & 0.45 $\pm$ {\small 0.006} \\
-			
-			Coreset & 0 & 0.759 $\pm$ {\small 0.016} & 0.601 $\pm$ {\small 0.034} & 0.764 $\pm$ {\small 0.015} & 0.757 $\pm$ {\small 0.015} & 0.39 $\pm$ {\small 0.029} & 0.647 $\pm$ {\small 0.009} & 0.651 $\pm$ {\small 0.011} & 0.784 $\pm$ {\small 0.026} & 0.435 $\pm$ {\small 0.012} \\
-			
-			TypiClust & 0 & 0.751 $\pm$ {\small 0.012} & 0.551 $\pm$ {\small 0.036} & 0.76 $\pm$ {\small 0.016} & 0.643 $\pm$ {\small 0.026} & 0.411 $\pm$ {\small 0.024} & 0.488 $\pm$ {\small 0.02} & 0.449 $\pm$ {\small 0.017} & 0.652 $\pm$ {\small 0.035} & 0.406 $\pm$ {\small 0.011} \\
+			Oracle &  & 0.803$\pm${\small0.012} & 0.678$\pm${\small0.021} & 0.825$\pm${\small0.009} & 0.866$\pm${\small0.004} & 0.436$\pm${\small0.057} & 0.749$\pm${\small0.009} & 0.755$\pm${\small0.005} & 0.884$\pm${\small0.006} & 0.49$\pm${\small0.003} \\
+			Margin & 1 & 0.759$\pm${\small0.027} & 0.618$\pm${\small0.04} & \textbf{0.779$\pm${\small0.013}} & 0.847$\pm${\small0.008} & 0.439$\pm${\small0.027} & 0.656$\pm${\small0.01} & 0.67$\pm${\small0.011} & 0.823$\pm${\small0.014} & 0.464$\pm${\small0.007} \\
+			Galaxy & 3 & 0.751$\pm${\small0.023} & 0.599$\pm${\small0.05} & 0.761$\pm${\small0.023} & \textbf{0.848$\pm${\small0.009}} & \textbf{0.444$\pm${\small0.022}} & 0.662$\pm${\small0.012} & 0.669$\pm${\small0.011} & 0.826$\pm${\small0.018} & \textbf{0.483$\pm${\small0.007}} \\
+			Badge & 2 & 0.767$\pm${\small0.013} & \textbf{0.619$\pm${\small0.033}} & 0.776$\pm${\small0.013} & 0.845$\pm${\small0.006} & 0.44$\pm${\small0.019} & 0.647$\pm${\small0.013} & 0.665$\pm${\small0.007} & \textbf{0.827$\pm${\small0.016}} & 0.463$\pm${\small0.007} \\
+			LeastConfident & 1 & 0.751$\pm${\small0.02} & 0.597$\pm${\small0.05} & 0.748$\pm${\small0.025} & 0.798$\pm${\small0.027} & 0.391$\pm${\small0.024} & \textbf{0.665$\pm${\small0.013}} & 0.669$\pm${\small0.011} & 0.775$\pm${\small0.035} & 0.467$\pm${\small0.008} \\
+			DSA & 0 & 0.759$\pm${\small0.02} & 0.599$\pm${\small0.034} & 0.769$\pm${\small0.013} & 0.809$\pm${\small0.012} & 0.421$\pm${\small0.023} & 0.647$\pm${\small0.014} & 0.63$\pm${\small0.013} & 0.793$\pm${\small0.026} & 0.459$\pm${\small0.01} \\
+			BALD & 1 & \textbf{0.768$\pm${\small0.022}} & 0.57$\pm${\small0.037} & 0.784$\pm${\small0.015} & 0.822$\pm${\small0.009} & 0.298$\pm${\small0.039} & 0.675$\pm${\small0.008} & 0.673$\pm${\small0.01} & 0.789$\pm${\small0.024} & 0.468$\pm${\small0.009} \\
+			CoreGCN & 0 & 0.759$\pm${\small0.018} & 0.612$\pm${\small0.039} & 0.774$\pm${\small0.012} & 0.754$\pm${\small0.016} & 0.397$\pm${\small0.026} & 0.587$\pm${\small0.015} & 0.583$\pm${\small0.015} & 0.807$\pm${\small0.018} & 0.453$\pm${\small0.006} \\
+			Entropy & 0 & 0.759$\pm${\small0.027} & 0.618$\pm${\small0.038} & 0.773$\pm${\small0.015} & 0.803$\pm${\small0.019} & 0.372$\pm${\small0.022} & 0.656$\pm${\small0.011} & 0.65$\pm${\small0.012} & 0.773$\pm${\small0.031} & 0.451$\pm${\small0.007} \\
+			LSA & 0 & 0.761$\pm${\small0.014} & 0.611$\pm${\small0.039} & 0.768$\pm${\small0.015} & 0.816$\pm${\small0.009} & 0.411$\pm${\small0.022} & 0.621$\pm${\small0.01} & 0.635$\pm${\small0.011} & 0.796$\pm${\small0.016} & 0.452$\pm${\small0.007} \\
+			Random & 0 & 0.755$\pm${\small0.014} & 0.612$\pm${\small0.039} & 0.763$\pm${\small0.012} & 0.818$\pm${\small0.009} & 0.439$\pm${\small0.019} & 0.622$\pm${\small0.013} & 0.633$\pm${\small0.012} & 0.795$\pm${\small0.016} & 0.45$\pm${\small0.006} \\
+			Coreset & 0 & 0.759$\pm${\small0.016} & 0.601$\pm${\small0.034} & 0.764$\pm${\small0.015} & 0.757$\pm${\small0.015} & 0.39$\pm${\small0.029} & 0.647$\pm${\small0.009} & 0.651$\pm${\small0.011} & 0.784$\pm${\small0.026} & 0.435$\pm${\small0.012} \\
+			TypiClust & 0 & 0.751$\pm${\small0.012} & 0.551$\pm${\small0.036} & 0.76$\pm${\small0.016} & 0.643$\pm${\small0.026} & 0.411$\pm${\small0.024} & 0.488$\pm${\small0.02} & 0.449$\pm${\small0.017} & 0.652$\pm${\small0.035} & 0.406$\pm${\small0.011}
 		\end{tabular}
 	}
 \end{table}
@@ -1368,29 +1346,19 @@ All tables are sorted according to the main result in Table \ref{tab:results}.
 		\begin{tabular}{l|lllllllll}
 			& Wins & Splice       & DNA          & USPS         & USPSEnc  & Cifar10Enc& FMnistEnc& TopV2     & News \\
 			\hline
-			Oracle &  & 0.803 $\pm$ {\small 0.012} & 0.825 $\pm$ {\small 0.009} & 0.866 $\pm$ {\small 0.004} & 0.436 $\pm$ {\small 0.057} & 0.749 $\pm$ {\small 0.009} & 0.755 $\pm$ {\small 0.005} & 0.884 $\pm$ {\small 0.006} & 0.49 $\pm$ {\small 0.003} \\
-			
-			Margin & 1 & 0.747 $\pm$ {\small 0.023} & 0.751 $\pm$ {\small 0.019} & 0.828 $\pm$ {\small 0.009} & 0.363 $\pm$ {\small 0.031} & 0.64 $\pm$ {\small 0.013} & \textbf{0.653 $\pm$ {\small 0.01}} & 0.774 $\pm$ {\small 0.029} & 0.46 $\pm$ {\small 0.006} \\
-			
-			Badge & 3 & 0.758 $\pm$ {\small 0.017} & 0.754 $\pm$ {\small 0.018} & \textbf{0.831 $\pm$ {\small 0.008}} & 0.376 $\pm$ {\small 0.028} & 0.632 $\pm$ {\small 0.013} & 0.649 $\pm$ {\small 0.011} & \textbf{0.781 $\pm$ {\small 0.026}} & \textbf{0.462 $\pm$ {\small 0.007}} \\
-			
-			LeastConf & 2 & 0.731 $\pm$ {\small 0.025} & 0.688 $\pm$ {\small 0.041} & 0.761 $\pm$ {\small 0.037} & 0.291 $\pm$ {\small 0.03} & \textbf{0.644 $\pm$ {\small 0.013}} & 0.65 $\pm$ {\small 0.011} & 0.73 $\pm$ {\small 0.049} & \textbf{0.462 $\pm$ {\small 0.009}} \\
-			
-			DSA & 0 & 0.748 $\pm$ {\small 0.021} & 0.738 $\pm$ {\small 0.018} & 0.783 $\pm$ {\small 0.016} & 0.346 $\pm$ {\small 0.027} & 0.624 $\pm$ {\small 0.014} & 0.588 $\pm$ {\small 0.016} & 0.748 $\pm$ {\small 0.041} & 0.45 $\pm$ {\small 0.011} \\
-			
-			BALD & 2 & \textbf{0.76 $\pm$ {\small 0.017}} & \textbf{0.756 $\pm$ {\small 0.018}} & 0.796 $\pm$ {\small 0.016} & 0.241 $\pm$ {\small 0.026} & 0.65 $\pm$ {\small 0.009} & 0.645 $\pm$ {\small 0.01} & 0.746 $\pm$ {\small 0.038} & 0.455 $\pm$ {\small 0.007} \\
-			
-			CoreGCN & 0 & 0.755 $\pm$ {\small 0.016} & 0.745 $\pm$ {\small 0.018} & 0.752 $\pm$ {\small 0.019} & 0.328 $\pm$ {\small 0.027} & 0.581 $\pm$ {\small 0.015} & 0.568 $\pm$ {\small 0.018} & 0.771 $\pm$ {\small 0.025} & 0.453 $\pm$ {\small 0.007} \\
-			
-			Entropy & 0 & 0.747 $\pm$ {\small 0.024} & 0.748 $\pm$ {\small 0.018} & 0.778 $\pm$ {\small 0.024} & 0.275 $\pm$ {\small 0.026} & 0.633 $\pm$ {\small 0.011} & 0.625 $\pm$ {\small 0.012} & 0.734 $\pm$ {\small 0.036} & 0.442 $\pm$ {\small 0.007} \\
-			
-			LSA & 0 & 0.754 $\pm$ {\small 0.013} & 0.749 $\pm$ {\small 0.019} & 0.807 $\pm$ {\small 0.01} & 0.341 $\pm$ {\small 0.029} & 0.613 $\pm$ {\small 0.012} & 0.625 $\pm$ {\small 0.01} & 0.763 $\pm$ {\small 0.025} & 0.45 $\pm$ {\small 0.006} \\
-			
-			Random & 1 & 0.746 $\pm$ {\small 0.012} & 0.745 $\pm$ {\small 0.015} & 0.806 $\pm$ {\small 0.008} & \textbf{0.379 $\pm$ {\small 0.028}} & 0.615 $\pm$ {\small 0.014} & 0.621 $\pm$ {\small 0.01} & 0.759 $\pm$ {\small 0.026} & 0.448 $\pm$ {\small 0.006} \\
-			
-			Coreset & 0 & 0.751 $\pm$ {\small 0.016} & 0.733 $\pm$ {\small 0.019} & 0.74 $\pm$ {\small 0.017} & 0.325 $\pm$ {\small 0.034} & 0.624 $\pm$ {\small 0.012} & 0.608 $\pm$ {\small 0.013} & 0.731 $\pm$ {\small 0.045} & 0.432 $\pm$ {\small 0.012} \\
-			
-			TypiClust & 0 & 0.749 $\pm$ {\small 0.016} & 0.736 $\pm$ {\small 0.016} & 0.586 $\pm$ {\small 0.038} & 0.348 $\pm$ {\small 0.027} & 0.451 $\pm$ {\small 0.024} & 0.375 $\pm$ {\small 0.022} & 0.614 $\pm$ {\small 0.046} & 0.397 $\pm$ {\small 0.012} \\
+			Oracle &  & 0.803$\pm${\small0.012} & 0.825$\pm${\small0.009} & 0.866$\pm${\small0.004} & 0.436$\pm${\small0.057} & 0.749$\pm${\small0.009} & 0.755$\pm${\small0.005} & 0.884$\pm${\small0.006} & 0.49$\pm${\small0.003} \\
+			Margin & 0 & 0.747$\pm${\small0.023} & 0.751$\pm${\small0.019} & 0.828$\pm${\small0.009} & 0.363$\pm${\small0.031} & 0.64$\pm${\small0.013} & 0.653$\pm${\small0.01} & 0.774$\pm${\small0.029} & 0.46$\pm${\small0.006} \\
+			Galaxy & 4 & 0.733$\pm${\small0.027} & 0.702$\pm${\small0.037} & 0.828$\pm${\small0.013} & 0.363$\pm${\small0.029} & \textbf{0.647$\pm${\small0.009}} & \textbf{0.654$\pm${\small0.008}} & \textbf{0.781$\pm${\small0.029}} & \textbf{0.482$\pm${\small0.006}} \\
+			Badge & 3 & 0.748$\pm${\small0.017} & 0.754$\pm${\small0.018} & \textbf{0.831$\pm${\small0.008}} & \textbf{0.376$\pm${\small0.028}} & 0.632$\pm${\small0.013} & 0.649$\pm${\small0.011} & \textbf{0.781$\pm${\small0.026}} & 0.462$\pm${\small0.007} \\
+			LeastConfident & 0 & 0.731$\pm${\small0.025} & 0.688$\pm${\small0.041} & 0.761$\pm${\small0.037} & 0.291$\pm${\small0.03} & 0.644$\pm${\small0.013} & 0.65$\pm${\small0.011} & 0.73$\pm${\small0.049} & 0.462$\pm${\small0.009} \\
+			DSA & 0 & 0.748$\pm${\small0.021} & 0.738$\pm${\small0.018} & 0.783$\pm${\small0.016} & 0.346$\pm${\small0.027} & 0.624$\pm${\small0.014} & 0.588$\pm${\small0.016} & 0.748$\pm${\small0.041} & 0.45$\pm${\small0.011} \\
+			BALD & 2 & \textbf{0.76$\pm${\small0.017}} & \textbf{0.756$\pm${\small0.018}} & 0.796$\pm${\small0.016} & 0.241$\pm${\small0.026} & 0.65$\pm${\small0.009} & 0.645$\pm${\small0.01} & 0.746$\pm${\small0.038} & 0.455$\pm${\small0.007} \\
+			CoreGCN & 0 & 0.755$\pm${\small0.016} & 0.745$\pm${\small0.018} & 0.752$\pm${\small0.019} & 0.328$\pm${\small0.027} & 0.581$\pm${\small0.015} & 0.568$\pm${\small0.018} & 0.771$\pm${\small0.025} & 0.453$\pm${\small0.007} \\
+			Entropy & 0 & 0.747$\pm${\small0.024} & 0.748$\pm${\small0.018} & 0.778$\pm${\small0.024} & 0.275$\pm${\small0.026} & 0.633$\pm${\small0.011} & 0.625$\pm${\small0.012} & 0.734$\pm${\small0.036} & 0.442$\pm${\small0.007} \\
+			LSA & 0 & 0.754$\pm${\small0.013} & 0.749$\pm${\small0.019} & 0.807$\pm${\small0.01} & 0.341$\pm${\small0.029} & 0.613$\pm${\small0.012} & 0.625$\pm${\small0.01} & 0.763$\pm${\small0.025} & 0.45$\pm${\small0.006} \\
+			Random & 0 & 0.746$\pm${\small0.012} & 0.745$\pm${\small0.015} & 0.806$\pm${\small0.008} & 0.379$\pm${\small0.028} & 0.615$\pm${\small0.014} & 0.621$\pm${\small0.01} & 0.759$\pm${\small0.026} & 0.448$\pm${\small0.006} \\
+			Coreset & 0 & 0.751$\pm${\small0.016} & 0.733$\pm${\small0.019} & 0.74$\pm${\small0.017} & 0.325$\pm${\small0.034} & 0.624$\pm${\small0.012} & 0.608$\pm${\small0.013} & 0.731$\pm${\small0.045} & 0.432$\pm${\small0.012} \\
+			TypiClust & 0 & 0.749$\pm${\small0.016} & 0.736$\pm${\small0.016} & 0.586$\pm${\small0.038} & 0.348$\pm${\small0.027} & 0.451$\pm${\small0.024} & 0.375$\pm${\small0.022} & 0.614$\pm${\small0.046} & 0.397$\pm${\small0.012}
 		\end{tabular}
 	}
 \end{table}
@@ -1401,67 +1369,64 @@ All tables are sorted according to the main result in Table \ref{tab:results}.
 		\begin{tabular}{l|llllllll}
 			& Wins & Splice       & DNA          & USPS         & USPSEnc & Cifar10Enc& FMnistEnc& News \\
 			\hline
-			Oracle & 0 & 0.803 $\pm$ {\small 0.012} & 0.825 $\pm$ {\small 0.009} & 0.866 $\pm$ {\small 0.004} & 0.436 $\pm$ {\small 0.057} & 0.749 $\pm$ {\small 0.009} & 0.755 $\pm$ {\small 0.005} & 0.49 $\pm$ {\small 0.003} \\
-			Margin & 2 & 0.733 $\pm$ {\small 0.024} & 0.711 $\pm$ {\small 0.027} & 0.799 $\pm$ {\small 0.013} & \textbf{0.473 $\pm$ {\small 0.026}} & 0.629 $\pm$ {\small 0.012} & \textbf{0.628 $\pm$ {\small 0.009}} & 0.455 $\pm$ {\small 0.006} \\
-			Badge & 2 & 0.743 $\pm$ {\small 0.014} & 0.714 $\pm$ {\small 0.032} & \textbf{0.804 $\pm$ {\small 0.013}} & 0.472 $\pm$ {\small 0.029} & 0.623 $\pm$ {\small 0.01} & 0.621 $\pm$ {\small 0.01} & \textbf{0.456 $\pm$ {\small 0.006}} \\
-			LeastConf & 0 & 0.715 $\pm$ {\small 0.033} & 0.639 $\pm$ {\small 0.05} & 0.708 $\pm$ {\small 0.034} & 0.23 $\pm$ {\small 0.034} & 0.631 $\pm$ {\small 0.013} & 0.62 $\pm$ {\small 0.012} & 0.457 $\pm$ {\small 0.008} \\
-			DSA & 0 & 0.729 $\pm$ {\small 0.021} & 0.697 $\pm$ {\small 0.031} & 0.753 $\pm$ {\small 0.021} & 0.427 $\pm$ {\small 0.028} & 0.609 $\pm$ {\small 0.013} & 0.546 $\pm$ {\small 0.017} & 0.442 $\pm$ {\small 0.01} \\
-			BALD & 3 & \textbf{0.744 $\pm$ {\small 0.015}} & \textbf{0.718 $\pm$ {\small 0.024}} & 0.765 $\pm$ {\small 0.021} & 0.285 $\pm$ {\small 0.046} & \textbf{0.632 $\pm$ {\small 0.009}} & 0.609 $\pm$ {\small 0.01} & 0.444 $\pm$ {\small 0.007} \\
-			CoreGCN & 0 & 0.742 $\pm$ {\small 0.015} & 0.713 $\pm$ {\small 0.025} & 0.744 $\pm$ {\small 0.019} & 0.433 $\pm$ {\small 0.032} & 0.583 $\pm$ {\small 0.013} & 0.554 $\pm$ {\small 0.015} & 0.448 $\pm$ {\small 0.007} \\
-			Entropy & 0 & 0.733 $\pm$ {\small 0.023} & 0.713 $\pm$ {\small 0.031} & 0.743 $\pm$ {\small 0.026} & 0.395 $\pm$ {\small 0.037} & 0.618 $\pm$ {\small 0.012} & 0.59 $\pm$ {\small 0.012} & 0.432 $\pm$ {\small 0.007} \\
-			LSA & 0 & 0.738 $\pm$ {\small 0.017} & 0.716 $\pm$ {\small 0.027} & 0.789 $\pm$ {\small 0.011} & 0.439 $\pm$ {\small 0.03} & 0.609 $\pm$ {\small 0.013} & 0.608 $\pm$ {\small 0.01} & 0.447 $\pm$ {\small 0.006} \\
-			Random & 0 & 0.733 $\pm$ {\small 0.013} & 0.713 $\pm$ {\small 0.023} & 0.789 $\pm$ {\small 0.012} & 0.468 $\pm$ {\small 0.024} & 0.611 $\pm$ {\small 0.01} & 0.606 $\pm$ {\small 0.01} & 0.446 $\pm$ {\small 0.005} \\
-			Coreset & 0 & 0.735 $\pm$ {\small 0.019} & 0.698 $\pm$ {\small 0.026} & 0.721 $\pm$ {\small 0.021} & 0.396 $\pm$ {\small 0.024} & 0.608 $\pm$ {\small 0.012} & 0.562 $\pm$ {\small 0.016} & 0.426 $\pm$ {\small 0.012} \\
-			TypiClust & 0 & 0.733 $\pm$ {\small 0.016} & 0.704 $\pm$ {\small 0.025} & 0.592 $\pm$ {\small 0.042} & 0.427 $\pm$ {\small 0.027} & 0.501 $\pm$ {\small 0.02} & 0.338 $\pm$ {\small 0.02} & 0.383 $\pm$ {\small 0.012} \\
+			Oracle &  & 0.803$\pm${\small0.012} & 0.825$\pm${\small0.009} & 0.866$\pm${\small0.004} & 0.436$\pm${\small0.057} & 0.749$\pm${\small0.009} & 0.755$\pm${\small0.005} & 0.49$\pm${\small0.003} \\
+			Margin & 1 & 0.733$\pm${\small0.024} & 0.711$\pm${\small0.027} & 0.799$\pm${\small0.013} & \textbf{0.473$\pm${\small0.026}} & 0.629$\pm${\small0.012} & 0.628$\pm${\small0.009} & 0.455$\pm${\small0.006} \\
+			Galaxy & 4 & 0.715$\pm${\small0.032} & 0.658$\pm${\small0.047} & \textbf{0.804$\pm${\small0.015}} & 0.307$\pm${\small0.04} & \textbf{0.638$\pm${\small0.01}} & \textbf{0.632$\pm${\small0.009}} & \textbf{0.478$\pm${\small0.007}} \\
+			Badge & 1 & 0.743$\pm${\small0.014} & 0.714$\pm${\small0.032} & \textbf{0.804$\pm${\small0.013}} & 0.472$\pm${\small0.029} & 0.623$\pm${\small0.01} & 0.621$\pm${\small0.01} & 0.456$\pm${\small0.006} \\
+			LeastConfident & 0 & 0.715$\pm${\small0.033} & 0.639$\pm${\small0.05} & 0.708$\pm${\small0.034} & 0.23$\pm${\small0.034} & 0.631$\pm${\small0.013} & 0.62$\pm${\small0.012} & 0.457$\pm${\small0.008} \\
+			DSA & 0 & 0.729$\pm${\small0.021} & 0.697$\pm${\small0.031} & 0.753$\pm${\small0.021} & 0.427$\pm${\small0.028} & 0.609$\pm${\small0.013} & 0.546$\pm${\small0.017} & 0.442$\pm${\small0.01} \\
+			BALD & 2 & \textbf{0.744$\pm${\small0.015}} & \textbf{0.718$\pm${\small0.024}} & 0.765$\pm${\small0.021} & 0.285$\pm${\small0.046} & 0.632$\pm${\small0.009} & 0.609$\pm${\small0.01} & 0.444$\pm${\small0.007} \\
+			CoreGCN & 0 & 0.742$\pm${\small0.015} & 0.713$\pm${\small0.025} & 0.744$\pm${\small0.019} & 0.433$\pm${\small0.032} & 0.583$\pm${\small0.013} & 0.554$\pm${\small0.015} & 0.448$\pm${\small0.007} \\
+			Entropy & 0 & 0.733$\pm${\small0.023} & 0.713$\pm${\small0.031} & 0.743$\pm${\small0.026} & 0.395$\pm${\small0.037} & 0.618$\pm${\small0.012} & 0.59$\pm${\small0.012} & 0.432$\pm${\small0.007} \\
+			LSA & 0 & 0.738$\pm${\small0.017} & 0.716$\pm${\small0.027} & 0.789$\pm${\small0.011} & 0.439$\pm${\small0.03} & 0.609$\pm${\small0.013} & 0.608$\pm${\small0.01} & 0.447$\pm${\small0.006} \\
+			Random & 0 & 0.733$\pm${\small0.013} & 0.713$\pm${\small0.023} & 0.789$\pm${\small0.012} & 0.468$\pm${\small0.024} & 0.611$\pm${\small0.01} & 0.606$\pm${\small0.01} & 0.446$\pm${\small0.005} \\
+			Coreset & 0 & 0.735$\pm${\small0.019} & 0.698$\pm${\small0.026} & 0.721$\pm${\small0.021} & 0.396$\pm${\small0.024} & 0.608$\pm${\small0.012} & 0.562$\pm${\small0.016} & 0.426$\pm${\small0.012} \\
+			TypiClust & 0 & 0.733$\pm${\small0.016} & 0.704$\pm${\small0.025} & 0.592$\pm${\small0.042} & 0.427$\pm${\small0.027} & 0.501$\pm${\small0.02} & 0.338$\pm${\small0.02} & 0.383$\pm${\small0.012}
 		\end{tabular}
 	}
 \end{table}
-\begin{minipage}{0.47\linewidth}
-	% QS 500
-	\begin{table}[H]
-		\caption{AUC values for each dataset that supports query size 500.}
-		\begin{tabular}{l|ll}
-			& Cifar10 & FashionMnist \\
-			\hline
-			Oracle & 0.689 $\pm$ {\small 0.001} & 0.905 $\pm$ {\small 0.001} \\
-			Margin & 0.556 $\pm$ {\small 0.008} & 0.882 $\pm$ {\small 0.004} \\
-			Badge & 0.56 $\pm$ {\small 0.008} & 0.883 $\pm$ {\small 0.005} \\
-			LeastConf & \textbf{0.591 $\pm$ {\small 0.01}} & \textbf{0.884 $\pm$ {\small 0.005}} \\
-			DSA & 0.56 $\pm$ {\small 0.009} & 0.882 $\pm$ {\small 0.004} \\
-			BALD & 0.478 $\pm$ {\small 0.014} & 0.878 $\pm$ {\small 0.003} \\
-			CoreGCN & 0.553 $\pm$ {\small 0.01} & 0.88 $\pm$ {\small 0.007} \\
-			Entropy & 0.553 $\pm$ {\small 0.009} & 0.882 $\pm$ {\small 0.006} \\
-			LSA & 0.558 $\pm$ {\small 0.01} & 0.866 $\pm$ {\small 0.005} \\
-			Random & 0.557 $\pm$ {\small 0.01} & 0.863 $\pm$ {\small 0.005} \\
-			Coreset & 0.553 $\pm$ {\small 0.007} & 0.878 $\pm$ {\small 0.006} \\
-			TypiClust & 0.557 $\pm$ {\small 0.009} & 0.864 $\pm$ {\small 0.004}
-		\end{tabular}
-	\end{table}
-\end{minipage}
-\hspace{10mm}
-\begin{minipage}{0.47\linewidth}
-	% QS 1000
-	\begin{table}[H]
-		\caption{AUC values for each dataset that supports query size 1000.}
-		\begin{tabular}{l|ll}
-			& Cifar10 & FashionMnist \\
-			\hline
-			Oracle & 0.689 $\pm$ {\small 0.001} & 0.905 $\pm$ {\small 0.001} \\
-			Margin & 0.56 $\pm$ {\small 0.011} & 0.872 $\pm$ {\small 0.007} \\
-			Badge & \textbf{0.562 $\pm$ {\small 0.013}} & 0.871 $\pm$ {\small 0.007} \\
-			LeastConf & 0.561 $\pm$ {\small 0.012} & \textbf{0.873 $\pm$ {\small 0.006}} \\
-			DSA & 0.56 $\pm$ {\small 0.011} & 0.87 $\pm$ {\small 0.008} \\
-			BALD & 0.535 $\pm$ {\small 0.011} & 0.866 $\pm$ {\small 0.003} \\
-			CoreGCN & 0.557 $\pm$ {\small 0.011} & 0.867 $\pm$ {\small 0.012} \\
-			Entropy & 0.557 $\pm$ {\small 0.014} & 0.871 $\pm$ {\small 0.009} \\
-			LSA & 0.551 $\pm$ {\small 0.012} & 0.854 $\pm$ {\small 0.009} \\
-			Random & 0.55 $\pm$ {\small 0.01} & 0.855 $\pm$ {\small 0.006} \\
-			Coreset & 0.562 $\pm$ {\small 0.012} & 0.869 $\pm$ {\small 0.004} \\
-			TypiClust & 0.552 $\pm$ {\small 0.011} & 0.854 $\pm$ {\small 0.009} 	
-		\end{tabular}
-	\end{table}
-\end{minipage}
-
+% QS 500
+\begin{table}[H]
+	\caption{AUC values for each dataset that supports query size 500.}
+	\begin{tabular}{l|lll}
+		& Cifar10 & FashionMnist & News \\
+		\hline
+Oracle & 0.689$\pm${\small0.001} & 0.905$\pm${\small0.001} & 0.49$\pm${\small0.003} \\
+Margin & 0.556$\pm${\small0.008} & 0.882$\pm${\small0.004} & 0.441$\pm${\small0.011} \\
+Galaxy & \textbf{0.591$\pm${\small0.011}} & 0.881$\pm${\small0.008} & 0.447$\pm${\small0.009} \\
+Badge & 0.56$\pm${\small0.008} & 0.883$\pm${\small0.005} & \textbf{0.451$\pm${\small0.008}} \\
+LeastConfident & \textbf{0.591$\pm${\small0.01}} & \textbf{0.884$\pm${\small0.005}} & 0.425$\pm${\small0.013} \\
+DSA & 0.56$\pm${\small0.009} & 0.882$\pm${\small0.004} & 0.432$\pm${\small0.014} \\
+BALD & 0.478$\pm${\small0.014} & 0.878$\pm${\small0.003} & 0.421$\pm${\small0.012} \\
+CoreGCN & 0.553$\pm${\small0.01} & 0.88$\pm${\small0.007} & 0.437$\pm${\small0.012} \\
+Entropy & 0.553$\pm${\small0.009} & 0.882$\pm${\small0.006} & 0.419$\pm${\small0.015} \\
+LSA & 0.558$\pm${\small0.01} & 0.866$\pm${\small0.005} & 0.437$\pm${\small0.009} \\
+Random & 0.557$\pm${\small0.01} & 0.863$\pm${\small0.005} & 0.437$\pm${\small0.008} \\
+Coreset & 0.553$\pm${\small0.007} & 0.878$\pm${\small0.006} & 0.439$\pm${\small0.009} \\
+TypiClust & 0.557$\pm${\small0.009} & 0.864$\pm${\small0.004} & 0.43$\pm${\small0.01}
+	\end{tabular}
+\end{table}
+% QS 1000
+\begin{table}[H]
+	\caption{AUC values for each dataset that supports query size 1000.}
+	\begin{tabular}{l|ll}
+		& Cifar10 & FashionMnist \\
+		\hline
+Oracle & 0.689$\pm${\small0.001} & 0.905$\pm${\small0.001} \\
+Margin & 0.56$\pm${\small0.011} & 0.872$\pm${\small0.007} \\
+Galaxy & 0.56$\pm${\small0.011} & 0.87$\pm${\small0.007} \\
+Badge & \textbf{0.562$\pm${\small0.013}} & 0.871$\pm${\small0.007} \\
+LeastConfident & 0.561$\pm${\small0.012} & \textbf{0.873$\pm${\small0.006}} \\
+DSA & 0.56$\pm${\small0.011} & 0.87$\pm${\small0.008} \\
+BALD & 0.535$\pm${\small0.011} & 0.866$\pm${\small0.003} \\
+CoreGCN & 0.557$\pm${\small0.011} & 0.867$\pm${\small0.012} \\
+Entropy & 0.557$\pm${\small0.014} & 0.871$\pm${\small0.009} \\
+LSA & 0.551$\pm${\small0.012} & 0.854$\pm${\small0.009} \\
+Random & 0.55$\pm${\small0.01} & 0.855$\pm${\small0.006} \\
+Coreset & 0.562$\pm${\small0.012} & 0.869$\pm${\small0.004} \\
+TypiClust & 0.552$\pm${\small0.011} & 0.854$\pm${\small0.009}	
+	\end{tabular}
+\end{table}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

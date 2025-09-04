@@ -211,14 +211,18 @@ def _get_oracle_regression(x, y, x_test, upper_bound):
     # x_test_array = np.array(x_test, dtype=float) / max_value
     x_test_array = np.arange(max(x), max(x_test)+1) / max_value
     y_test = lr_model.predict(x_test_array.reshape(-1, 1))
+    distances = upper_bound - y_test
+    max_dist = np.max(distances)
     space = np.linspace(0.0, 1.0, len(y_test))
     # decay function
     # multipliers = np.linspace(1.0, 0.0, len(y_test)) # linear
-    multipliers = np.exp(-space / 0.5) # exponential
-    for i in range(0, len(y_test)):
-        multiplicator = multipliers[i]
-        y_test[i] = min(y_test[i], y_test[i] * multiplicator + upper_bound * 0.99 * (1-multiplicator))
-    idx = [i-max(x) for i in x_test]
+    # multipliers = np.exp(-space / 0.5) # exponential
+    multipliers = [max(distances[i] / max_dist, 0.0) ** 3 for i in range(len(space))]
+    for i in range(1, len(y_test)):
+        m = multipliers[i]
+        # y_test[i] = min(y_test[i], y_test[i] * multiplicator + upper_bound * 0.99 * (1-multiplicator))
+        y_test[i] = m * y_test[i] + (1 - m) * y_test[i - 1]
+    idx = [i - max(x) for i in x_test]
     return x_test, y_test[idx]
 
 
@@ -279,6 +283,8 @@ def full_plot(dataset:str, query_size=None, show_auc=True, radjust=0.8, forecast
         n_rows = math.ceil(len(query_size) / 2)
         fig, ax = plt.subplots(n_rows, 2, figsize=(12, 5*n_rows))
         ax = ax.flatten()
+        if (len(query_size) % 2 != 0):
+            fig.delaxes(ax[-1])
         legend_created = False
         for i in range(len(query_size)):
             _create_plot_for_query_size(ax[i], dataset, query_size[i], y_label if i%2==0 else "",
@@ -457,32 +463,32 @@ if __name__ == '__main__':
     # show_auc = True
     # qs = 20
 
-    full_plot("TopV2", query_size=[5, 20], radjust=0.7, forecast_oracle=True)
-    plt.show()
-    exit(0)
+    # full_plot("TopV2", query_size=[5, 20], radjust=0.7, forecast_oracle=True)
+    # plt.show()
+    # exit(0)
 
     # _create_plot_for_query_size(axes[1], "Cifar10", 500, "Acc", f"Cifar10 - 500",
     #                            smoothing_weight=0.0, show_auc=show_auc, forecast_oracle=True)
     # plt.show()
 
-    plot_single(axes, "Splice", qs, "MarginScore_scratch", label="Scratch", color="red",
-                show_auc=show_auc, show_std=True)
-    plot_single(axes, "Splice", qs, "MarginScore_finetuning", label="Finetuning", color="green",
-                show_auc=show_auc, show_std=True)
-    plot_single(axes, "Splice", qs, "MarginScore", label="Shrinking", color="blue",
-                show_auc=show_auc, show_std=True)
-    plot_single(axes, "Splice", qs, "MarginScore_shrinking", label="Shrinking", color="orange",
-                show_auc=show_auc, show_std=True)
-    axes.set_title('Splice')
-    axes.set_ylabel('Accuracy')
-    axes.set_xlabel('# labeled datapoints')
-    plt.grid(visible=True)
-    axes.legend(fontsize='x-small')
-    axes.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-    plt.tight_layout()
-    plt.show()
-
-
-
-    # full_plot("FashionMnist", query_size=None)
+    # plot_single(axes, "Splice", qs, "MarginScore_scratch", label="Scratch", color="red",
+    #             show_auc=show_auc, show_std=True)
+    # plot_single(axes, "Splice", qs, "MarginScore_finetuning", label="Finetuning", color="green",
+    #             show_auc=show_auc, show_std=True)
+    # plot_single(axes, "Splice", qs, "MarginScore", label="Shrinking", color="blue",
+    #             show_auc=show_auc, show_std=True)
+    # plot_single(axes, "Splice", qs, "MarginScore_shrinking", label="Shrinking", color="orange",
+    #             show_auc=show_auc, show_std=True)
+    # axes.set_title('Splice')
+    # axes.set_ylabel('Accuracy')
+    # axes.set_xlabel('# labeled datapoints')
+    # plt.grid(visible=True)
+    # axes.legend(fontsize='x-small')
+    # axes.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+    # plt.tight_layout()
     # plt.show()
+
+
+
+    full_plot("FashionMnist", query_size=None)
+    plt.show()

@@ -431,37 +431,41 @@ if __name__ == '__main__':
                         "Cifar10Encoded", "FashionMnistEncoded"]
     incl_oracle = True
 
+    df = combine_agents_into_df(datasets_raw + datasets_encoded, include_oracle=incl_oracle)
+    df = prepare_df(df)
+    draw_cd_diagram(df, title="All Tasks", file="doc/img/macro_all.jpg")
+
     # df = combine_agents_into_df(["Splice", "DNA", "USPS"], include_oracle=incl_oracle)
     # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Tabular", file="doc/img/macro_vector_poster.jpg")
+    # draw_cd_diagram(df, title="Tabular", file="doc/img/macro_vector.jpg")
     #
     # df = combine_agents_into_df(["TopV2", "News"], include_oracle=incl_oracle)
     # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Text", file="doc/img/macro_text_poster.jpg")
+    # draw_cd_diagram(df, title="Text", file="doc/img/macro_text.jpg")
     #
     # df = combine_agents_into_df(["Cifar10", "FashionMnist"], include_oracle=incl_oracle)
     # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Image", file="doc/img/macro_img_poster.jpg")
-
+    # draw_cd_diagram(df, title="Image", file="doc/img/macro_img.jpg")
+    #
     # df = combine_agents_into_df(["Cifar10Encoded", "DNAEncoded", "FashionMnistEncoded",
     #                                      "SpliceEncoded", "USPSEncoded"], include_oracle=incl_oracle)
     # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Semi-Supervised", file="doc/img/macro_enc_poster.jpg")
-
-    # Encoded domain, split by data type
-    df = combine_agents_into_df(["DNAEncoded", "SpliceEncoded", "USPSEncoded"], include_oracle=incl_oracle)
-    df = prepare_df(df)
-    draw_cd_diagram(df, title="Semi Tabular", file="doc/img/macro_enc_tabular.jpg")
-
-    df = combine_agents_into_df(["Cifar10Encoded", "FashionMnistEncoded"], include_oracle=incl_oracle)
-    df = prepare_df(df)
-    draw_cd_diagram(df, title="Semi Image", file="doc/img/macro_enc_img.jpg")
-
-    # Single Datasets
+    # draw_cd_diagram(df, title="Semi-Supervised", file="doc/img/macro_enc.jpg")
+    #
+    # # Encoded domain, split by data type
+    # df = combine_agents_into_df(["DNAEncoded", "SpliceEncoded", "USPSEncoded"], include_oracle=incl_oracle)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Semi Tabular", file="doc/img/macro_enc_text.jpg")
+    #
+    # df = combine_agents_into_df(["Cifar10Encoded", "FashionMnistEncoded"], include_oracle=incl_oracle)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Semi Image", file="doc/img/macro_enc_img.jpg")
+    #
+    # # Single Datasets
     # df = combine_agents_into_df(dataset="ThreeClust", include_oracle=incl_oracle)
     # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Honeypot", file="doc/img/micro_honeypot_poster.jpg")
+    # draw_cd_diagram(df, title="Honeypot", file="doc/img/micro_honeypot.jpg")
     #
     # df = combine_agents_into_df(dataset="DivergingSin", include_oracle=incl_oracle)
     # df = prepare_df(df)
-    # draw_cd_diagram(df, title="Diverging Sine", file="doc/img/micro_diverging_sin_poster.jpg")
+    # draw_cd_diagram(df, title="Diverging Sine", file="doc/img/micro_diverging_sin.jpg")

@@ -135,6 +135,24 @@ def generate_rank_leaderboard(precision=1, add_std=True, subsample_runs=None):
 def generate_auc_leaderboard(sorted_agents:list, precision=3, add_std=True, subsample_runs=None):
     def save_leaderboard(df, dataset_list, postfix):
         df["query_size"] = df["query_size"].astype(int)
+        # Just Oracle
+        sub_df = df[df["agent"] == "Oracle"]
+        sub_df = sub_df.drop("query_size", axis=1)
+        available_datasets = pd.unique(sub_df["dataset"])
+        available_datasets = sort_according_to_reference(list(available_datasets), dataset_list)
+        available_agents = ["Oracle"]
+        result_df = pd.DataFrame(columns=["agent"] + available_datasets)
+        for agent in available_agents:
+            auc_values = sub_df[sub_df["agent"] == agent]
+            auc_values.index = auc_values["dataset"]
+            auc_values = auc_values.drop(["agent", "dataset"], axis=1)
+            auc_values = auc_values.transpose()
+            auc_values["agent"] = agent
+            result_df = pd.concat([result_df, auc_values])
+        result_df = result_df.dropna(axis=1)
+        result_df.to_csv(f"results/auc{postfix}_oracle.csv", index=False)
+
+        # All other agents
         query_sizes = pd.unique(df["query_size"])
         for q in query_sizes:
             sub_df = df[df["query_size"] == q]
@@ -151,7 +169,8 @@ def generate_auc_leaderboard(sorted_agents:list, precision=3, add_std=True, subs
                 auc_values = auc_values.transpose()
                 auc_values["agent"] = agent
                 result_df = pd.concat([result_df, auc_values])
-            result_df.to_csv(f"results/auc{postfix}_qs{q}.csv")
+            result_df = result_df.dropna(axis=1)
+            result_df.to_csv(f"results/auc{postfix}_qs{q}.csv", index=False)
 
     datasets_raw = ["Splice", "SpliceEncoded", "DNA", "DNAEncoded", "USPS", "USPSEncoded",
                     "Cifar10", "Cifar10Encoded", "FashionMnist", "FashionMnistEncoded",
@@ -161,7 +180,7 @@ def generate_auc_leaderboard(sorted_agents:list, precision=3, add_std=True, subs
     df_raw = average_out_columns(df_raw, ["iteration"])
     df_raw = std_for_column(df_raw, "auc")
     df_raw = average_out_columns(df_raw, ["trial"])
-    df_raw["auc"] = df_raw["auc"].round(precision).astype(str) + "+-" + df_raw["auc_std"].round(precision).astype(str)
+    df_raw["auc"] = df_raw["auc"].round(precision).astype(str) + "$\\pm${\\small" + df_raw["auc_std"].round(precision).astype(str) + "}"
     df_raw = df_raw.drop("auc_std", axis=1)
     save_leaderboard(df_raw, datasets_raw, postfix="")
 
@@ -301,23 +320,14 @@ def get_rank_std_for_dataset(dataset_name:str):
 
 if __name__ == '__main__':
 
-    sorted_agents = ["Oracle", "Margin", "Badge", "LeastConfident", "DSA", "BALD", "CoreGCN", "Entropy", "LSA",
+    sorted_agents = ["Oracle", "Margin", "Galaxy", "Badge", "LeastConfident", "DSA", "BALD", "CoreGCN", "Entropy", "LSA",
                      "Random", "Coreset", "TypiClust"]
 
     # generate_rank_leaderboard(add_std=True)
-    generate_rank_leaderboard(add_std=False, subsample_runs=5)
+    # generate_rank_leaderboard(add_std=False, subsample_runs=5)
 
-    # generate_auc_leaderboard(sorted_agents)
+    generate_auc_leaderboard(sorted_agents)
 
     # _find_missing_runs()
-
-    # run = "runs/Splice"
-    # df = combine_agents_into_df(dataset="Splice")
-    # df = average_out_columns(df, ["iteration"])
-    # df = df.drop("dataset", axis=1)
-    # t_table = two_tailed_paired_t_test(df, treatment_col="query_size", sample_col="trial")
-    # heatmap_data = t_table[t_table["query_size"] == "1"]#.drop(["query_size"], axis=1)
-    # plot_heatmap_individual(heatmap_data, None, None)
-    # plot_heatmap_individual(t_table.pivot(index="M0", columns="M1", values="t_value"), None, None)
 
 
