@@ -1,0 +1,2 @@
+agent,Splice,SpliceEncoded,DNA,DNAEncoded,USPS,USPSEncoded,Cifar10,Cifar10Encoded,FashionMnist,FashionMnistEncoded,TopV2,News,DivergingSin,ThreeClust
+Oracle,0.803$\pm${\small0.012},0.678$\pm${\small0.021},0.825$\pm${\small0.009},0.723$\pm${\small0.015},0.866$\pm${\small0.004},0.436$\pm${\small0.057},0.689$\pm${\small0.001},0.749$\pm${\small0.009},0.905$\pm${\small0.001},0.755$\pm${\small0.005},0.884$\pm${\small0.006},0.49$\pm${\small0.003},0.957$\pm${\small0.009},0.783$\pm${\small0.03}
