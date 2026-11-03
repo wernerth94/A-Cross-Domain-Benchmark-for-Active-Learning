@@ -30,6 +30,8 @@ for name in all_names:
     pool_rng = np.random.default_rng(1)
     DatasetClass = get_dataset_by_name(name)
     d = DatasetClass(args.data_folder, config, pool_rng, encoded=False)
+    print("Feats", d.x_train.shape[-1])
+    print("Classes", d.y_train.shape[-1])
     print("Class balance", d.y_train.sum(dim=0))
     if args.encode:
         try:

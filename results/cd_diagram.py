@@ -431,9 +431,21 @@ if __name__ == '__main__':
                         "Cifar10Encoded", "FashionMnistEncoded"]
     incl_oracle = True
 
-    df = combine_agents_into_df(datasets_raw + datasets_encoded, include_oracle=incl_oracle)
+    # df = combine_agents_into_df(datasets_raw + datasets_encoded, include_oracle=incl_oracle, cut_length=0.5)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="All Tasks 50%", file="doc/img/macro_all_reduced_50.jpg")
+
+    # df = combine_agents_into_df(["Cifar10Encoded", "FashionMnistEncoded"], include_oracle=incl_oracle)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="Semi-Supervised (Images)", file="doc/img/macro_enc_img.jpg")
+
+    df = combine_agents_into_df(["DNAEncoded", "SpliceEncoded", "USPSEncoded"], include_oracle=incl_oracle)
     df = prepare_df(df)
-    draw_cd_diagram(df, title="All Tasks", file="doc/img/macro_all.jpg")
+    draw_cd_diagram(df, title="Semi-Supervised (Tabular)", file="doc/img/macro_enc_vec.jpg")
+
+    # df = combine_agents_into_df(datasets_raw + datasets_encoded, include_oracle=incl_oracle)
+    # df = prepare_df(df)
+    # draw_cd_diagram(df, title="All Tasks", file="doc/img/macro_all.jpg")
 
     # df = combine_agents_into_df(["Splice", "DNA", "USPS"], include_oracle=incl_oracle)
     # df = prepare_df(df)

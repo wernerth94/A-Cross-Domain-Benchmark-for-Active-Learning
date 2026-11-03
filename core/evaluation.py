@@ -207,7 +207,7 @@ def compute_ranks_over_trials(df:pd.DataFrame):
 
 def combine_agents_into_df(dataset=None, query_size=None, agent=None,
                            max_loaded_runs=50, include_oracle=False,
-                           subsample_runs=None):
+                           subsample_runs=None, cut_length=None):
     def _load_trials_for_agent(dataset_name, query_size_name, agent_name):
         if query_size_name is not None:
             agent_folder = join(base_folder, dataset_name, query_size_name, agent_name)
@@ -216,6 +216,9 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None,
         acc_file = join(agent_folder, "accuracies.csv")
         if exists(acc_file):
             accuracies = pd.read_csv(acc_file, header=0, index_col=0).values
+            if cut_length is not None:
+                new_length = int(len(accuracies) * cut_length)
+                accuracies = accuracies[:new_length]
             if max_loaded_runs is not None:
                 N = max_loaded_runs
             else:
@@ -244,6 +247,8 @@ def combine_agents_into_df(dataset=None, query_size=None, agent=None,
                             df_data["trial"].append(trial)
                         df_data["iteration"].append(iteration)
                         df_data["auc"].append(accuracies[iteration, trial])
+    # End: _load_trials_for_agent
+
 
     base_folder = "runs"
 
@@ -323,7 +328,7 @@ if __name__ == '__main__':
     sorted_agents = ["Oracle", "Margin", "Galaxy", "Badge", "LeastConfident", "DSA", "BALD", "CoreGCN", "Entropy", "LSA",
                      "Random", "Coreset", "TypiClust"]
 
-    # generate_rank_leaderboard(add_std=True)
+    generate_rank_leaderboard(add_std=True)
     # generate_rank_leaderboard(add_std=False, subsample_runs=5)
 
     generate_auc_leaderboard(sorted_agents)
