@@ -1,12 +1,6 @@
-# Active Learning Benchmark
-
-## Version 2.0
-- from-scratch or finetuning? (finetuning has less variance)
-  - Might as well use xgboost
-- include batch-AL: each dataset supports a range of batch-sizes - we can use lager image datasets
-- set sample-size: Maybe by RAM usage?
-- Revise the evaluation: Is the "sets of experiments" protocol from the CD-diagram what we need?
-- Show that other benchmarks are not consistent
+# A Cross Domain-Benchmark for Active Learning
+This repository holds the source code for the NeurIPS 24 submission with the same name. \
+This work is available under the [CC BY License](https://creativecommons.org/licenses/by/4.0/)
 
 ## Dependencies
 Python >= 3.10 
